@@ -65,13 +65,3 @@ struct Event {
         memcpy(this, other, sizeof(Event));
     }
 };
-
-struct EventMsg {
-    static const int MAX_EVENTS = 100;
-    int numEvents = 0;
-    Event events[MAX_EVENTS];
-
-    void copy(EventMsg* other) {
-        memcpy(this, other, sizeof(EventMsg));
-    }
-};

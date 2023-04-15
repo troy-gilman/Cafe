@@ -6,22 +6,26 @@
 Atlas::Atlas(bool isServer) : isServer(isServer) {
     eventPool = new ObjectPool<Event>(10000);
     eventHandler = new EventHandler(eventPool);
-    networkController = new NetworkController(isServer);
     state = new State();
+    networkState = new Network::State();
 }
 
 Atlas::~Atlas() {
     delete eventPool;
     delete eventHandler;
-    delete networkController;
     delete state;
+    delete networkState;
 }
 
-static void networkControllerReadEventLoop(ThreadSafeQueue<Event*>* eventQueue, ObjectPool<Event>* eventPool, NetworkController* networkController) {
-    networkController->start();
+static void networkControllerReadEventLoop(ThreadSafeQueue<Event*>* eventQueue, ObjectPool<Event>* eventPool, Network::State* networkState, bool isServer) {
+    if (isServer) {
+        Network::startServer(networkState);
+    } else {
+        Network::startClient(networkState);
+    }
     while (true) {
-        networkController->receiveEventMsg();
-        EventMsg* eventMsg = &(networkController->eventMsgIn);
+        Network::receiveEventMsg(networkState);
+        Network::EventMsg* eventMsg = &(networkState->eventMsgIn);
         if (eventMsg->numEvents == 0) {
             continue;
         }
@@ -61,7 +65,7 @@ static void eventCreatorLoop(ThreadSafeQueue<Event*>* eventQueue, ObjectPool<Eve
 
 void Atlas::start() {
     bool done = false;
-    std::thread eventReaderThread(networkControllerReadEventLoop, &eventQueue, eventPool, networkController);
+    std::thread eventReaderThread(networkControllerReadEventLoop, &eventQueue, eventPool, networkState, isServer);
     std::thread eventCreatorThread(eventCreatorLoop, &eventQueue, eventPool, isServer, &done);
     int eventsProcessed = 0;
     auto start = std::chrono::high_resolution_clock::now();
@@ -82,13 +86,13 @@ void Atlas::start() {
         if (eventHandler->hasProcessedEvent()) {
             Event* event = eventHandler->popProcessedEvent();
             if (!isServer) {
-                EventMsg* eventMsg = &(networkController->eventMsgOut);
+                Network::EventMsg* eventMsg = &(networkState->eventMsgOut);
                 int numEvents = eventMsg->numEvents;
                 eventMsg->events[numEvents].copy(event);
                 eventMsg->numEvents++;
-                if (eventMsg->numEvents == EventMsg::MAX_EVENTS) {
+                if (eventMsg->numEvents == Network::MAX_EVENTS_PER_MSG) {
                     //std::cout << "Sending " << eventMsg->numEvents << " events" << std::endl;
-                    networkController->sendEventMsg();
+                    Network::sendEventMsg(networkState);
                 }
             }
             eventPool->returnObject(event);
