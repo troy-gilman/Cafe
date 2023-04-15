@@ -3,65 +3,62 @@
 #include <cstring>
 #include "Entity.hpp"
 #include "Types.hpp"
+#include "ThreadSafeQueue.hpp"
+#include "ObjectPool.hpp"
 
-enum EventType {
-    NONE,
-    ENTITY_CREATE,
-    ENTITY_DESTROY,
-    ENTITY_UPDATE_CAMERA_DISTANCE_FROM_TARGET,
-    ENTITY_GET_CAMERA_DISTANCE_FROM_TARGET,
-    ENTITY_UPDATE_CAMERA_VERTICAL_ANGLE,
-    ENTITY_GET_CAMERA_VERTICAL_ANGLE,
-    ENTITY_UPDATE_LIGHT_COLOR,
-    ENTITY_GET_LIGHT_COLOR,
-    ENTITY_UPDATE_LIGHT_ATTENUATION,
-    ENTITY_GET_LIGHT_ATTENUATION,
-    ENTITY_UPDATE_RENDERABLE3D_MESH_ASSET_ID,
-    ENTITY_GET_RENDERABLE3D_MESH_ASSET_ID,
-    ENTITY_UPDATE_RENDERABLE3D_MATERIAL_ASSET_ID,
-    ENTITY_GET_RENDERABLE3D_MATERIAL_ASSET_ID,
-    ENTITY_UPDATE_RENDERABLE3D_TEXTURE_ATLAS_INDEX,
-    ENTITY_GET_RENDERABLE3D_TEXTURE_ATLAS_INDEX,
-    ENTITY_UPDATE_SPATIAL3D_POSITION,
-    ENTITY_GET_SPATIAL3D_POSITION,
-    ENTITY_UPDATE_SPATIAL3D_ROTATION,
-    ENTITY_GET_SPATIAL3D_ROTATION,
-    ENTITY_UPDATE_SPATIAL3D_SCALE,
-    ENTITY_GET_SPATIAL3D_SCALE,
-};
 
-struct Event {
-    UUID eventId;
-    int eventType;
-    bool isProcessed;
-    bool success;
+namespace Event {
 
-    UUID dataId;
-    float dataFloat;
-    int dataInt;
-    bool dataBool;
-    CharBuffer dataString;
-    Vector3f dataVector3f;
+    enum EventType {
+        NONE,
+        ENTITY_CREATE,
+        ENTITY_DESTROY,
+        ENTITY_UPDATE_CAMERA_DISTANCE_FROM_TARGET,
+        ENTITY_GET_CAMERA_DISTANCE_FROM_TARGET,
+        ENTITY_UPDATE_CAMERA_VERTICAL_ANGLE,
+        ENTITY_GET_CAMERA_VERTICAL_ANGLE,
+        ENTITY_UPDATE_LIGHT_COLOR,
+        ENTITY_GET_LIGHT_COLOR,
+        ENTITY_UPDATE_LIGHT_ATTENUATION,
+        ENTITY_GET_LIGHT_ATTENUATION,
+        ENTITY_UPDATE_RENDERABLE3D_MESH_ASSET_ID,
+        ENTITY_GET_RENDERABLE3D_MESH_ASSET_ID,
+        ENTITY_UPDATE_RENDERABLE3D_MATERIAL_ASSET_ID,
+        ENTITY_GET_RENDERABLE3D_MATERIAL_ASSET_ID,
+        ENTITY_UPDATE_RENDERABLE3D_TEXTURE_ATLAS_INDEX,
+        ENTITY_GET_RENDERABLE3D_TEXTURE_ATLAS_INDEX,
+        ENTITY_UPDATE_SPATIAL3D_POSITION,
+        ENTITY_GET_SPATIAL3D_POSITION,
+        ENTITY_UPDATE_SPATIAL3D_ROTATION,
+        ENTITY_GET_SPATIAL3D_ROTATION,
+        ENTITY_UPDATE_SPATIAL3D_SCALE,
+        ENTITY_GET_SPATIAL3D_SCALE,
+    };
 
-    Event() {
-        reset();
-    }
+    struct Event {
+        UUID eventId;
+        int eventType;
+        bool isProcessed;
+        bool success;
 
-    void reset() {
-        eventId = 0;
-        eventType = NONE;
-        isProcessed = false;
-        success = false;
+        UUID dataId;
+        float dataFloat;
+        int dataInt;
+        bool dataBool;
+        CharBuffer dataString;
+        Vector3f dataVector3f;
+    };
 
-        dataId = 0;
-        dataFloat = 0.0f;
-        dataInt = 0;
-        dataBool = false;
-        memset(dataString, 0, sizeof(dataString));
-        memset(dataVector3f, 0, sizeof(dataVector3f));
-    }
+    struct EventState {
+        ObjectPool<Event> eventPool;
+        ThreadSafeQueue<Event*> eventQueue;
+        ThreadSafeQueue<Event*> eventQueueProcessed;
 
-    void copy(Event* other) {
-        memcpy(this, other, sizeof(Event));
-    }
-};
+        EventState(int eventsAvailable) : eventPool(eventsAvailable) {}
+    };
+
+    bool handleNextEvent(EventState* eventState, Entity::EntityState* entityState);
+    void copyEvent(Event* src, Event* target);
+    void resetEvent(Event* event);
+}
+

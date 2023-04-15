@@ -4,7 +4,7 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 
-void createSocket(Network::State *state) {
+void createSocket(Network::NetworkState *state) {
     state->mainSocket = socket(Network::DOMAIN, Network::TYPE, Network::PROTOCOL);
     if (state->mainSocket < 0) {
         perror("Error creating socket");
@@ -12,7 +12,7 @@ void createSocket(Network::State *state) {
     }
 }
 
-void Network::startServer(Network::State *state) {
+void Network::startServer(Network::NetworkState *state) {
     state->isServer = true;
     createSocket(state);
 
@@ -45,7 +45,7 @@ void Network::startServer(Network::State *state) {
     std::cout << "Connection established" << '\n';
 }
 
-void Network::startClient(Network::State *state) {
+void Network::startClient(Network::NetworkState *state) {
     state->isServer = false;
     createSocket(state);
 
@@ -65,13 +65,13 @@ void Network::startClient(Network::State *state) {
     std::cout << "Connected to server\n";
 }
 
-void Network::sendEventMsg(Network::State *state) {
+void Network::sendEventMsg(Network::NetworkState *state) {
     int socket = state->isServer ? state->secondSocket : state->mainSocket;
     send(socket, &state->eventMsgOut, sizeof(state->eventMsgOut), 0);
     state->eventMsgOut.numEvents = 0;
 }
 
-void Network::receiveEventMsg(Network::State *state) {
+void Network::receiveEventMsg(Network::NetworkState *state) {
     int socket = state->isServer ? state->secondSocket : state->mainSocket;
     read(socket, &state->eventMsgIn, sizeof(state->eventMsgIn));
 }

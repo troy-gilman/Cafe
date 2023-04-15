@@ -4,20 +4,18 @@
 #include <iostream>
 
 Atlas::Atlas(bool isServer) : isServer(isServer) {
-    eventPool = new ObjectPool<Event>(10000);
-    eventHandler = new EventHandler(eventPool);
-    state = new State();
-    networkState = new Network::State();
+    eventState = new Event::EventState(10000);
+    entityState = new Entity::EntityState();
+    networkState = new Network::NetworkState();
 }
 
 Atlas::~Atlas() {
-    delete eventPool;
-    delete eventHandler;
-    delete state;
+    delete eventState;
+    delete entityState;
     delete networkState;
 }
 
-static void networkControllerReadEventLoop(ThreadSafeQueue<Event*>* eventQueue, ObjectPool<Event>* eventPool, Network::State* networkState, bool isServer) {
+static void networkControllerReadEventLoop(Event::EventState* eventState, Network::NetworkState* networkState, bool isServer) {
     if (isServer) {
         Network::startServer(networkState);
     } else {
@@ -30,16 +28,15 @@ static void networkControllerReadEventLoop(ThreadSafeQueue<Event*>* eventQueue, 
             continue;
         }
         for (int i = 0; i < eventMsg->numEvents; i++) {
-            Event* event = eventPool->waitForObject();
-            event->copy(&eventMsg->events[i]);
-            eventQueue->push(event);
+            Event::Event* event = eventState->eventPool.waitForObject();
+            Event::copyEvent(&eventMsg->events[i], event);
+            eventState->eventQueue.push(event);
         }
-        //std::cout << "Received " << eventMsg->numEvents << " events" << std::endl;
         eventMsg->numEvents = 0;
     }
 }
 
-static void eventCreatorLoop(ThreadSafeQueue<Event*>* eventQueue, ObjectPool<Event>* eventPool, bool isServer, bool* done) {
+static void eventCreatorLoop(Event::EventState* eventState, bool isServer, bool* done) {
     if (isServer) {
         *done = true;
         return;
@@ -47,16 +44,16 @@ static void eventCreatorLoop(ThreadSafeQueue<Event*>* eventQueue, ObjectPool<Eve
     UUIDGenerator uuidGenerator;
     int numEvents = 10000;
     for (int i = 0; i < numEvents; i++) {
-        Event* event = eventPool->waitForObject();
-        event->reset();
+        Event::Event* event = eventState->eventPool.waitForObject();
+        Event::resetEvent(event);
 
-        EventType eventType = static_cast<EventType>(i % 24);
+        Event::EventType eventType = static_cast<Event::EventType>(i % 24);
         event->eventType = eventType;
 
         UUID id = uuidGenerator.generateUUID();
         event->dataId = id;
 
-        eventQueue->push(event);
+        eventState->eventQueue.push(event);
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
     std::cout << "Done creating events" << std::endl;
@@ -65,43 +62,40 @@ static void eventCreatorLoop(ThreadSafeQueue<Event*>* eventQueue, ObjectPool<Eve
 
 void Atlas::start() {
     bool done = false;
-    std::thread eventReaderThread(networkControllerReadEventLoop, &eventQueue, eventPool, networkState, isServer);
-    std::thread eventCreatorThread(eventCreatorLoop, &eventQueue, eventPool, isServer, &done);
+    std::thread eventReaderThread(networkControllerReadEventLoop, eventState, networkState, isServer);
+    std::thread eventCreatorThread(eventCreatorLoop, eventState, isServer, &done);
     int eventsProcessed = 0;
     auto start = std::chrono::high_resolution_clock::now();
     while (true) {
         // Process events in our queue
-        if (!eventQueue.empty()) {
-            Event* event = eventQueue.pop();
-            eventHandler->handleEvent(state, event);
-            if (event->success) {
+        if (!eventState->eventQueue.empty()) {
+            bool success = Event::handleNextEvent(eventState, entityState);
+            if (success) {
                 eventsProcessed++;
             }
-            eventPool->returnObject(event);
             if (eventsProcessed % 1000 == 0) {
                 std::cout << "Events successfully processed: " << eventsProcessed << std::endl;
             }
         }
         // Handle events that were processed
-        if (eventHandler->hasProcessedEvent()) {
-            Event* event = eventHandler->popProcessedEvent();
+        if (!eventState->eventQueueProcessed.empty()) {
+            Event::Event* event = eventState->eventQueueProcessed.pop();
             if (!isServer) {
                 Network::EventMsg* eventMsg = &(networkState->eventMsgOut);
                 int numEvents = eventMsg->numEvents;
-                eventMsg->events[numEvents].copy(event);
+                Event::copyEvent(event, &eventMsg->events[numEvents]);
                 eventMsg->numEvents++;
                 if (eventMsg->numEvents == Network::MAX_EVENTS_PER_MSG) {
-                    //std::cout << "Sending " << eventMsg->numEvents << " events" << std::endl;
                     Network::sendEventMsg(networkState);
                 }
             }
-            eventPool->returnObject(event);
+            eventState->eventPool.returnObject(event);
         }
 
         auto end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> elapsed = end - start;
-        bool shouldExit = !isServer || (isServer && elapsed.count() > 60);
-        if (done && eventQueue.empty() && shouldExit) {
+        bool shouldExit = !isServer || (isServer && elapsed.count() > 30);
+        if (done && eventState->eventQueue.empty() && shouldExit) {
             eventReaderThread.detach();
             eventCreatorThread.join();
             std::cout << "Successfully processed " << eventsProcessed << " events" << std::endl;

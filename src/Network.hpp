@@ -14,10 +14,10 @@ namespace Network {
 
     struct EventMsg {
         int numEvents;
-        Event events[MAX_EVENTS_PER_MSG];
+        Event::Event events[MAX_EVENTS_PER_MSG];
     };
 
-    struct State {
+    struct NetworkState {
         bool isServer;
         int mainSocket;
         int secondSocket;
@@ -26,8 +26,8 @@ namespace Network {
         EventMsg eventMsgOut;
     };
 
-    void startServer(State* state);
-    void startClient(State* state);
-    void sendEventMsg(State* state);
-    void receiveEventMsg(State* state);
+    void startServer(NetworkState* state);
+    void startClient(NetworkState* state);
+    void sendEventMsg(NetworkState* state);
+    void receiveEventMsg(NetworkState* state);
 }

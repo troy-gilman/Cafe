@@ -1,3 +1,6 @@
+#ifndef THREADSAFEQUEUE_H
+#define THREADSAFEQUEUE_H
+
 #include <queue>
 #include <mutex>
 
@@ -32,7 +35,7 @@ public:
 
     // Check if the queue is empty
     bool empty() const {
-        return queue.empty();;
+        return queue.empty();
     }
 
     // Get the size of the queue
@@ -43,3 +46,5 @@ public:
         return size;
     }
 };
+
+#endif // THREADSAFEQUEUE_H
