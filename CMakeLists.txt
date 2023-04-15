@@ -9,7 +9,7 @@ file (GLOB srcFiles
     "src/*.cpp"
 )
 
-add_executable(Atlas ${srcFiles} src/Atlas.cpp)
+add_executable(Atlas ${srcFiles})
 target_include_directories(Atlas PUBLIC src)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})

@@ -57,7 +57,6 @@ namespace Event {
         EventState(int eventsAvailable) : eventPool(eventsAvailable) {}
     };
 
-    bool handleNextEvent(EventState* eventState, Entity::EntityState* entityState);
     void copyEvent(Event* src, Event* target);
     void resetEvent(Event* event);
 }

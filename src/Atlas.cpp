@@ -1,6 +1,7 @@
 #include "Atlas.hpp"
 #include <thread>
 #include "UUIDGenerator.hpp"
+#include "EventHandling.hpp"
 #include <iostream>
 
 Atlas::Atlas(bool isServer) : isServer(isServer) {
@@ -69,7 +70,7 @@ void Atlas::start() {
     while (true) {
         // Process events in our queue
         if (!eventState->eventQueue.empty()) {
-            bool success = Event::handleNextEvent(eventState, entityState);
+            bool success = EventHandling::handleNextEvent(eventState, entityState);
             if (success) {
                 eventsProcessed++;
             }
