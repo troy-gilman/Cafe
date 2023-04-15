@@ -240,6 +240,8 @@ void handleEventEntityGetSpatial3DScale(Event::Event *event, Entity::EntityState
 bool Event::handleNextEvent(EventState *eventState, Entity::EntityState *entityState) {
     Event *event = eventState->eventQueue.pop();
     switch (event->eventType) {
+        case NONE:
+            break;
         case ENTITY_CREATE:
             handleEventEntityCreate(event, entityState);
             break;
