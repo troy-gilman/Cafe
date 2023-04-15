@@ -4,7 +4,12 @@
 
 namespace Render {
 
+    static const int INIT_WIDTH = 960;
+    static const int INIT_HEIGHT = 540;
+
     struct Window {
+        int width;
+        int height;
         GLFWwindow* glfwWindow;
     };
 

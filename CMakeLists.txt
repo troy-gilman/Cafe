@@ -6,6 +6,8 @@ enable_testing()
 
 file(GLOB_RECURSE ${PROJECT_NAME}_SOURCES "src/*")
 
+set(OpenGL_GL_PREFERENCE "GLVND")
+
 find_package(glfw3 3.3 REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)

@@ -3,8 +3,8 @@
 #include <cstring>
 #include "Entity.hpp"
 #include "Types.hpp"
-#include "ThreadSafeQueue.hpp"
-#include "ObjectPool.hpp"
+#include "util/ThreadSafeQueue.hpp"
+#include "util/ObjectPool.hpp"
 
 
 namespace Event {

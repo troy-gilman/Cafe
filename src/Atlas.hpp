@@ -3,7 +3,7 @@
 #include <queue>
 #include <atomic>
 #include "Event.hpp"
-#include "ThreadSafeQueue.hpp"
+#include "util/ThreadSafeQueue.hpp"
 #include "Network.hpp"
 
 class Atlas {

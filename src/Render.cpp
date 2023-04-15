@@ -10,11 +10,13 @@ void Render::init(Window* window) {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    window->glfwWindow = glfwCreateWindow(640, 480, "GLFW Render", NULL, NULL);
+    window->glfwWindow = glfwCreateWindow(INIT_WIDTH, INIT_HEIGHT, "GLFW Render", NULL, NULL);
     if (!window->glfwWindow) {
         glfwTerminate();
         return;
     }
+    window->width = INIT_WIDTH;
+    window->height = INIT_HEIGHT;
 
     glfwMakeContextCurrent(window->glfwWindow);
     glfwSwapInterval(1);
