@@ -1,4 +1,5 @@
-#pragma once
+#ifndef OBJECTPOOL_H
+#define OBJECTPOOL_H
 
 #include "../Event.h"
 #include <stack>
@@ -66,3 +67,5 @@ public:
         return obj;
     }
 };
+
+#endif // OBJECTPOOL_H

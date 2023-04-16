@@ -4,15 +4,11 @@
 #include "Atlas.h"
 #include "Render.h"
 #include "util/Image.h"
-#include "util/StringUtils.h"
 
 int main(int argc, char* argv[]) {
 
     Image::Image* image = new Image::Image();
-    const char* fileName = "resources/textures/blendMap.png";
-    StringUtils::copyStringToBuffer(fileName, image->filePath, strlen(fileName));
-    bool success = Image::loadImage(image);
-
+    bool success = Image::loadImage(image, "resources/textures/blendMap.png");
 
     Render::Window* window = new Render::Window();
 

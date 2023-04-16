@@ -2,10 +2,11 @@
 
 #include <iostream>
 #include <png.h>
+#include "StringUtils.h"
 
 
-bool Image::loadImage(Image* image) {
-    FILE* fp = fopen(image->filePath, "rb");
+bool Image::loadImage(Image* image, const char* filePath) {
+    FILE* fp = fopen(filePath, "rb");
     if (!fp) {
         std::cout << "Error opening PNG file: " << image->filePath << "\n";
         return false;
@@ -53,6 +54,7 @@ bool Image::loadImage(Image* image) {
     image->width = width;
     image->height = height;
     image->channels = channels;
+    StringUtils::copyStringToBuffer(filePath, image->filePath, CHAR_BUFFER_SIZE);
 
     png_bytep row_pointers[height];
     for (unsigned y = 0; y < height; y++) {

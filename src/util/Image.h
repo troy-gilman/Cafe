@@ -15,5 +15,5 @@ namespace Image {
         CharBuffer filePath;
     };
 
-    bool loadImage(Image* image);
+    bool loadImage(Image* image, const char* filePath);
 }

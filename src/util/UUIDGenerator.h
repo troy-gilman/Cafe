@@ -1,4 +1,5 @@
-#pragma once 
+#ifndef UUIDGENERATOR_H
+#define UUIDGENERATOR_H
 
 #include <random>
 #include <chrono>
@@ -26,3 +27,5 @@ public:
         return uuid;
     }
 };
+
+#endif // UUIDGENERATOR_H
