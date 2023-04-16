@@ -11,13 +11,16 @@ set(OpenGL_GL_PREFERENCE "GLVND")
 find_package(glfw3 3.3 REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
+find_package(PNG REQUIRED)
 
 set(PROJECT_LIBS
         ${PROJECT_LIBS}
         ${CMAKE_DL_LIBS}
         OpenGL::GL
         glfw
-        GLEW::GLEW)
+        GLEW::GLEW
+        PNG::PNG
+        )
 
 add_executable(${PROJECT_NAME} ${${PROJECT_NAME}_SOURCES})
 set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)

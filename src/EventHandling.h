@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Event.hpp"
-#include "Entity.hpp"
+#include "Event.h"
+#include "Entity.h"
 
 namespace EventHandling {
 

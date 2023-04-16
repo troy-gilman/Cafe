@@ -1,4 +1,4 @@
-#include "Network.hpp"
+#include "Network.h"
 
 #include <iostream>
 #include <arpa/inet.h>

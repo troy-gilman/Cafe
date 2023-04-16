@@ -2,9 +2,9 @@
 
 #include <queue>
 #include <atomic>
-#include "Event.hpp"
-#include "util/ThreadSafeQueue.hpp"
-#include "Network.hpp"
+#include "Event.h"
+#include "util/ThreadSafeQueue.h"
+#include "Network.h"
 
 class Atlas {
 private:

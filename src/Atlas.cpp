@@ -1,7 +1,7 @@
-#include "Atlas.hpp"
+#include "Atlas.h"
 #include <thread>
-#include "util/UUIDGenerator.hpp"
-#include "EventHandling.hpp"
+#include "util/UUIDGenerator.h"
+#include "EventHandling.h"
 #include <iostream>
 
 Atlas::Atlas(bool isServer) : isServer(isServer) {

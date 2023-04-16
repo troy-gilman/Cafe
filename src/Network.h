@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Event.hpp"
+#include "Event.h"
 #include <netinet/in.h>
 
 namespace Network {
@@ -13,7 +13,7 @@ namespace Network {
     static const int MAX_EVENTS_PER_MSG = 100;
 
     struct EventMsg {
-        int numEvents;
+        size_t numEvents;
         Event::Event events[MAX_EVENTS_PER_MSG];
     };
 

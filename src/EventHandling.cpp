@@ -1,4 +1,4 @@
-#include "EventHandling.hpp"
+#include "EventHandling.h"
 
 void handleEventEntityCreate(Event::Event *event, Entity::EntityState *entityState) {
     event->success = false;

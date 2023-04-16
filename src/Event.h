@@ -1,10 +1,10 @@
 #pragma once
 
 #include <cstring>
-#include "Entity.hpp"
-#include "Types.hpp"
-#include "util/ThreadSafeQueue.hpp"
-#include "util/ObjectPool.hpp"
+#include "Entity.h"
+#include "util/Types.h"
+#include "util/ThreadSafeQueue.h"
+#include "util/ObjectPool.h"
 
 
 namespace Event {

@@ -8,11 +8,13 @@ namespace Render {
     static const int INIT_HEIGHT = 540;
 
     struct Window {
-        int width;
-        int height;
+        size_t width;
+        size_t height;
         GLFWwindow* glfwWindow;
     };
 
-    void init(Window* window);
-    void close(Window* window);
+    void initWindow(Window* window);
+    void closeWindow(Window * window);
+    bool shouldCloseWindow(Window * window);
+    void render(Window * window);
 }

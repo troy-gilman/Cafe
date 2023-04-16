@@ -1,7 +1,7 @@
-#include "Render.hpp"
+#include "Render.h"
 
 
-void Render::init(Window* window) {
+void Render::initWindow(Window* window) {
     if (!glfwInit()) {
         return;
     }
@@ -22,7 +22,19 @@ void Render::init(Window* window) {
     glfwSwapInterval(1);
 }
 
-void Render::close(Window* window) {
+void Render::closeWindow(Window* window) {
     glfwDestroyWindow(window->glfwWindow);
     glfwTerminate();
+}
+
+bool Render::shouldCloseWindow(Window* window) {
+    return glfwWindowShouldClose(window->glfwWindow);
+}
+
+void Render::render(Window* window) {
+    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    glfwSwapBuffers(window->glfwWindow);
+    glfwPollEvents();
 }
