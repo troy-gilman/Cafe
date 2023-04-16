@@ -1,17 +1,16 @@
 #include <iostream>
 #include "Atlas.h"
-#include "Asset.h"
 #include "Render.h"
+#include "Asset.h"
+
 
 
 int main(int argc, char* argv[]) {
+    Render::Window* window = new Render::Window();
+    Render::initWindow(window);
 
     Asset::TextureAsset* asset = new Asset::TextureAsset();
     Asset::loadTextureAsset(asset, "resources/textures/blendMap.png");
-
-    Render::Window* window = new Render::Window();
-
-    Render::initWindow(window);
 
     while (!Render::shouldCloseWindow(window)) {
        Render::render(window);

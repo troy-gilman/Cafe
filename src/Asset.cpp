@@ -28,9 +28,7 @@ bool Asset::loadTextureAsset(TextureAsset* asset, const char* filePath) {
             image->buffer);
 
 
-    glEnable(GL_TEXTURE_2D);
     glGenerateMipmap(GL_TEXTURE_2D);
-    gl
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_LOD_BIAS, 1.0f);
 

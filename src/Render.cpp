@@ -1,5 +1,5 @@
 #include "Render.h"
-
+#include <iostream>
 
 void Render::initWindow(Window* window) {
     if (!glfwInit()) {
@@ -20,6 +20,11 @@ void Render::initWindow(Window* window) {
 
     glfwMakeContextCurrent(window->glfwWindow);
     glfwSwapInterval(1);
+
+    if (glewInit() != GLEW_OK) {
+        std::cout << "ERROR: Unable to initialize GLEW\n";
+        return;
+    }
 }
 
 void Render::closeWindow(Window* window) {
