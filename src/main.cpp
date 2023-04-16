@@ -1,14 +1,13 @@
-#include <cstring>
 #include <iostream>
-#include <GLFW/glfw3.h>
 #include "Atlas.h"
+#include "Asset.h"
 #include "Render.h"
-#include "util/Image.h"
+
 
 int main(int argc, char* argv[]) {
 
-    Image::Image* image = new Image::Image();
-    bool success = Image::loadImage(image, "resources/textures/blendMap.png");
+    Asset::TextureAsset* asset = new Asset::TextureAsset();
+    Asset::loadTextureAsset(asset, "resources/textures/blendMap.png");
 
     Render::Window* window = new Render::Window();
 

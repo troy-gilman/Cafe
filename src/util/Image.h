@@ -1,4 +1,5 @@
-#pragma once
+#ifndef IMAGE_H
+#define IMAGE_H
 
 #include <cstddef>
 #include "Types.h"
@@ -17,3 +18,5 @@ namespace Image {
 
     bool loadImage(Image* image, const char* filePath);
 }
+
+#endif //IMAGE_H

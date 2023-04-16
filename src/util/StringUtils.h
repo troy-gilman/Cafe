@@ -6,7 +6,7 @@
 
 namespace StringUtils {
 
-    void copyStringToBuffer(const char* string, char* buffer, size_t bufferSize) {
+    inline void copyStringToBuffer(const char* string, char* buffer, size_t bufferSize) {
         size_t stringLength = strlen(string);
         if (stringLength > bufferSize) {
             stringLength = bufferSize;
