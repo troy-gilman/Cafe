@@ -15,6 +15,9 @@ int main(int argc, char* argv[]) {
     Asset::ShaderAsset* shaderAsset = new Asset::ShaderAsset();
     Asset::loadShaderAsset(shaderAsset, "resources/shaders/mainVertex.glsl", "resources/shaders/mainFragment.glsl");
 
+    Asset::MeshAsset* meshAsset = new Asset::MeshAsset();
+    Asset::loadMeshAsset(meshAsset, "resources/models/tree/tree.obj");
+
     while (!Render::shouldCloseWindow(window)) {
        Render::render(window);
     }

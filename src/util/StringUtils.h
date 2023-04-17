@@ -16,6 +16,15 @@ namespace StringUtils {
         buffer[stringLength] = '\0';
     }
 
+    inline bool startsWith(const char* string, const char* prefix) {
+        size_t stringLength = strlen(string);
+        size_t prefixLength = strlen(prefix);
+        if (stringLength < prefixLength) {
+            return false;
+        }
+        return strncmp(string, prefix, prefixLength) == 0;
+    }
+
     inline const char* loadFileAsString(const char* filePath) {
         FILE* file = fopen(filePath, "rt");
         if (file == nullptr) {
