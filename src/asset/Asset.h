@@ -4,6 +4,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include "../util/Types.h"
+#include <unordered_map>
 
 namespace Asset {
 
@@ -15,6 +16,13 @@ namespace Asset {
         size_t tbo;
         size_t nbo;
         size_t vertexCount;
+    };
+
+    struct MaterialAsset {
+        UUID assetId;
+        size_t shaderAssetId;
+        size_t textureAssetId;
+        size_t normalMapAssetId;
     };
 
     struct TextureAsset {
@@ -33,7 +41,15 @@ namespace Asset {
         size_t fragmentShaderId;
     };
 
+    struct AssetPack {
+        std::unordered_map<UUID, MeshAsset*> meshAssets;
+        std::unordered_map<UUID, MaterialAsset*> materialAssets;
+        std::unordered_map<UUID, TextureAsset*> textureAssets;
+        std::unordered_map<UUID, ShaderAsset*> shaderAssets;
+    };
+
     bool loadMeshAsset(MeshAsset* asset, const char* filePath);
+    bool loadMaterialAsset(MaterialAsset* asset, size_t shaderAssetId, size_t textureAssetId, size_t normalMapAssetId);
     bool loadTextureAsset(TextureAsset* asset, const char* filePath);
     bool loadShaderAsset(ShaderAsset* asset, const char* vertexFilePath, const char* fragmentFilePath);
 }
