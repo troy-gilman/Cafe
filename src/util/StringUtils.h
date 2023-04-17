@@ -3,6 +3,7 @@
 
 #include <cstddef>
 #include <cstring>
+#include <cstdio>
 
 namespace StringUtils {
 
@@ -13,6 +14,24 @@ namespace StringUtils {
         }
         strncpy(buffer, string, stringLength);
         buffer[stringLength] = '\0';
+    }
+
+    inline const char* loadFileAsString(const char* filePath) {
+        FILE* file = fopen(filePath, "rt");
+        if (file == nullptr) {
+            return nullptr;
+        }
+
+        fseek(file, 0, SEEK_END);
+        size_t fileSize = ftell(file);
+        rewind(file);
+
+        char* fileContents = new char[fileSize + 1];
+        fread(fileContents, 1, fileSize, file);
+        fclose(file);
+
+        fileContents[fileSize] = '\0';
+        return fileContents;
     }
 }
 

@@ -1,7 +1,7 @@
 #include <iostream>
 #include "Atlas.h"
 #include "Render.h"
-#include "Asset.h"
+#include "asset/Asset.h"
 
 
 
@@ -9,8 +9,11 @@ int main(int argc, char* argv[]) {
     Render::Window* window = new Render::Window();
     Render::initWindow(window);
 
-    Asset::TextureAsset* asset = new Asset::TextureAsset();
-    Asset::loadTextureAsset(asset, "resources/textures/blendMap.png");
+    Asset::TextureAsset* textureAsset = new Asset::TextureAsset();
+    Asset::loadTextureAsset(textureAsset, "resources/textures/blendMap.png");
+
+    Asset::ShaderAsset* shaderAsset = new Asset::ShaderAsset();
+    Asset::loadShaderAsset(shaderAsset, "resources/shaders/mainVertex.glsl", "resources/shaders/mainFragment.glsl");
 
     while (!Render::shouldCloseWindow(window)) {
        Render::render(window);
