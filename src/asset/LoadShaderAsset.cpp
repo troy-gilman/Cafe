@@ -1,5 +1,6 @@
 #include "Asset.h"
 #include "../util/StringUtils.h"
+#include "../util/UUIDGenerator.h"
 #include <iostream>
 
 bool Asset::loadShaderAsset(ShaderAsset* asset, const char* vertexFilePath, const char* fragmentFilePath) {
@@ -68,7 +69,7 @@ bool Asset::loadShaderAsset(ShaderAsset* asset, const char* vertexFilePath, cons
     }
 
     // Set the shader asset properties
-    asset->assetId = 0;
+    asset->assetId = UUIDGenerator::getInstance()->generateUUID();
     StringUtils::copyStringToBuffer(vertexFilePath, asset->vertexFilePath, CHAR_BUFFER_SIZE);
     StringUtils::copyStringToBuffer(fragmentFilePath, asset->fragmentFilePath, CHAR_BUFFER_SIZE);
     asset->programId = programId;

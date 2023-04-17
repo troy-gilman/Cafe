@@ -42,7 +42,7 @@ static void eventCreatorLoop(Event::EventState* eventState, bool isServer, bool*
         *done = true;
         return;
     }
-    UUIDGenerator uuidGenerator;
+    UUIDGenerator* uuidGenerator = UUIDGenerator::getInstance();
     int numEvents = 10000;
     for (int i = 0; i < numEvents; i++) {
         Event::Event* event = eventState->eventPool.waitForObject();
@@ -51,7 +51,7 @@ static void eventCreatorLoop(Event::EventState* eventState, bool isServer, bool*
         Event::EventType eventType = static_cast<Event::EventType>(i % 24);
         event->eventType = eventType;
 
-        UUID id = uuidGenerator.generateUUID();
+        UUID id = uuidGenerator->generateUUID();
         event->dataId = id;
 
         eventState->eventQueue.push(event);

@@ -1,8 +1,8 @@
 #include "Asset.h"
 #include "../util/Image.h"
-#include <iostream>
 #include "../util/StringUtils.h"
-
+#include "../util/UUIDGenerator.h"
+#include <iostream>
 
 bool Asset::loadTextureAsset(TextureAsset* asset, const char* filePath) {
     // Load the image
@@ -43,7 +43,7 @@ bool Asset::loadTextureAsset(TextureAsset* asset, const char* filePath) {
     delete image;
 
     // Set the texture asset properties
-    asset->assetId = 0;
+    asset->assetId = UUIDGenerator::getInstance()->generateUUID();
     StringUtils::copyStringToBuffer(filePath, asset->filePath, CHAR_BUFFER_SIZE);
     asset->textureId = textureId;
     asset->atlasSize = 1;

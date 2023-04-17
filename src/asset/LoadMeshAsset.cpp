@@ -1,6 +1,7 @@
 #include "Asset.h"
 
 #include "../util/StringUtils.h"
+#include "../util/UUIDGenerator.h"
 #include <vector>
 #include <iostream>
 
@@ -122,7 +123,7 @@ bool Asset::loadMeshAsset(MeshAsset* asset, const char* filePath) {
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
 
     // Set the mesh asset properties
-    asset->assetId = 0;
+    asset->assetId = UUIDGenerator::getInstance()->generateUUID();
     StringUtils::copyStringToBuffer(filePath, asset->filePath, CHAR_BUFFER_SIZE);
     asset->vao = vao;
     asset->vbo = vbo;
