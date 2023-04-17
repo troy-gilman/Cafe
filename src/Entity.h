@@ -35,13 +35,13 @@ namespace Entity {
             id = 0;
             camera_DistanceFromTarget = 0.0f;
             camera_VerticalAngle = 0.0f;
-            memset(light_Color, 0, sizeof(light_Color));
-            memset(light_Attenuation, 0, sizeof(light_Attenuation));
+            light_Color = { 0.0f, 0.0f, 0.0f };
+            light_Attenuation = { 0.0f, 0.0f, 0.0f };
             renderable3D_MeshAssetId = 0;
             renderable3D_MaterialAssetId = 0;
             renderable3D_TextureAtlasIndex = 0;
-            memset(spatial3D_Position, 0, sizeof(spatial3D_Position));
-            memset(spatial3D_Rotation, 0, sizeof(spatial3D_Rotation));
+            spatial3D_Position = { 0.0f, 0.0f, 0.0f };
+            spatial3D_Rotation = { 0.0f, 0.0f, 0.0f };
             spatial3D_Scale = 0.0f;
         }
     };

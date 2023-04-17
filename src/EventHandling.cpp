@@ -65,9 +65,9 @@ void handleEventEntityUpdateLightColor(Event::Event *event, Entity::EntityState 
     UUID id = event->dataId;
     auto it = entityState->entities.find(id);
     if (it != entityState->entities.end()) {
-        it->second.light_Color[0] = event->dataVector3f[0];
-        it->second.light_Color[1] = event->dataVector3f[1];
-        it->second.light_Color[2] = event->dataVector3f[2];
+        it->second.light_Color.x = event->dataVector3f.x;
+        it->second.light_Color.y = event->dataVector3f.y;
+        it->second.light_Color.z = event->dataVector3f.z;
         event->success = true;
     }
 }
@@ -77,9 +77,9 @@ void handleEventEntityGetLightColor(Event::Event *event, Entity::EntityState *en
     UUID id = event->dataId;
     auto it = entityState->entities.find(id);
     if (it != entityState->entities.end()) {
-        event->dataVector3f[0] = it->second.light_Color[0];
-        event->dataVector3f[1] = it->second.light_Color[1];
-        event->dataVector3f[2] = it->second.light_Color[2];
+        event->dataVector3f.x = it->second.light_Color.x;
+        event->dataVector3f.y = it->second.light_Color.y;
+        event->dataVector3f.z = it->second.light_Color.z;
         event->success = true;
     }
 }
@@ -89,9 +89,9 @@ void handleEventEntityUpdateLightAttenuation(Event::Event *event, Entity::Entity
     UUID id = event->dataId;
     auto it = entityState->entities.find(id);
     if (it != entityState->entities.end()) {
-        it->second.light_Attenuation[0] = event->dataVector3f[0];
-        it->second.light_Attenuation[1] = event->dataVector3f[1];
-        it->second.light_Attenuation[2] = event->dataVector3f[2];
+        it->second.light_Attenuation.x = event->dataVector3f.x;
+        it->second.light_Attenuation.y = event->dataVector3f.y;
+        it->second.light_Attenuation.z = event->dataVector3f.z;
         event->success = true;
     }
 }
@@ -101,9 +101,9 @@ void handleEventEntityGetLightAttenuation(Event::Event *event, Entity::EntitySta
     UUID id = event->dataId;
     auto it = entityState->entities.find(id);
     if (it != entityState->entities.end()) {
-        event->dataVector3f[0] = it->second.light_Attenuation[0];
-        event->dataVector3f[1] = it->second.light_Attenuation[1];
-        event->dataVector3f[2] = it->second.light_Attenuation[2];
+        event->dataVector3f.x = it->second.light_Attenuation.x;
+        event->dataVector3f.y = it->second.light_Attenuation.y;
+        event->dataVector3f.z = it->second.light_Attenuation.z;
         event->success = true;
     }
 }
@@ -173,9 +173,9 @@ void handleEventEntityUpdateSpatial3DPosition(Event::Event *event, Entity::Entit
     UUID id = event->dataId;
     auto it = entityState->entities.find(id);
     if (it != entityState->entities.end()) {
-        it->second.spatial3D_Position[0] = event->dataVector3f[0];
-        it->second.spatial3D_Position[1] = event->dataVector3f[1];
-        it->second.spatial3D_Position[2] = event->dataVector3f[2];
+        it->second.spatial3D_Position.x = event->dataVector3f.x;
+        it->second.spatial3D_Position.y = event->dataVector3f.y;
+        it->second.spatial3D_Position.z = event->dataVector3f.z;
         event->success = true;
     }
 }
@@ -185,9 +185,9 @@ void handleEventEntityGetSpatial3DPosition(Event::Event *event, Entity::EntitySt
     UUID id = event->dataId;
     auto it = entityState->entities.find(id);
     if (it != entityState->entities.end()) {
-        event->dataVector3f[0] = it->second.spatial3D_Position[0];
-        event->dataVector3f[1] = it->second.spatial3D_Position[1];
-        event->dataVector3f[2] = it->second.spatial3D_Position[2];
+        event->dataVector3f.x = it->second.spatial3D_Position.x;
+        event->dataVector3f.y = it->second.spatial3D_Position.y;
+        event->dataVector3f.z = it->second.spatial3D_Position.z;
         event->success = true;
     }
 }
@@ -197,9 +197,9 @@ void handleEventEntityUpdateSpatial3DRotation(Event::Event *event, Entity::Entit
     UUID id = event->dataId;
     auto it = entityState->entities.find(id);
     if (it != entityState->entities.end()) {
-        it->second.spatial3D_Rotation[0] = event->dataVector3f[0];
-        it->second.spatial3D_Rotation[1] = event->dataVector3f[1];
-        it->second.spatial3D_Rotation[2] = event->dataVector3f[2];
+        it->second.spatial3D_Rotation.x = event->dataVector3f.x;
+        it->second.spatial3D_Rotation.y = event->dataVector3f.y;
+        it->second.spatial3D_Rotation.z = event->dataVector3f.z;
         event->success = true;
     }
 }
@@ -209,9 +209,9 @@ void handleEventEntityGetSpatial3DRotation(Event::Event *event, Entity::EntitySt
     UUID id = event->dataId;
     auto it = entityState->entities.find(id);
     if (it != entityState->entities.end()) {
-        event->dataVector3f[0] = it->second.spatial3D_Rotation[0];
-        event->dataVector3f[1] = it->second.spatial3D_Rotation[1];
-        event->dataVector3f[2] = it->second.spatial3D_Rotation[2];
+        event->dataVector3f.x = it->second.spatial3D_Rotation.x;
+        event->dataVector3f.y = it->second.spatial3D_Rotation.y;
+        event->dataVector3f.z = it->second.spatial3D_Rotation.z;
         event->success = true;
     }
 }

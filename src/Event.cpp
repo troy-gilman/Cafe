@@ -16,5 +16,5 @@ void Event::resetEvent(Event* event) {
     event->dataInt = 0;
     event->dataBool = false;
     memset(event->dataString, 0, sizeof(event->dataString));
-    memset(event->dataVector3f, 0, sizeof(event->dataVector3f));
+    event->dataVector3f = { 0.0f, 0.0f, 0.0f};
 }
