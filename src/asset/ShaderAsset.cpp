@@ -78,3 +78,14 @@ bool Asset::loadShaderAsset(ShaderAsset* asset, const char* vertexFilePath, cons
 
     return true;
 }
+
+bool Asset::addShaderToAssetPack(AssetPack* assetPack, ShaderAsset* asset) {
+    if (!assetPack || !asset) {
+        return false;
+    }
+    if (assetPack->meshAssets.find(asset->assetId) != assetPack->meshAssets.end()) {
+        return false;
+    }
+    assetPack->shaderAssets[asset->assetId] = asset;
+    return true;
+}

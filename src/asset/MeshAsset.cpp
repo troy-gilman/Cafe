@@ -133,3 +133,14 @@ bool Asset::loadMeshAsset(MeshAsset* asset, const char* filePath) {
 
     return true;
 }
+
+bool Asset::addMeshToAssetPack(AssetPack* assetPack, MeshAsset* asset) {
+    if (!assetPack || !asset) {
+        return false;
+    }
+    if (assetPack->meshAssets.find(asset->assetId) != assetPack->meshAssets.end()) {
+        return false;
+    }
+    assetPack->meshAssets[asset->assetId] = asset;
+    return true;
+}

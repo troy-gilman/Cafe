@@ -20,9 +20,9 @@ namespace Asset {
 
     struct MaterialAsset {
         UUID assetId;
-        size_t shaderAssetId;
-        size_t textureAssetId;
-        size_t normalMapAssetId;
+        UUID shaderAssetId;
+        UUID textureAssetId;
+        UUID normalMapAssetId;
     };
 
     struct TextureAsset {
@@ -52,6 +52,11 @@ namespace Asset {
     bool loadMaterialAsset(MaterialAsset* asset, size_t shaderAssetId, size_t textureAssetId, size_t normalMapAssetId);
     bool loadTextureAsset(TextureAsset* asset, const char* filePath);
     bool loadShaderAsset(ShaderAsset* asset, const char* vertexFilePath, const char* fragmentFilePath);
+
+    bool addMeshToAssetPack(AssetPack* assetPack, MeshAsset* asset);
+    bool addMaterialToAssetPack(AssetPack* assetPack, MaterialAsset* asset);
+    bool addTextureToAssetPack(AssetPack* assetPack, TextureAsset* asset);
+    bool addShaderToAssetPack(AssetPack* assetPack, ShaderAsset* asset);
 }
 
 #endif //ASSET_H

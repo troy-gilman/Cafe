@@ -9,17 +9,23 @@ int main(int argc, char* argv[]) {
     Render::Window* window = new Render::Window();
     Render::initWindow(window);
 
+    Asset::AssetPack* assetPack = new Asset::AssetPack();
+
     Asset::TextureAsset* textureAsset = new Asset::TextureAsset();
     Asset::loadTextureAsset(textureAsset, "resources/textures/blendMap.png");
+    Asset::addTextureToAssetPack(assetPack, textureAsset);
 
     Asset::ShaderAsset* shaderAsset = new Asset::ShaderAsset();
     Asset::loadShaderAsset(shaderAsset, "resources/shaders/mainVertex.glsl", "resources/shaders/mainFragment.glsl");
+    Asset::addShaderToAssetPack(assetPack, shaderAsset);
 
     Asset::MaterialAsset* materialAsset = new Asset::MaterialAsset();
     Asset::loadMaterialAsset(materialAsset, shaderAsset->assetId, textureAsset->assetId, 0);
+    Asset::addMaterialToAssetPack(assetPack, materialAsset);
 
     Asset::MeshAsset* meshAsset = new Asset::MeshAsset();
     Asset::loadMeshAsset(meshAsset, "resources/models/tree/tree.obj");
+    Asset::addMeshToAssetPack(assetPack, meshAsset);
 
     while (!Render::shouldCloseWindow(window)) {
        Render::render(window);
