@@ -4,6 +4,7 @@
 #include <GLFW/glfw3.h>
 #include "asset/Asset.h"
 #include <vector>
+#include "glm/glm.hpp"
 
 namespace Render {
 
@@ -32,4 +33,5 @@ namespace Render {
     void setUniform(Asset::ShaderAsset* shaderAsset, Asset::ShaderUniform uniform, Vector2f value);
     void setUniform(Asset::ShaderAsset* shaderAsset, Asset::ShaderUniform uniform, Vector3f value);
     void setUniform(Asset::ShaderAsset* shaderAsset, Asset::ShaderUniform uniform, std::vector<Vector3f> value, int count);
+    void setUniform(Asset::ShaderAsset* shaderAsset, Asset::ShaderUniform uniform, glm::f32mat4 value);
 }

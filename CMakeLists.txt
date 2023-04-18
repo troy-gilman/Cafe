@@ -12,6 +12,7 @@ find_package(glfw3 3.3 REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(PNG REQUIRED)
+find_package(glm REQUIRED)
 
 set(PROJECT_LIBS
         ${PROJECT_LIBS}
@@ -20,6 +21,7 @@ set(PROJECT_LIBS
         glfw
         GLEW::GLEW
         PNG::PNG
+        glm::glm
         )
 
 add_executable(${PROJECT_NAME} ${${PROJECT_NAME}_SOURCES})
