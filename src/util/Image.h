@@ -6,12 +6,12 @@
 
 namespace Image {
 
-    static const size_t MAX_IMAGE_SIZE_BYTES = 1024 * 1024 * 4;
+    static const ui64 MAX_IMAGE_SIZE_BYTES = 1024 * 1024 * 4;
 
     struct Image {
-        size_t width;
-        size_t height;
-        size_t channels;
+        ui32 width;
+        ui32 height;
+        ui32 channels;
         unsigned char buffer[MAX_IMAGE_SIZE_BYTES];
         CharBuffer filePath;
     };

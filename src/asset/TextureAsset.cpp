@@ -16,7 +16,7 @@ bool Asset::loadTextureAsset(TextureAsset* asset, const char* filePath) {
     }
 
     // Create the texture
-    GLuint textureId;
+    ui32 textureId;
     glGenTextures(1, &textureId);
     glBindTexture(GL_TEXTURE_2D, textureId);
 

@@ -11,11 +11,11 @@ namespace Asset {
     struct MeshAsset {
         UUID assetId;
         CharBuffer filePath;
-        size_t vao;
-        size_t vbo;
-        size_t tbo;
-        size_t nbo;
-        size_t vertexCount;
+        ui32 vao;
+        ui32 vbo;
+        ui32 tbo;
+        ui32 nbo;
+        ui32 vertexCount;
     };
 
     struct MaterialAsset {
@@ -28,8 +28,8 @@ namespace Asset {
     struct TextureAsset {
         UUID assetId;
         CharBuffer filePath;
-        size_t textureId;
-        size_t atlasSize;
+        ui32 textureId;
+        ui32 atlasSize;
     };
 
     enum ShaderUniform {
@@ -59,10 +59,10 @@ namespace Asset {
         UUID assetId;
         CharBuffer vertexFilePath;
         CharBuffer fragmentFilePath;
-        size_t programId;
-        size_t vertexShaderId;
-        size_t fragmentShaderId;
-        std::unordered_map<ShaderUniform, int> uniformLocations;
+        ui32 programId;
+        ui32 vertexShaderId;
+        ui32 fragmentShaderId;
+        std::unordered_map<ShaderUniform, ui32> uniformLocations;
     };
 
     struct AssetPack {
@@ -73,7 +73,7 @@ namespace Asset {
     };
 
     bool loadMeshAsset(MeshAsset* asset, const char* filePath);
-    bool loadMaterialAsset(MaterialAsset* asset, size_t shaderAssetId, size_t textureAssetId, size_t normalMapAssetId);
+    bool loadMaterialAsset(MaterialAsset* asset, UUID shaderAssetId, UUID textureAssetId, UUID normalMapAssetId);
     bool loadTextureAsset(TextureAsset* asset, const char* filePath);
     bool loadShaderAsset(ShaderAsset* asset, const char* vertexFilePath, const char* fragmentFilePath);
 }

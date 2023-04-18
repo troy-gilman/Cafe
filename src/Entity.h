@@ -10,8 +10,8 @@ namespace Entity {
         UUID id;
 
         // Camera data
-        float camera_DistanceFromTarget;
-        float camera_VerticalAngle;
+        f32 camera_DistanceFromTarget;
+        f32 camera_VerticalAngle;
 
         // Light data
         Vector3f light_Color;
@@ -20,12 +20,12 @@ namespace Entity {
         // Renderable3D data
         UUID renderable3D_MeshAssetId;
         UUID renderable3D_MaterialAssetId;
-        int renderable3D_TextureAtlasIndex;
+        ui32 renderable3D_TextureAtlasIndex;
 
         // Spatial3D data
         Vector3f spatial3D_Position;
         Vector3f spatial3D_Rotation;
-        float spatial3D_Scale;
+        f32 spatial3D_Scale;
 
         Entity() {
             reset();

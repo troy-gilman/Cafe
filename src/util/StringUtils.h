@@ -7,8 +7,8 @@
 
 namespace StringUtils {
 
-    inline void copyStringToBuffer(const char* string, char* buffer, size_t bufferSize) {
-        size_t stringLength = strlen(string);
+    inline void copyStringToBuffer(const char* string, char* buffer, ui64 bufferSize) {
+        ui64 stringLength = strlen(string);
         if (stringLength > bufferSize) {
             stringLength = bufferSize;
         }
@@ -17,8 +17,8 @@ namespace StringUtils {
     }
 
     inline bool startsWith(const char* string, const char* prefix) {
-        size_t stringLength = strlen(string);
-        size_t prefixLength = strlen(prefix);
+        ui64 stringLength = strlen(string);
+        ui64 prefixLength = strlen(prefix);
         if (stringLength < prefixLength) {
             return false;
         }
@@ -32,7 +32,7 @@ namespace StringUtils {
         }
 
         fseek(file, 0, SEEK_END);
-        size_t fileSize = ftell(file);
+        ui64 fileSize = ftell(file);
         rewind(file);
 
         char* fileContents = new char[fileSize + 1];

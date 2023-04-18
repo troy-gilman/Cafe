@@ -1,7 +1,6 @@
 #ifndef OBJECTPOOL_H
 #define OBJECTPOOL_H
 
-#include "../Event.h"
 #include <stack>
 #include <mutex>
 
@@ -10,13 +9,13 @@ class ObjectPool {
 private:
     T* objects;
     bool* objectsInUse;
-    int numObjects;
-    int nextObjectIndex;
-    int numObjectsInUse;
+    ui32 numObjects;
+    ui32 nextObjectIndex;
+    ui32 numObjectsInUse;
     std::mutex mtx;
 
 public:
-    ObjectPool(int numObjects) {
+    ObjectPool(ui32 numObjects) {
         this->numObjects = numObjects;
         this->objects = new T[numObjects];
         this->objectsInUse = new bool[numObjects];
@@ -30,7 +29,7 @@ public:
 
     T* getObject() {
         std::unique_lock<std::mutex> lock(mtx);
-        int numTries = 0;
+        ui32 numTries = 0;
         while (objectsInUse[nextObjectIndex]) {
             nextObjectIndex = (nextObjectIndex + 1) % numObjects;
             numTries++;
@@ -47,7 +46,7 @@ public:
 
     void returnObject(T* obj) {
         std::unique_lock<std::mutex> lock(mtx);
-        int index = obj - objects;
+        ui32 index = obj - objects;
         if (index > 0 && index < numObjects) {
             objectsInUse[index] = false;
             numObjectsInUse--;

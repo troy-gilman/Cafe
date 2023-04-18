@@ -71,7 +71,7 @@ bool Asset::loadMeshAsset(MeshAsset* asset, const char* filePath) {
     float* normalBuffer = new float[normalIndices.size() * 3];
 
     // For each vertex of each triangle
-    for (unsigned int i = 0; i < vertexIndices.size(); i++) {
+    for (ui64 i = 0; i < vertexIndices.size(); i++) {
         unsigned int vertexIndex = vertexIndices[i];
         Vector3f vertex = vertices[vertexIndex - 1];
         vertexBuffer[i * 3] = vertex.x;
@@ -80,7 +80,7 @@ bool Asset::loadMeshAsset(MeshAsset* asset, const char* filePath) {
     }
 
     // For each uv of each triangle
-    for (unsigned int i = 0; i < uvIndices.size(); i++) {
+    for (ui64 i = 0; i < uvIndices.size(); i++) {
         unsigned int uvIndex = uvIndices[i];
         Vector2f uv = uvs[uvIndex - 1];
         uvBuffer[i * 2] = uv.x;
@@ -88,7 +88,7 @@ bool Asset::loadMeshAsset(MeshAsset* asset, const char* filePath) {
     }
 
     // For each normal of each triangle
-    for (unsigned int i = 0; i < normalIndices.size(); i++) {
+    for (ui64 i = 0; i < normalIndices.size(); i++) {
         unsigned int normalIndex = normalIndices[i];
         Vector3f normal = normals[normalIndex - 1];
         normalBuffer[i * 3] = normal.x;
@@ -97,26 +97,26 @@ bool Asset::loadMeshAsset(MeshAsset* asset, const char* filePath) {
     }
 
     // Create the VAO
-    GLuint vao;
+    ui32 vao;
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
 
     // Create the VBO
-    GLuint vbo;
+    ui32 vbo;
     glGenBuffers(1, &vbo);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, vertexIndices.size() * 3 * sizeof(float), vertexBuffer, GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
 
     // Create the TBO
-    GLuint tbo;
+    ui32 tbo;
     glGenBuffers(1, &tbo);
     glBindBuffer(GL_ARRAY_BUFFER, tbo);
     glBufferData(GL_ARRAY_BUFFER, uvIndices.size() * 2 * sizeof(float), uvBuffer, GL_STATIC_DRAW);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
 
     // Create the NBO
-    GLuint nbo;
+    ui32 nbo;
     glGenBuffers(1, &nbo);
     glBindBuffer(GL_ARRAY_BUFFER, nbo);
     glBufferData(GL_ARRAY_BUFFER, normalIndices.size() * 3 * sizeof(float), normalBuffer, GL_STATIC_DRAW);

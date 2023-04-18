@@ -27,11 +27,11 @@ namespace Render {
     void bindShader(Asset::ShaderAsset* shaderAsset);
     void unbindShader();
 
-    void setUniform(Asset::ShaderAsset* shaderAsset, Asset::ShaderUniform uniform, int value);
-    void setUniform(Asset::ShaderAsset* shaderAsset, Asset::ShaderUniform uniform, float value);
+    void setUniform(Asset::ShaderAsset* shaderAsset, Asset::ShaderUniform uniform, i32 value);
+    void setUniform(Asset::ShaderAsset* shaderAsset, Asset::ShaderUniform uniform, f32 value);
     void setUniform(Asset::ShaderAsset* shaderAsset, Asset::ShaderUniform uniform, bool value);
     void setUniform(Asset::ShaderAsset* shaderAsset, Asset::ShaderUniform uniform, Vector2f value);
     void setUniform(Asset::ShaderAsset* shaderAsset, Asset::ShaderUniform uniform, Vector3f value);
-    void setUniform(Asset::ShaderAsset* shaderAsset, Asset::ShaderUniform uniform, std::vector<Vector3f> value, int count);
+    void setUniform(Asset::ShaderAsset* shaderAsset, Asset::ShaderUniform uniform, std::vector<Vector3f> value, i32 count);
     void setUniform(Asset::ShaderAsset* shaderAsset, Asset::ShaderUniform uniform, glm::f32mat4 value);
 }

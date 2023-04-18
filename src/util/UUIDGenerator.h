@@ -4,6 +4,7 @@
 #include <random>
 #include <chrono>
 #include <cstdint>
+#include "Types.h"
 
 class UUIDGenerator {
 private:
@@ -19,7 +20,7 @@ private:
 
 public:
     static UUIDGenerator* getInstance();
-    uint64_t generateUUID();
+    UUID generateUUID();
 };
 
 #endif // UUIDGENERATOR_H

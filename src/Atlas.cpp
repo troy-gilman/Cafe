@@ -36,7 +36,7 @@ static void networkControllerReadEventLoop(Event::EventState* eventState, Networ
         if (eventMsg->numEvents == 0) {
             continue;
         }
-        for (int i = 0; i < eventMsg->numEvents; i++) {
+        for (ui64 i = 0; i < eventMsg->numEvents; i++) {
             Event::Event* event = eventState->eventPool.waitForObject();
             Event::copyEvent(&eventMsg->events[i], event);
             eventState->eventQueue.push(event);
@@ -51,8 +51,8 @@ static void eventCreatorLoop(Event::EventState* eventState, bool isServer, bool*
         return;
     }
     UUIDGenerator* uuidGenerator = UUIDGenerator::getInstance();
-    int numEvents = 10000;
-    for (int i = 0; i < numEvents; i++) {
+    ui64 numEvents = 10000;
+    for (ui64 i = 0; i < numEvents; i++) {
         Event::Event* event = eventState->eventPool.waitForObject();
         Event::resetEvent(event);
 

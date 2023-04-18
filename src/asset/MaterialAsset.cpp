@@ -2,7 +2,7 @@
 #include "../util/UUIDGenerator.h"
 
 
-bool Asset::loadMaterialAsset(MaterialAsset* asset, size_t shaderAssetId, size_t textureAssetId, size_t normalMapAssetId) {
+bool Asset::loadMaterialAsset(MaterialAsset* asset, UUID shaderAssetId, UUID textureAssetId, UUID normalMapAssetId) {
     asset->assetId = UUIDGenerator::getInstance()->generateUUID();
     asset->shaderAssetId = shaderAssetId;
     asset->textureAssetId = textureAssetId;

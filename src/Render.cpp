@@ -53,12 +53,12 @@ void Render::unbindShader() {
     glUseProgram(0);
 }
 
-void Render::setUniform(Asset::ShaderAsset* shaderAsset, Asset::ShaderUniform uniform, int value) {
+void Render::setUniform(Asset::ShaderAsset* shaderAsset, Asset::ShaderUniform uniform, i32 value) {
     int uniformLocation = shaderAsset->uniformLocations[uniform];
     glUniform1i(uniformLocation, value);
 }
 
-void Render::setUniform(Asset::ShaderAsset* shaderAsset, Asset::ShaderUniform uniform, float value) {
+void Render::setUniform(Asset::ShaderAsset* shaderAsset, Asset::ShaderUniform uniform, f32 value) {
     int uniformLocation = shaderAsset->uniformLocations[uniform];
     glUniform1f(uniformLocation, value);
 }
@@ -78,7 +78,7 @@ void Render::setUniform(Asset::ShaderAsset* shaderAsset, Asset::ShaderUniform un
     glUniform3f(uniformLocation, value.x, value.y, value.z);
 }
 
-void Render::setUniform(Asset::ShaderAsset* shaderAsset, Asset::ShaderUniform uniform, std::vector<Vector3f> value, int count) {
+void Render::setUniform(Asset::ShaderAsset* shaderAsset, Asset::ShaderUniform uniform, std::vector<Vector3f> value, i32 count) {
     int uniformLocation = shaderAsset->uniformLocations[uniform];
     glUniform3fv(uniformLocation, count, (float*)value.data());
 }

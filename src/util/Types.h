@@ -2,20 +2,26 @@
 
 #include <cstdint>
 
+typedef float f32;
+typedef double f64;
+typedef int32_t i32;
+typedef int64_t i64;
+typedef uint32_t ui32;
+typedef uint64_t ui64;
 
-typedef uint64_t UUID;
-
-static const size_t CHAR_BUFFER_SIZE = 128;
-typedef char CharBuffer[CHAR_BUFFER_SIZE];
+typedef ui64 UUID;
 
 struct Vector2f {
-    float x;
-    float y;
+    f32 x;
+    f32 y;
 };
 
 struct Vector3f {
-    float x;
-    float y;
-    float z;
+    f32 x;
+    f32 y;
+    f32 z;
 };
+
+static const ui64 CHAR_BUFFER_SIZE = 128;
+typedef char CharBuffer[CHAR_BUFFER_SIZE];
 

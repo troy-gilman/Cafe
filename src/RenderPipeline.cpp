@@ -7,7 +7,7 @@ void Render::render(Window* window, Asset::AssetPack* assetPack) {
 
     enableCulling();
 
-    int numLights = 0;
+    i32 numLights = 0;
 
     Asset::ShaderAsset* shaderAsset = assetPack->shaderAssets.begin()->second;
     bindShader(shaderAsset);

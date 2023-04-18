@@ -42,8 +42,8 @@ namespace Event {
         bool success;
 
         UUID dataId;
-        float dataFloat;
-        int dataInt;
+        f32 dataFloat;
+        i32 dataInt;
         bool dataBool;
         CharBuffer dataString;
         Vector3f dataVector3f;

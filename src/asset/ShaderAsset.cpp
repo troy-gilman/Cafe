@@ -15,16 +15,16 @@ bool Asset::loadShaderAsset(ShaderAsset* asset, const char* vertexFilePath, cons
     }
 
     // Create the shader program
-    size_t programId = glCreateProgram();
-    size_t vertexShaderId = glCreateShader(GL_VERTEX_SHADER);
-    size_t fragmentShaderId = glCreateShader(GL_FRAGMENT_SHADER);
+    ui32 programId = glCreateProgram();
+    ui32 vertexShaderId = glCreateShader(GL_VERTEX_SHADER);
+    ui32 fragmentShaderId = glCreateShader(GL_FRAGMENT_SHADER);
 
     // Compile the vertex shader
     glShaderSource(vertexShaderId, 1, &vertexShaderAsString, nullptr);
     glCompileShader(vertexShaderId);
 
     // Check if the vertex shader compiled successfully
-    GLint vertexCompileStatus;
+    i32 vertexCompileStatus;
     glGetShaderiv(vertexShaderId, GL_COMPILE_STATUS, &vertexCompileStatus);
     if (vertexCompileStatus == GL_FALSE) {
         std::cout << "Failed to compile vertex shader\n";
@@ -36,7 +36,7 @@ bool Asset::loadShaderAsset(ShaderAsset* asset, const char* vertexFilePath, cons
     glCompileShader(fragmentShaderId);
 
     // Check if the fragment shader compiled successfully
-    GLint fragmentCompileStatus;
+    i32 fragmentCompileStatus;
     glGetShaderiv(vertexShaderId, GL_COMPILE_STATUS, &fragmentCompileStatus);
     if (fragmentCompileStatus == GL_FALSE) {
         std::cout << "Failed to compile fragment shader\n";
@@ -52,7 +52,7 @@ bool Asset::loadShaderAsset(ShaderAsset* asset, const char* vertexFilePath, cons
     glLinkProgram(programId);
 
     // Check if the shader program linked successfully
-    GLint programLinkStatus;
+    i32 programLinkStatus;
     glGetProgramiv(programId, GL_LINK_STATUS, &programLinkStatus);
     if (programLinkStatus == GL_FALSE) {
         std::cout << "Failed to link shader program\n";
@@ -61,7 +61,7 @@ bool Asset::loadShaderAsset(ShaderAsset* asset, const char* vertexFilePath, cons
 
     // Validate the shader program and check if it is valid
     glValidateProgram(programId);
-    GLint programValidateStatus;
+    i32 programValidateStatus;
     glGetProgramiv(programId, GL_VALIDATE_STATUS, &programValidateStatus);
     if (programValidateStatus == GL_FALSE) {
         std::cout << "Failed to validate shader program\n";

@@ -39,9 +39,9 @@ public:
     }
 
     // Get the size of the queue
-    int size() const {
+    ui64 size() const {
         std::unique_lock<std::mutex> lock(mtx);
-        int size = queue.size();
+        ui64 size = queue.size();
         lock.unlock();
         return size;
     }

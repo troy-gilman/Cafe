@@ -30,9 +30,9 @@ bool Image::loadImage(Image* image, const char* filePath) {
     png_init_io(png_ptr, fp);
     png_read_info(png_ptr, info_ptr);
 
-    size_t width = png_get_image_width(png_ptr, info_ptr);
-    size_t height = png_get_image_height(png_ptr, info_ptr);
-    size_t channels = png_get_channels(png_ptr, info_ptr);
+    ui32 width = png_get_image_width(png_ptr, info_ptr);
+    ui32 height = png_get_image_height(png_ptr, info_ptr);
+    ui32 channels = png_get_channels(png_ptr, info_ptr);
     png_byte color_type = png_get_color_type(png_ptr, info_ptr);
     png_byte bit_depth = png_get_bit_depth(png_ptr, info_ptr);
 
@@ -43,8 +43,8 @@ bool Image::loadImage(Image* image, const char* filePath) {
 
     png_read_update_info(png_ptr, info_ptr);
 
-    size_t row_size = png_get_rowbytes(png_ptr, info_ptr);
-    size_t imageSizeBytes = row_size * height;
+    ui32 row_size = png_get_rowbytes(png_ptr, info_ptr);
+    ui32 imageSizeBytes = row_size * height;
     if (imageSizeBytes > MAX_IMAGE_SIZE_BYTES) {
         std::cout << "Image is too big: " << imageSizeBytes << " bytes\n";
         fclose(fp);
