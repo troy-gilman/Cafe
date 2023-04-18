@@ -49,14 +49,3 @@ bool Asset::loadTextureAsset(TextureAsset* asset, const char* filePath) {
     asset->atlasSize = 1;
     return true;
 }
-
-bool Asset::addTextureToAssetPack(AssetPack* assetPack, TextureAsset* asset) {
-    if (!assetPack || !asset) {
-        return false;
-    }
-    if (assetPack->meshAssets.find(asset->assetId) != assetPack->meshAssets.end()) {
-        return false;
-    }
-    assetPack->textureAssets[asset->assetId] = asset;
-    return true;
-}

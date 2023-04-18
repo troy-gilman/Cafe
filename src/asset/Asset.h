@@ -32,6 +32,29 @@ namespace Asset {
         size_t atlasSize;
     };
 
+    enum ShaderUniform {
+        VIEW_MATRIX,
+        PROJECTION_MATRIX,
+        MODEL_MATRIX,
+        SKY_COLOR,
+        LIGHT_POSITIONS,
+        LIGHT_COLORS,
+        LIGHT_ATTENUATIONS,
+        LIGHT_COUNT,
+
+    };
+
+    inline std::unordered_map<ShaderUniform, const char*> shaderUniformNames = {
+        {VIEW_MATRIX, "view"},
+        {PROJECTION_MATRIX, "projection"},
+        {MODEL_MATRIX, "model"},
+        {SKY_COLOR, "skyColor"},
+        {LIGHT_POSITIONS, "lightPositions"},
+        {LIGHT_COLORS, "lightColors"},
+        {LIGHT_ATTENUATIONS, "lightAttenuations"},
+        {LIGHT_COUNT, "numLights"},
+    };
+
     struct ShaderAsset {
         UUID assetId;
         CharBuffer vertexFilePath;
@@ -39,6 +62,7 @@ namespace Asset {
         size_t programId;
         size_t vertexShaderId;
         size_t fragmentShaderId;
+        std::unordered_map<ShaderUniform, int> uniformLocations;
     };
 
     struct AssetPack {
@@ -52,11 +76,6 @@ namespace Asset {
     bool loadMaterialAsset(MaterialAsset* asset, size_t shaderAssetId, size_t textureAssetId, size_t normalMapAssetId);
     bool loadTextureAsset(TextureAsset* asset, const char* filePath);
     bool loadShaderAsset(ShaderAsset* asset, const char* vertexFilePath, const char* fragmentFilePath);
-
-    bool addMeshToAssetPack(AssetPack* assetPack, MeshAsset* asset);
-    bool addMaterialToAssetPack(AssetPack* assetPack, MaterialAsset* asset);
-    bool addTextureToAssetPack(AssetPack* assetPack, TextureAsset* asset);
-    bool addShaderToAssetPack(AssetPack* assetPack, ShaderAsset* asset);
 }
 
 #endif //ASSET_H

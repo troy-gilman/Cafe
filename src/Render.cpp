@@ -36,10 +36,49 @@ bool Render::shouldCloseWindow(Window* window) {
     return glfwWindowShouldClose(window->glfwWindow);
 }
 
-void Render::render(Window* window) {
-    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
+void Render::enableCulling() {
+    glCullFace(GL_BACK);
+    glEnable(GL_CULL_FACE);
+}
 
-    glfwSwapBuffers(window->glfwWindow);
-    glfwPollEvents();
+void Render::disableCulling() {
+    glDisable(GL_CULL_FACE);
+}
+
+void Render::bindShader(Asset::ShaderAsset* shaderAsset) {
+    glUseProgram(shaderAsset->programId);
+}
+
+void Render::unbindShader() {
+    glUseProgram(0);
+}
+
+void Render::setUniform(Asset::ShaderAsset* shaderAsset, Asset::ShaderUniform uniform, int value) {
+    int uniformLocation = shaderAsset->uniformLocations[uniform];
+    glUniform1i(uniformLocation, value);
+}
+
+void Render::setUniform(Asset::ShaderAsset* shaderAsset, Asset::ShaderUniform uniform, float value) {
+    int uniformLocation = shaderAsset->uniformLocations[uniform];
+    glUniform1f(uniformLocation, value);
+}
+
+void Render::setUniform(Asset::ShaderAsset* shaderAsset, Asset::ShaderUniform uniform, bool value) {
+    int uniformLocation = shaderAsset->uniformLocations[uniform];
+    glUniform1i(uniformLocation, value);
+}
+
+void Render::setUniform(Asset::ShaderAsset* shaderAsset, Asset::ShaderUniform uniform, Vector2f value) {
+    int uniformLocation = shaderAsset->uniformLocations[uniform];
+    glUniform2f(uniformLocation, value.x, value.y);
+}
+
+void Render::setUniform(Asset::ShaderAsset* shaderAsset, Asset::ShaderUniform uniform, Vector3f value) {
+    int uniformLocation = shaderAsset->uniformLocations[uniform];
+    glUniform3f(uniformLocation, value.x, value.y, value.z);
+}
+
+void Render::setUniform(Asset::ShaderAsset* shaderAsset, Asset::ShaderUniform uniform, std::vector<Vector3f> value, int count) {
+    int uniformLocation = shaderAsset->uniformLocations[uniform];
+    glUniform3fv(uniformLocation, count, (float*)value.data());
 }

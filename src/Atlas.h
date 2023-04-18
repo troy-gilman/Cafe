@@ -5,16 +5,28 @@
 #include "Event.h"
 #include "util/ThreadSafeQueue.h"
 #include "Network.h"
+#include "asset/Asset.h"
+#include "Render.h"
 
 class Atlas {
 private:
     bool isServer;
     Event::EventState* eventState;
     Entity::EntityState* entityState;
+    Asset::AssetPack* assetPack;
+    Render::Window* window;
     Network::NetworkState* networkState;
 
 public:
     Atlas(bool isServer);
     ~Atlas();
+    void init();
     void start();
+    void render();
+
+    bool addMeshToAssetPack(Asset::MeshAsset* meshAsset);
+    bool addMaterialToAssetPack(Asset::MaterialAsset* materialAsset);
+    bool addTextureToAssetPack(Asset::TextureAsset* textureAsset);
+    bool addShaderToAssetPack(Asset::ShaderAsset* shaderAsset);
+
 };

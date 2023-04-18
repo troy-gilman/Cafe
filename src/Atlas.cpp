@@ -7,13 +7,21 @@
 Atlas::Atlas(bool isServer) : isServer(isServer) {
     eventState = new Event::EventState(10000);
     entityState = new Entity::EntityState();
+    assetPack = new Asset::AssetPack();
+    window = new Render::Window();
     networkState = new Network::NetworkState();
 }
 
 Atlas::~Atlas() {
     delete eventState;
     delete entityState;
+    delete assetPack;
+    delete window;
     delete networkState;
+}
+
+void Atlas::init() {
+    Render::initWindow(window);
 }
 
 static void networkControllerReadEventLoop(Event::EventState* eventState, Network::NetworkState* networkState, bool isServer) {
@@ -104,4 +112,56 @@ void Atlas::start() {
         }
     }
 }
+
+void Atlas::render() {
+    while (!Render::shouldCloseWindow(window)) {
+        Render::render(window, assetPack);
+    }
+    Render::closeWindow(window);
+}
+
+bool Atlas::addMeshToAssetPack(Asset::MeshAsset* asset) {
+    if (!asset) {
+        return false;
+    }
+    if (assetPack->meshAssets.find(asset->assetId) != assetPack->meshAssets.end()) {
+        return false;
+    }
+    assetPack->meshAssets[asset->assetId] = asset;
+    return true;
+}
+
+bool Atlas::addMaterialToAssetPack(Asset::MaterialAsset* asset) {
+    if (!asset) {
+        return false;
+    }
+    if (assetPack->meshAssets.find(asset->assetId) != assetPack->meshAssets.end()) {
+        return false;
+    }
+    assetPack->materialAssets[asset->assetId] = asset;
+    return true;
+}
+bool Atlas::addTextureToAssetPack(Asset::TextureAsset* asset) {
+    if (!asset) {
+        return false;
+    }
+    if (assetPack->meshAssets.find(asset->assetId) != assetPack->meshAssets.end()) {
+        return false;
+    }
+    assetPack->textureAssets[asset->assetId] = asset;
+    return true;
+}
+
+bool Atlas::addShaderToAssetPack(Asset::ShaderAsset* asset) {
+    if (!asset) {
+        return false;
+    }
+    if (assetPack->meshAssets.find(asset->assetId) != assetPack->meshAssets.end()) {
+        return false;
+    }
+    assetPack->shaderAssets[asset->assetId] = asset;
+    return true;
+}
+
+
 

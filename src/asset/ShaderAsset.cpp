@@ -68,6 +68,12 @@ bool Asset::loadShaderAsset(ShaderAsset* asset, const char* vertexFilePath, cons
         return false;
     }
 
+    for (ShaderUniform uniform = VIEW_MATRIX; uniform <= LIGHT_COUNT; uniform = (ShaderUniform)(uniform + 1)) {
+        const char* uniformName = shaderUniformNames[uniform];
+        int uniformLocation = glGetUniformLocation(programId, uniformName);
+        asset->uniformLocations[uniform] = uniformLocation;
+    }
+
     // Set the shader asset properties
     asset->assetId = UUIDGenerator::getInstance()->generateUUID();
     StringUtils::copyStringToBuffer(vertexFilePath, asset->vertexFilePath, CHAR_BUFFER_SIZE);
@@ -76,16 +82,5 @@ bool Asset::loadShaderAsset(ShaderAsset* asset, const char* vertexFilePath, cons
     asset->vertexShaderId = vertexShaderId;
     asset->fragmentShaderId = fragmentShaderId;
 
-    return true;
-}
-
-bool Asset::addShaderToAssetPack(AssetPack* assetPack, ShaderAsset* asset) {
-    if (!assetPack || !asset) {
-        return false;
-    }
-    if (assetPack->meshAssets.find(asset->assetId) != assetPack->meshAssets.end()) {
-        return false;
-    }
-    assetPack->shaderAssets[asset->assetId] = asset;
     return true;
 }
