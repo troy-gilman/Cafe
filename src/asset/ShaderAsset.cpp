@@ -68,7 +68,7 @@ bool Asset::loadShaderAsset(ShaderAsset* asset, const char* vertexFilePath, cons
         return false;
     }
 
-    for (ShaderUniform uniform = VIEW_MATRIX; uniform <= LIGHT_COUNT; uniform = (ShaderUniform)(uniform + 1)) {
+    for (ShaderUniform uniform = (ShaderUniform) 0; uniform < shaderUniformNames.size(); uniform = (ShaderUniform)(uniform + 1)) {
         const char* uniformName = shaderUniformNames[uniform];
         int uniformLocation = glGetUniformLocation(programId, uniformName);
         asset->uniformLocations[uniform] = uniformLocation;

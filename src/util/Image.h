@@ -17,6 +17,8 @@ namespace Image {
     };
 
     bool loadImage(Image* image, const char* filePath);
+    void flipImageVertically(Image* image);
+    void flipImageHorizontally(Image* image);
 }
 
 #endif //IMAGE_H

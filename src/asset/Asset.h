@@ -15,7 +15,8 @@ namespace Asset {
         ui32 vbo;
         ui32 tbo;
         ui32 nbo;
-        ui32 vertexCount;
+        ui32 ibo;
+        ui32 numIndices;
     };
 
     struct MaterialAsset {
@@ -23,6 +24,10 @@ namespace Asset {
         UUID shaderAssetId;
         UUID textureAssetId;
         UUID normalMapAssetId;
+        f32 shineDamper;
+        f32 reflectivity;
+        bool hasTransparency;
+        bool useFakeLighting;
     };
 
     struct TextureAsset {
@@ -41,7 +46,12 @@ namespace Asset {
         LIGHT_COLORS,
         LIGHT_ATTENUATIONS,
         LIGHT_COUNT,
-
+        TEXTURE_SAMPLER,
+        SHINE_DAMPER,
+        REFLECTIVITY,
+        USE_FAKE_LIGHTING,
+        TEXTURE_ATLAS_SIZE,
+        TEXTURE_ATLAS_OFFSET,
     };
 
     inline std::unordered_map<ShaderUniform, const char*> shaderUniformNames = {
@@ -53,6 +63,12 @@ namespace Asset {
         {LIGHT_COLORS, "lightColors"},
         {LIGHT_ATTENUATIONS, "lightAttenuations"},
         {LIGHT_COUNT, "numLights"},
+        {TEXTURE_SAMPLER, "tex"},
+        {SHINE_DAMPER, "shineDamper"},
+        {REFLECTIVITY, "reflectivity"},
+        {USE_FAKE_LIGHTING, "useFakeLighting"},
+        {TEXTURE_ATLAS_SIZE, "textureAtlasSize"},
+        {TEXTURE_ATLAS_OFFSET, "textureOffset"},
     };
 
     struct ShaderAsset {

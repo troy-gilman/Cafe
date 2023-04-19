@@ -14,17 +14,32 @@ bool Asset::loadTextureAsset(TextureAsset* asset, const char* filePath) {
         std::cout << "Failed to load image: " << filePath << "\n";
         return false;
     }
+    if (image->channels != 4) {
+        std::cout << "Image must have 4 channels: " << filePath << "\n";
+        return false;
+    }
+    //Image::flipImageHorizontally(image);
+    //Image::flipImageVertically(image);
+
 
     // Create the texture
     ui32 textureId;
     glGenTextures(1, &textureId);
     glBindTexture(GL_TEXTURE_2D, textureId);
 
+    // Set the texture wrap mode
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    // Set the texture scaling filter mode
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
     // Set the texture parameters
     glTexImage2D(
             GL_TEXTURE_2D,
             0,
-            GL_RGBA,
+            GL_RGBA8,
             image->width,
             image->height,
             0,

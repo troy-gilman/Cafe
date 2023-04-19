@@ -5,6 +5,48 @@
 #include <vector>
 #include <iostream>
 
+struct Vertex {
+    Vector3f position;
+    i32 uvIndex;
+    i32 normalIndex;
+    Vertex* duplicateVertex = nullptr;
+    i32 index;
+
+    Vertex(Vector3f position, i32 index) {
+        this->position = position;
+        this->uvIndex = -1;
+        this->normalIndex = -1;
+        this->duplicateVertex = nullptr;
+        this->index = index;
+    }
+};
+
+void dealWithAlreadyProcessedVertex(Vertex* previousVertex, i32 newUvIndex, i32 newNormalIndex, std::vector<Vertex*>& vertices, std::vector<i32>& indices) {
+    if (previousVertex->uvIndex == newUvIndex && previousVertex->normalIndex == newNormalIndex) {
+        indices.push_back(previousVertex->index);
+    } else if (previousVertex->duplicateVertex != nullptr) {
+        dealWithAlreadyProcessedVertex(previousVertex->duplicateVertex, newUvIndex, newNormalIndex, vertices, indices);
+    } else {
+        Vertex* duplicateVertex = new Vertex(previousVertex->position, vertices.size());
+        duplicateVertex->uvIndex = newUvIndex;
+        duplicateVertex->normalIndex = newNormalIndex;
+        previousVertex->duplicateVertex = duplicateVertex;
+        vertices.push_back(duplicateVertex);
+        indices.push_back(duplicateVertex->index);
+    }
+}
+
+void processVertex(i32 vertexIndex, i32 uvIndex, i32 normalIndex, std::vector<Vertex*>& vertices, std::vector<i32>& indices) {
+    Vertex* currentVertex = vertices[vertexIndex - 1];
+    if (currentVertex->uvIndex == -1 || currentVertex->normalIndex == -1) {
+        currentVertex->uvIndex = uvIndex - 1;
+        currentVertex->normalIndex = normalIndex - 1;
+        indices.push_back(vertexIndex - 1);
+    } else {
+        dealWithAlreadyProcessedVertex(currentVertex, uvIndex, normalIndex, vertices, indices);
+    }
+}
+
 bool Asset::loadMeshAsset(MeshAsset* asset, const char* filePath) {
     // Open the file
     FILE* file = fopen(filePath, "r");
@@ -12,10 +54,10 @@ bool Asset::loadMeshAsset(MeshAsset* asset, const char* filePath) {
         return false;
     }
 
-    std::vector<Vector3f> vertices;
+    std::vector<Vertex*> vertices;
     std::vector<Vector2f> uvs;
     std::vector<Vector3f> normals;
-    std::vector<unsigned int> vertexIndices, uvIndices, normalIndices;
+    std::vector<i32> indices;
 
     bool done = false;
     while (!done) {
@@ -29,8 +71,9 @@ bool Asset::loadMeshAsset(MeshAsset* asset, const char* filePath) {
             continue;
         } else if (strcmp(line, "v") == 0) {
             // Read the vertex
-            Vector3f vertex = { 0, 0, 0 };
-            fscanf(file, "%f %f %f\n", &vertex.x, &vertex.y, &vertex.z);
+            Vector3f position = { 0, 0, 0 };
+            fscanf(file, "%f %f %f\n", &position.x, &position.y, &position.z);
+            Vertex* vertex = new Vertex(position, vertices.size());
             vertices.push_back(vertex);
         } else if (strcmp(line, "vt") == 0) {
             // Read the uv
@@ -44,7 +87,7 @@ bool Asset::loadMeshAsset(MeshAsset* asset, const char* filePath) {
             normals.push_back(normal);
         } else if (strcmp(line, "f") == 0) {
             // Read the face
-            unsigned int vertexIndex[3], uvIndex[3], normalIndex[3];
+            i32 vertexIndex[3], uvIndex[3], normalIndex[3];
             int matches = fscanf(file, "%d/%d/%d %d/%d/%d %d/%d/%d\n",
                 &vertexIndex[0], &uvIndex[0], &normalIndex[0],
                 &vertexIndex[1], &uvIndex[1], &normalIndex[1],
@@ -53,47 +96,43 @@ bool Asset::loadMeshAsset(MeshAsset* asset, const char* filePath) {
                 std::cout << "File can't be read by our simple parser. Try exporting with other options\n";
                 return false;
             }
-            vertexIndices.push_back(vertexIndex[0]);
-            vertexIndices.push_back(vertexIndex[1]);
-            vertexIndices.push_back(vertexIndex[2]);
-            uvIndices.push_back(uvIndex[0]);
-            uvIndices.push_back(uvIndex[1]);
-            uvIndices.push_back(uvIndex[2]);
-            normalIndices.push_back(normalIndex[0]);
-            normalIndices.push_back(normalIndex[1]);
-            normalIndices.push_back(normalIndex[2]);
+            processVertex(vertexIndex[0], uvIndex[0], normalIndex[0], vertices, indices);
+            processVertex(vertexIndex[1], uvIndex[1], normalIndex[1], vertices, indices);
+            processVertex(vertexIndex[2], uvIndex[2], normalIndex[2], vertices, indices);
+        }
+    }
+
+    // Remove the unused vertices
+    for (Vertex* vertex : vertices) {
+        if (vertex->uvIndex == -1 || vertex->normalIndex == -1) {
+            vertex->uvIndex = 0;
+            vertex->normalIndex = 0;
         }
     }
 
     // Create the buffers
-    float* vertexBuffer = new float[vertexIndices.size() * 3];
-    float* uvBuffer = new float[uvIndices.size() * 2];
-    float* normalBuffer = new float[normalIndices.size() * 3];
+    f32* vertexBuffer = new f32[vertices.size() * 3];
+    f32* uvBuffer = new f32[vertices.size() * 2];
+    f32* normalBuffer = new f32[vertices.size() * 3];
+    ui32* indexBuffer = new ui32[indices.size()];
 
-    // For each vertex of each triangle
-    for (ui64 i = 0; i < vertexIndices.size(); i++) {
-        unsigned int vertexIndex = vertexIndices[i];
-        Vector3f vertex = vertices[vertexIndex - 1];
-        vertexBuffer[i * 3] = vertex.x;
-        vertexBuffer[i * 3 + 1] = vertex.y;
-        vertexBuffer[i * 3 + 2] = vertex.z;
-    }
-
-    // For each uv of each triangle
-    for (ui64 i = 0; i < uvIndices.size(); i++) {
-        unsigned int uvIndex = uvIndices[i];
-        Vector2f uv = uvs[uvIndex - 1];
+    for (i32 i = 0; i < vertices.size(); i++) {
+        Vertex* currentVertex = vertices[i];
+        Vector3f position = currentVertex->position;
+        Vector2f uv = uvs[currentVertex->uvIndex];
+        Vector3f normal = normals[currentVertex->normalIndex];
+        vertexBuffer[i * 3] = position.x;
+        vertexBuffer[i * 3 + 1] = position.y;
+        vertexBuffer[i * 3 + 2] = position.z;
         uvBuffer[i * 2] = uv.x;
-        uvBuffer[i * 2 + 1] = uv.y;
-    }
-
-    // For each normal of each triangle
-    for (ui64 i = 0; i < normalIndices.size(); i++) {
-        unsigned int normalIndex = normalIndices[i];
-        Vector3f normal = normals[normalIndex - 1];
+        uvBuffer[i * 2 + 1] = 1 - uv.y;
         normalBuffer[i * 3] = normal.x;
         normalBuffer[i * 3 + 1] = normal.y;
         normalBuffer[i * 3 + 2] = normal.z;
+        delete currentVertex;
+    }
+    for (i32 i = 0; i < indices.size(); i++) {
+        indexBuffer[i] = indices[i];
     }
 
     // Create the VAO
@@ -105,22 +144,28 @@ bool Asset::loadMeshAsset(MeshAsset* asset, const char* filePath) {
     ui32 vbo;
     glGenBuffers(1, &vbo);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, vertexIndices.size() * 3 * sizeof(float), vertexBuffer, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * 3 * sizeof(f32), vertexBuffer, GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
 
     // Create the TBO
     ui32 tbo;
     glGenBuffers(1, &tbo);
     glBindBuffer(GL_ARRAY_BUFFER, tbo);
-    glBufferData(GL_ARRAY_BUFFER, uvIndices.size() * 2 * sizeof(float), uvBuffer, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * 2 * sizeof(f32), uvBuffer, GL_STATIC_DRAW);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
 
     // Create the NBO
     ui32 nbo;
     glGenBuffers(1, &nbo);
     glBindBuffer(GL_ARRAY_BUFFER, nbo);
-    glBufferData(GL_ARRAY_BUFFER, normalIndices.size() * 3 * sizeof(float), normalBuffer, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * 3 * sizeof(f32), normalBuffer, GL_STATIC_DRAW);
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+
+    ui32 ibo;
+    glGenBuffers(1, &ibo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(ui32), indices.data(), GL_STATIC_DRAW);
+
 
     // Set the mesh asset properties
     asset->assetId = UUIDGenerator::getInstance()->generateUUID();
@@ -129,7 +174,8 @@ bool Asset::loadMeshAsset(MeshAsset* asset, const char* filePath) {
     asset->vbo = vbo;
     asset->tbo = tbo;
     asset->nbo = nbo;
-    asset->vertexCount = vertexIndices.size();
+    asset->ibo = ibo;
+    asset->numIndices = indices.size();
 
     return true;
 }

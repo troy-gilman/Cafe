@@ -45,7 +45,7 @@ void main() {
 		totalDiffuse = totalDiffuse + diffuse;
 		totalSpecular = totalSpecular + specular;
 	}
-	totalDiffuse = max(totalDiffuse, 0.1);
+	totalDiffuse = max(totalDiffuse, 1.0);
 
 	vec4 textureColor = texture(tex, passTextureCoord);
 	if (textureColor.a < 0.5) {

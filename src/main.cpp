@@ -10,7 +10,7 @@ int main(int argc, char* argv[]) {
     atlas.init();
 
     Asset::TextureAsset* textureAsset = new Asset::TextureAsset();
-    Asset::loadTextureAsset(textureAsset, "resources/textures/blendMap.png");
+    Asset::loadTextureAsset(textureAsset, "resources/models/tree/tree.png");
     atlas.addTextureToAssetPack(textureAsset);
 
     Asset::ShaderAsset* shaderAsset = new Asset::ShaderAsset();

@@ -67,3 +67,30 @@ bool Image::loadImage(Image* image, const char* filePath) {
     fclose(fp);
     return true;
 }
+
+void Image::flipImageVertically(Image* image) {
+    unsigned rows = image->height / 2; // Iterate only half the buffer to get a full flip
+    unsigned* tempRow = (unsigned*)malloc(image->width * sizeof(unsigned));
+
+    for (unsigned rowIndex = 0; rowIndex < rows; rowIndex++) {
+        memcpy(tempRow, image->buffer + rowIndex * image->width, image->width * sizeof(unsigned));
+        memcpy(image->buffer + rowIndex * image->width, image->buffer + (image->height - rowIndex - 1) * image->width, image->width * sizeof(unsigned));
+        memcpy(image->buffer + (image->height - rowIndex - 1) * image->width, tempRow, image->width * sizeof(unsigned));
+    }
+
+    free(tempRow);
+}
+
+void Image::flipImageHorizontally(Image *image) {
+    unsigned rows = image->height;
+    unsigned* tempRow = (unsigned*)malloc(image->width * sizeof(unsigned));
+
+    for (unsigned rowIndex = 0; rowIndex < rows; rowIndex++) {
+        memcpy(tempRow, image->buffer + rowIndex * image->width, image->width * sizeof(unsigned));
+        for (unsigned colIndex = 0; colIndex < image->width; colIndex++) {
+            image->buffer[rowIndex * image->width + colIndex] = tempRow[image->width - colIndex - 1];
+        }
+    }
+
+    free(tempRow);
+}
