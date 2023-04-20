@@ -11,6 +11,9 @@ namespace Render {
 
     static const ui32 INIT_WIDTH = 960;
     static const ui32 INIT_HEIGHT = 540;
+    static const f32 FOV = 45.0f;
+    static const f32 NEAR_PLANE = 0.1f;
+    static const f32 FAR_PLANE = 1000.0f;
 
     struct Window {
         ui32 width;

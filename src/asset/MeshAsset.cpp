@@ -7,12 +7,12 @@
 
 struct Vertex {
     Vector3f position;
-    i32 uvIndex;
-    i32 normalIndex;
+    i64 uvIndex;
+    i64 normalIndex;
     Vertex* duplicateVertex = nullptr;
-    i32 index;
+    ui64 index;
 
-    Vertex(Vector3f position, i32 index) {
+    Vertex(Vector3f position, ui64 index) {
         this->position = position;
         this->uvIndex = -1;
         this->normalIndex = -1;
@@ -21,9 +21,9 @@ struct Vertex {
     }
 };
 
-void dealWithAlreadyProcessedVertex(Vertex* previousVertex, i32 newUvIndex, i32 newNormalIndex, std::vector<Vertex*>& vertices, std::vector<i32>& indices) {
+void dealWithAlreadyProcessedVertex(Vertex* previousVertex, i64 newUvIndex, i64 newNormalIndex, std::vector<Vertex*>& vertices, std::vector<i32>& indices) {
     if (previousVertex->uvIndex == newUvIndex && previousVertex->normalIndex == newNormalIndex) {
-        indices.push_back(previousVertex->index);
+        indices.push_back((i32) previousVertex->index);
     } else if (previousVertex->duplicateVertex != nullptr) {
         dealWithAlreadyProcessedVertex(previousVertex->duplicateVertex, newUvIndex, newNormalIndex, vertices, indices);
     } else {
@@ -32,7 +32,7 @@ void dealWithAlreadyProcessedVertex(Vertex* previousVertex, i32 newUvIndex, i32 
         duplicateVertex->normalIndex = newNormalIndex;
         previousVertex->duplicateVertex = duplicateVertex;
         vertices.push_back(duplicateVertex);
-        indices.push_back(duplicateVertex->index);
+        indices.push_back((i32) duplicateVertex->index);
     }
 }
 
@@ -72,18 +72,30 @@ bool Asset::loadMeshAsset(MeshAsset* asset, const char* filePath) {
         } else if (strcmp(line, "v") == 0) {
             // Read the vertex
             Vector3f position = { 0, 0, 0 };
-            fscanf(file, "%f %f %f\n", &position.x, &position.y, &position.z);
+            int matches = fscanf(file, "%f %f %f\n", &position.x, &position.y, &position.z);
+            if (matches != 3) {
+                std::cout << "File can't be read by our simple parser. Try exporting with other options\n";
+                return false;
+            }
             Vertex* vertex = new Vertex(position, vertices.size());
             vertices.push_back(vertex);
         } else if (strcmp(line, "vt") == 0) {
             // Read the uv
             Vector2f uv = { 0, 0 };
-            fscanf(file, "%f %f\n", &uv.x, &uv.y);
+            int matches = fscanf(file, "%f %f\n", &uv.x, &uv.y);
+            if (matches != 2) {
+                std::cout << "File can't be read by our simple parser. Try exporting with other options\n";
+                return false;
+            }
             uvs.push_back(uv);
         } else if (strcmp(line, "vn") == 0) {
             // Read the normal
             Vector3f normal = { 0, 0, 0 };
-            fscanf(file, "%f %f %f\n", &normal.x, &normal.y, &normal.z);
+            int matches = fscanf(file, "%f %f %f\n", &normal.x, &normal.y, &normal.z);
+            if (matches != 3) {
+                std::cout << "File can't be read by our simple parser. Try exporting with other options\n";
+                return false;
+            }
             normals.push_back(normal);
         } else if (strcmp(line, "f") == 0) {
             // Read the face
@@ -114,7 +126,7 @@ bool Asset::loadMeshAsset(MeshAsset* asset, const char* filePath) {
     f32* vertexBuffer = new f32[vertices.size() * 3];
     f32* uvBuffer = new f32[vertices.size() * 2];
     f32* normalBuffer = new f32[vertices.size() * 3];
-    ui32* indexBuffer = new ui32[indices.size()];
+    i32* indexBuffer = new i32[indices.size()];
 
     for (i32 i = 0; i < vertices.size(); i++) {
         Vertex* currentVertex = vertices[i];
@@ -144,27 +156,27 @@ bool Asset::loadMeshAsset(MeshAsset* asset, const char* filePath) {
     ui32 vbo;
     glGenBuffers(1, &vbo);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * 3 * sizeof(f32), vertexBuffer, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, (i64) (vertices.size() * 3 * sizeof(f32)), vertexBuffer, GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
 
     // Create the TBO
     ui32 tbo;
     glGenBuffers(1, &tbo);
     glBindBuffer(GL_ARRAY_BUFFER, tbo);
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * 2 * sizeof(f32), uvBuffer, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, (i64) (vertices.size() * 2 * sizeof(f32)), uvBuffer, GL_STATIC_DRAW);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
 
     // Create the NBO
     ui32 nbo;
     glGenBuffers(1, &nbo);
     glBindBuffer(GL_ARRAY_BUFFER, nbo);
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * 3 * sizeof(f32), normalBuffer, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, (i64) (vertices.size() * 3 * sizeof(f32)), normalBuffer, GL_STATIC_DRAW);
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
 
     ui32 ibo;
     glGenBuffers(1, &ibo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(ui32), indices.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, (i64) (indices.size() * sizeof(i32)), indexBuffer, GL_STATIC_DRAW);
 
 
     // Set the mesh asset properties

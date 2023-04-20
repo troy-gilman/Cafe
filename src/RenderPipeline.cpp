@@ -4,7 +4,7 @@
 Vector2f calcTextureAtlasOffset(ui32 atlasSize, ui32 index) {
     ui32 x = index % atlasSize;
     ui32 y = index / atlasSize;
-    return {x / (f32)atlasSize, y / (f32)atlasSize};
+    return {(f32) x / (f32) atlasSize, (f32) y / (f32) atlasSize};
 }
 
 void Render::render(Window* window, Asset::AssetPack* assetPack, Entity::EntityState* entityState) {
@@ -64,7 +64,7 @@ void Render::render(Window* window, Asset::AssetPack* assetPack, Entity::EntityS
         setUniform(shaderAsset, Asset::ShaderUniform::MODEL_MATRIX, modelMatrix);
         setUniform(shaderAsset, Asset::ShaderUniform::TEXTURE_ATLAS_OFFSET, calcTextureAtlasOffset(texture->atlasSize, 0));
 
-        glDrawElements(GL_TRIANGLES, mesh->numIndices, GL_UNSIGNED_INT, nullptr);
+        glDrawElements(GL_TRIANGLES, (i32) mesh->numIndices, GL_UNSIGNED_INT, nullptr);
 
         unbindTexture();
         unbindMesh();

@@ -14,6 +14,7 @@ void Render::initWindow(Window* window) {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 
     GLFWwindow* glfwWindow = glfwCreateWindow(INIT_WIDTH, INIT_HEIGHT, "GLFW Render", NULL, NULL);
@@ -37,7 +38,7 @@ void Render::initWindow(Window* window) {
     window->height = INIT_HEIGHT;
     window->glfwWindow = glfwWindow;
     window->backgroundColor = {0.2f, 0.3f, 0.3f};
-    window->projectionMatrix = glm::perspective(glm::radians(45.0f), (f32)INIT_WIDTH / (f32)INIT_HEIGHT, 0.1f, 100.0f);
+    window->projectionMatrix = glm::perspective(glm::radians(FOV), (f32)INIT_WIDTH / (f32)INIT_HEIGHT, NEAR_PLANE, FAR_PLANE);
 }
 
 void Render::closeWindow(Window* window) {
@@ -83,9 +84,9 @@ void Render::unbindMesh() {
 }
 
 void Render::bindTexture(Asset::ShaderAsset* shaderAsset, Asset::TextureAsset* textureAsset, Asset::ShaderUniform uniform, i32 textureUnit) {
+    setUniform(shaderAsset, uniform, textureUnit);
     glActiveTexture(GL_TEXTURE0 + textureUnit);
     glBindTexture(GL_TEXTURE_2D, textureAsset->textureId);
-    setUniform(shaderAsset, uniform, textureUnit);
 }
 
 void Render::unbindTexture() {
@@ -94,35 +95,35 @@ void Render::unbindTexture() {
 
 void Render::setUniform(Asset::ShaderAsset* shaderAsset, Asset::ShaderUniform uniform, i32 value) {
     ui32 uniformLocation = shaderAsset->uniformLocations[uniform];
-    glUniform1i(uniformLocation, value);
+    glUniform1i((i32) uniformLocation, value);
 }
 
 void Render::setUniform(Asset::ShaderAsset* shaderAsset, Asset::ShaderUniform uniform, f32 value) {
     ui32 uniformLocation = shaderAsset->uniformLocations[uniform];
-    glUniform1f(uniformLocation, value);
+    glUniform1f((i32) uniformLocation, value);
 }
 
 void Render::setUniform(Asset::ShaderAsset* shaderAsset, Asset::ShaderUniform uniform, bool value) {
     ui32 uniformLocation = shaderAsset->uniformLocations[uniform];
-    glUniform1i(uniformLocation, value);
+    glUniform1i((i32) uniformLocation, value);
 }
 
 void Render::setUniform(Asset::ShaderAsset* shaderAsset, Asset::ShaderUniform uniform, Vector2f value) {
     ui32 uniformLocation = shaderAsset->uniformLocations[uniform];
-    glUniform2f(uniformLocation, value.x, value.y);
+    glUniform2f((i32) uniformLocation, value.x, value.y);
 }
 
 void Render::setUniform(Asset::ShaderAsset* shaderAsset, Asset::ShaderUniform uniform, Vector3f value) {
     ui32 uniformLocation = shaderAsset->uniformLocations[uniform];
-    glUniform3f(uniformLocation, value.x, value.y, value.z);
+    glUniform3f((i32) uniformLocation, value.x, value.y, value.z);
 }
 
 void Render::setUniform(Asset::ShaderAsset* shaderAsset, Asset::ShaderUniform uniform, Vector3f* values, i32 count) {
     ui32 uniformLocation = shaderAsset->uniformLocations[uniform];
-    glUniform3fv(uniformLocation, count, (f32*) values);
+    glUniform3fv((i32) uniformLocation, count, (f32*) values);
 }
 
 void Render::setUniform(Asset::ShaderAsset* shaderAsset, Asset::ShaderUniform uniform, glm::f32mat4 value) {
     ui32 uniformLocation = shaderAsset->uniformLocations[uniform];
-    glUniformMatrix4fv(uniformLocation, 1, GL_FALSE, &value[0][0]);
+    glUniformMatrix4fv((i32) uniformLocation, 1, GL_FALSE, &value[0][0]);
 }
