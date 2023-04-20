@@ -47,7 +47,7 @@ bool Asset::loadShaderAsset(ShaderAsset* asset, const char* vertexFilePath, cons
     glAttachShader(programId, vertexShaderId);
     glAttachShader(programId, fragmentShaderId);
     glBindAttribLocation(programId, 0, "position");
-    glBindAttribLocation(programId, 1, "textureCoords");
+    glBindAttribLocation(programId, 1, "textureCoord");
     glBindAttribLocation(programId, 2, "normal");
     glLinkProgram(programId);
 

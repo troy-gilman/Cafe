@@ -9,7 +9,7 @@ Vector2f calcTextureAtlasOffset(ui32 atlasSize, ui32 index) {
 
 void Render::render(Window* window, Asset::AssetPack* assetPack, Entity::EntityState* entityState) {
     glClearColor(window->backgroundColor.x, window->backgroundColor.y, window->backgroundColor.z, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     enableCulling();
 

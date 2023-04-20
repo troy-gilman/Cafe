@@ -11,8 +11,8 @@ void Render::initWindow(Window* window) {
         return;
     }
 
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
@@ -24,6 +24,7 @@ void Render::initWindow(Window* window) {
     }
 
     glfwMakeContextCurrent(glfwWindow);
+    glEnable(GL_DEPTH_TEST);
     glfwSwapInterval(1);
 
     if (glewInit() != GLEW_OK) {

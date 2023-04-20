@@ -13,6 +13,7 @@ find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(PNG REQUIRED)
 find_package(glm REQUIRED)
+find_package(assimp REQUIRED)
 
 set(PROJECT_LIBS
         ${PROJECT_LIBS}
@@ -22,6 +23,7 @@ set(PROJECT_LIBS
         GLEW::GLEW
         PNG::PNG
         glm::glm
+        assimp::assimp
         )
 
 add_executable(${PROJECT_NAME} ${${PROJECT_NAME}_SOURCES})
