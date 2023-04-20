@@ -7,6 +7,7 @@
 #include "Network.h"
 #include "asset/Asset.h"
 #include "Render.h"
+#include "Input.h"
 
 class Atlas {
 private:
@@ -16,6 +17,7 @@ private:
     Asset::AssetPack* assetPack;
     Render::Window* window;
     Network::NetworkState* networkState;
+    Input* input;
 
 public:
     Atlas(bool isServer);

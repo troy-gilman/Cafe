@@ -7,16 +7,31 @@ Vector2f calcTextureAtlasOffset(ui32 atlasSize, ui32 index) {
     return {x / (f32)atlasSize, y / (f32)atlasSize};
 }
 
-void Render::render(Window* window, Asset::AssetPack* assetPack) {
+void Render::render(Window* window, Asset::AssetPack* assetPack, Entity::EntityState* entityState) {
     glClearColor(window->backgroundColor.x, window->backgroundColor.y, window->backgroundColor.z, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
     enableCulling();
 
-    i32 numLights = 0;
+    i32 numLights = 1;
 
-    glm::f32vec3 cameraPosition = {0.0f, -2.0f, -5.0f};
-    glm::f32vec3 cameraRotation = {0.0f, 0.0f, 0.0f};
+    Vector3f lightPositions[] = {
+        {100.0f, 100.0f, 100.0f}
+    };
+
+    Vector3f lightColors[] = {
+        {1.0f, 1.0f, 1.0f}
+    };
+
+    Vector3f lightAttenuations[] = {
+        {1.0f, 0.0f, 0.0f}
+    };
+
+    Entity::Entity* entity1 = entityState->entities.at(1);
+    Vector3f entity1Pos = entity1->spatial3D_Position;
+    Vector3f entity1Rot = entity1->spatial3D_Rotation;
+    glm::f32vec3 cameraPosition = {entity1Pos.x, entity1Pos.y, entity1Pos.z};
+    glm::f32vec3 cameraRotation = {entity1Rot.x, entity1Rot.y, entity1Rot.z};
     glm::f32mat4 viewMatrix = glm::translate(glm::f32mat4(1.0f), cameraPosition);
 
     Asset::ShaderAsset* shaderAsset = assetPack->shaderAssets.begin()->second;
@@ -24,9 +39,9 @@ void Render::render(Window* window, Asset::AssetPack* assetPack) {
     setUniform(shaderAsset, Asset::ShaderUniform::VIEW_MATRIX, viewMatrix);
     setUniform(shaderAsset, Asset::ShaderUniform::PROJECTION_MATRIX, window->projectionMatrix);
     setUniform(shaderAsset, Asset::ShaderUniform::SKY_COLOR, window->backgroundColor);
-    setUniform(shaderAsset, Asset::ShaderUniform::LIGHT_POSITIONS, std::vector<Vector3f>(), numLights);
-    setUniform(shaderAsset, Asset::ShaderUniform::LIGHT_COLORS, std::vector<Vector3f>(), numLights);
-    setUniform(shaderAsset, Asset::ShaderUniform::LIGHT_ATTENUATIONS, std::vector<Vector3f>(), numLights);
+    setUniform(shaderAsset, Asset::ShaderUniform::LIGHT_POSITIONS, lightPositions, numLights);
+    setUniform(shaderAsset, Asset::ShaderUniform::LIGHT_COLORS, lightColors, numLights);
+    setUniform(shaderAsset, Asset::ShaderUniform::LIGHT_ATTENUATIONS, lightAttenuations, numLights);
     setUniform(shaderAsset, Asset::ShaderUniform::LIGHT_COUNT, numLights);
     {
         Asset::MeshAsset* mesh = assetPack->meshAssets.begin()->second;

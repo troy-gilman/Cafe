@@ -47,7 +47,7 @@ namespace Entity {
     };
 
     struct EntityState {
-        std::unordered_map<UUID, Entity> entities;
+        std::unordered_map<UUID, Entity*> entities;
 
         EntityState() {
             entities.reserve(1024);

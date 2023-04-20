@@ -22,6 +22,12 @@ Atlas::~Atlas() {
 
 void Atlas::init() {
     Render::initWindow(window);
+    input = Input::getInstance();
+
+    Entity::Entity* entity = new Entity::Entity();
+    entity->id = 1;
+    entity->spatial3D_Position = { 0, -2, -5 };
+    entityState->entities[entity->id] = entity;
 }
 
 static void networkControllerReadEventLoop(Event::EventState* eventState, Network::NetworkState* networkState, bool isServer) {
@@ -115,7 +121,30 @@ void Atlas::start() {
 
 void Atlas::render() {
     while (!Render::shouldCloseWindow(window)) {
-        Render::render(window, assetPack);
+        input->update();
+        if (input->isKeyPressed(GLFW_KEY_ESCAPE)) {
+            Render::closeWindow(window);
+            return;
+        }
+        if (input->isKeyPressed(GLFW_KEY_W)) {
+            entityState->entities[1]->spatial3D_Position.z += 0.1f;
+        }
+        if (input->isKeyPressed(GLFW_KEY_S)) {
+            entityState->entities[1]->spatial3D_Position.z -= 0.1f;
+        }
+        if (input->isKeyPressed(GLFW_KEY_A)) {
+            entityState->entities[1]->spatial3D_Position.x += 0.1f;
+        }
+        if (input->isKeyPressed(GLFW_KEY_D)) {
+            entityState->entities[1]->spatial3D_Position.x -= 0.1f;
+        }
+        if (input->isKeyPressed(GLFW_KEY_SPACE)) {
+            entityState->entities[1]->spatial3D_Position.y -= 0.1f;
+        }
+        if (input->isKeyPressed(GLFW_KEY_LEFT_SHIFT)) {
+            entityState->entities[1]->spatial3D_Position.y += 0.1f;
+        }
+        Render::render(window, assetPack, entityState);
     }
     Render::closeWindow(window);
 }

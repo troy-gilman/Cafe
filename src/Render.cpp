@@ -117,9 +117,9 @@ void Render::setUniform(Asset::ShaderAsset* shaderAsset, Asset::ShaderUniform un
     glUniform3f(uniformLocation, value.x, value.y, value.z);
 }
 
-void Render::setUniform(Asset::ShaderAsset* shaderAsset, Asset::ShaderUniform uniform, std::vector<Vector3f> value, i32 count) {
+void Render::setUniform(Asset::ShaderAsset* shaderAsset, Asset::ShaderUniform uniform, Vector3f* values, i32 count) {
     ui32 uniformLocation = shaderAsset->uniformLocations[uniform];
-    glUniform3fv(uniformLocation, count, (float*)value.data());
+    glUniform3fv(uniformLocation, count, (f32*) values);
 }
 
 void Render::setUniform(Asset::ShaderAsset* shaderAsset, Asset::ShaderUniform uniform, glm::f32mat4 value) {
