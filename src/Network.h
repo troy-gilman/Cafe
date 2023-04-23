@@ -3,6 +3,12 @@
 #include "Event.h"
 #include <netinet/in.h>
 
+// This is needed for macOS to prevent naming conflicts
+#ifdef DOMAIN
+#undef DOMAIN
+#endif
+
+
 namespace Network {
 
     static const i32 PORT = 8080;

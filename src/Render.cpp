@@ -33,7 +33,7 @@ void Render::initWindow(Window* window) {
     }
 
     glEnable(GL_DEBUG_OUTPUT);
-    glDebugMessageCallback(MessageCallback, nullptr);
+    //glDebugMessageCallback(MessageCallback, nullptr); // macOS doesn't support this
 
     window->width = INIT_WIDTH;
     window->height = INIT_HEIGHT;

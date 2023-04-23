@@ -2,6 +2,9 @@
 #include "glm/gtc/matrix_transform.hpp"
 
 Vector2f calcTextureAtlasOffset(ui32 atlasSize, ui32 index) {
+    if (index == 0) {
+        return { 0.0f, 0.0f };
+    }
     ui32 x = index % atlasSize;
     ui32 y = index / atlasSize;
     return {(f32) x / (f32) atlasSize, (f32) y / (f32) atlasSize};

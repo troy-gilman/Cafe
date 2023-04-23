@@ -59,14 +59,14 @@ bool Asset::loadShaderAsset(ShaderAsset* asset, const char* vertexFilePath, cons
         return false;
     }
 
-    // Validate the shader program and check if it is valid
-    glValidateProgram(programId);
-    i32 programValidateStatus;
-    glGetProgramiv(programId, GL_VALIDATE_STATUS, &programValidateStatus);
-    if (programValidateStatus == GL_FALSE) {
-        std::cout << "Failed to validate shader program\n";
-        return false;
-    }
+    // This is not needed at this time
+    // glValidateProgram(programId);
+    // i32 programValidateStatus;
+    // glGetProgramiv(programId, GL_VALIDATE_STATUS, &programValidateStatus);
+    // if (programValidateStatus == GL_FALSE) {
+    //     std::cout << "Failed to validate shader program\n";
+    //     return false;
+    // }
 
     for (ShaderUniform uniform = (ShaderUniform) 0; uniform < shaderUniformNames.size(); uniform = (ShaderUniform)(uniform + 1)) {
         const char* uniformName = shaderUniformNames[uniform];

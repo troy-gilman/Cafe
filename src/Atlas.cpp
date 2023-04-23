@@ -119,7 +119,7 @@ void Atlas::start() {
     }
 }
 
-void handleCamera(Entity::EntityState* entityState, Input* input) {
+void handleCameraThirdPerson(Entity::EntityState* entityState, Input* input) {
     Entity::Entity* camera = entityState->entities[1];
 
     if (input->isKeyPressed(GLFW_KEY_W)) {
@@ -168,6 +168,51 @@ void handleCamera(Entity::EntityState* entityState, Input* input) {
     camera->spatial3D_Rotation = { camera->camera_VerticalAngle, 180 - objectRotationY, 0.0f };
 }
 
+void handleCameraFirstPerson(Entity::EntityState* entityState, Input* input) {
+    Entity::Entity* camera = entityState->entities[1];
+
+    f32 moveSpeed = 0.1f;
+    f32 mouseSensitivty = 0.15f;
+    f32 verticalViewRange = 90.0f;
+
+    f32 x = (f32) sin(camera->spatial3D_Rotation.y * M_PI / 180.0f) * moveSpeed;
+    f32 z = (f32) cos(camera->spatial3D_Rotation.y * M_PI / 180.0f) * moveSpeed;
+
+    if (input->isKeyPressed(GLFW_KEY_W)) {
+        camera->spatial3D_Position.x += x;
+        camera->spatial3D_Position.z += z;
+    }
+    if (input->isKeyPressed(GLFW_KEY_S)) {
+        camera->spatial3D_Position.x += -x;
+        camera->spatial3D_Position.z += -z;
+    }
+    if (input->isKeyPressed(GLFW_KEY_A)) {
+        camera->spatial3D_Position.x += z;
+        camera->spatial3D_Position.z += -x;
+    }
+    if (input->isKeyPressed(GLFW_KEY_D)) {
+        camera->spatial3D_Position.x += -z;
+        camera->spatial3D_Position.z += x;
+    }
+    if (input->isKeyPressed(GLFW_KEY_SPACE)) {
+        camera->spatial3D_Position.y -= moveSpeed;
+    }
+    if (input->isKeyPressed(GLFW_KEY_LEFT_SHIFT)) {
+        camera->spatial3D_Position.y += moveSpeed;
+    }
+
+    f32 dx = input->getScrollDeltaX();
+    f32 dy = input->getScrollDeltaY();
+
+    f32 newRotationX = camera->spatial3D_Rotation.x - dy * mouseSensitivty;
+    if (newRotationX > verticalViewRange || newRotationX < - verticalViewRange) {
+        dy = 0;
+    }
+
+    camera->spatial3D_Rotation.x -= dy * mouseSensitivty;
+    camera->spatial3D_Rotation.y += dx * mouseSensitivty;
+}
+
 void Atlas::render() {
     while (!Render::shouldCloseWindow(window)) {
         input->update();
@@ -175,7 +220,7 @@ void Atlas::render() {
             Render::closeWindow(window);
             return;
         }
-        handleCamera(entityState, input);
+        handleCameraFirstPerson(entityState, input);
         Render::render(window, assetPack, entityState);
     }
     Render::closeWindow(window);
