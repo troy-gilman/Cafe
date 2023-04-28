@@ -1,9 +1,16 @@
 #include "Render.h"
 #include <iostream>
-#include "glm/gtc/matrix_transform.hpp"
+#include "util/MathUtils.h"
+
 
 void GLAPIENTRY MessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
     std::cout << message << "\n";
+}
+
+void Render::windowResizedCallback(GLFWwindow* window, i32 w, i32 h) {
+    _width = w;
+    _height = h;
+    _resized = true;
 }
 
 void Render::initWindow(Window* window) {
@@ -24,8 +31,8 @@ void Render::initWindow(Window* window) {
     }
 
     const GLFWvidmode* videoMode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-    f64 windowPosX = (videoMode->width - INIT_WIDTH) / 2.0f;
-    f64 windowPosY = (videoMode->height - INIT_HEIGHT) / 2.0f;
+    f64 windowPosX = (f64) (videoMode->width - INIT_WIDTH) / 2.0f;
+    f64 windowPosY = (f64) (videoMode->height - INIT_HEIGHT) / 2.0f;
     glfwSetWindowPos(glfwWindow, windowPosX, windowPosY);
 
     glfwMakeContextCurrent(glfwWindow);
@@ -39,14 +46,26 @@ void Render::initWindow(Window* window) {
 
     glEnable(GL_DEBUG_OUTPUT);
     //glDebugMessageCallback(MessageCallback, nullptr); // macOS doesn't support this
+    glfwSetWindowSizeCallback(glfwWindow, windowResizedCallback);
 
     window->width = INIT_WIDTH;
     window->height = INIT_HEIGHT;
+    window->resized = false;
     window->posX = windowPosX;
     window->posY = windowPosY;
     window->glfwWindow = glfwWindow;
     window->backgroundColor = {0.2f, 0.3f, 0.3f};
-    window->projectionMatrix = glm::perspective(glm::radians(FOV), (f32)INIT_WIDTH / (f32)INIT_HEIGHT, NEAR_PLANE, FAR_PLANE);
+    window->projectionMatrix = MathUtils::createProjectionMatrix(FOV,  NEAR_PLANE, FAR_PLANE, (f32)window->width / (f32)window->height);
+}
+
+void Render::updatedWindow(Render::Window *window) {
+    window->width = _width;
+    window->height = _height;
+    window->resized = _resized;
+    if (window->resized) {
+        window->projectionMatrix = MathUtils::createProjectionMatrix(FOV, NEAR_PLANE, FAR_PLANE, (f32)window->width / (f32)window->height);
+        _resized = false;
+    }
 }
 
 void Render::closeWindow(Window* window) {

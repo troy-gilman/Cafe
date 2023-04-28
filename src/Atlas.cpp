@@ -172,27 +172,27 @@ void handleCameraFirstPerson(Entity::EntityState* entityState, Input* input) {
     Entity::Entity* camera = entityState->entities[1];
 
     f32 moveSpeed = 0.1f;
-    f32 mouseSensitivty = 0.3f;
+    f32 mouseSensitivty = 0.15f;
     f32 verticalViewRange = 90.0f;
 
-    f32 x = (f32) sin(camera->spatial3D_Rotation.y * M_PI / 180.0f) * moveSpeed;
-    f32 z = (f32) cos(camera->spatial3D_Rotation.y * M_PI / 180.0f) * moveSpeed;
+    f32 x = (f32) sin((180-camera->spatial3D_Rotation.y) * M_PI / 180.0f) * moveSpeed;
+    f32 z = (f32) cos((180-camera->spatial3D_Rotation.y) * M_PI / 180.0f) * moveSpeed;
 
     if (input->isKeyPressed(GLFW_KEY_W)) {
-        camera->spatial3D_Position.x += x;
-        camera->spatial3D_Position.z += z;
-    }
-    if (input->isKeyPressed(GLFW_KEY_S)) {
         camera->spatial3D_Position.x += -x;
         camera->spatial3D_Position.z += -z;
     }
-    if (input->isKeyPressed(GLFW_KEY_A)) {
-        camera->spatial3D_Position.x += z;
-        camera->spatial3D_Position.z += -x;
+    if (input->isKeyPressed(GLFW_KEY_S)) {
+        camera->spatial3D_Position.x += x;
+        camera->spatial3D_Position.z += z;
     }
-    if (input->isKeyPressed(GLFW_KEY_D)) {
+    if (input->isKeyPressed(GLFW_KEY_A)) {
         camera->spatial3D_Position.x += -z;
         camera->spatial3D_Position.z += x;
+    }
+    if (input->isKeyPressed(GLFW_KEY_D)) {
+        camera->spatial3D_Position.x += z;
+        camera->spatial3D_Position.z += -x;
     }
     if (input->isKeyPressed(GLFW_KEY_SPACE)) {
         camera->spatial3D_Position.y -= moveSpeed;
@@ -209,15 +209,25 @@ void handleCameraFirstPerson(Entity::EntityState* entityState, Input* input) {
         dy = 0;
     }
 
-    camera->spatial3D_Rotation.x -= dy * mouseSensitivty;
-    camera->spatial3D_Rotation.y -= dx * mouseSensitivty;
+    camera->spatial3D_Rotation.x += dy * mouseSensitivty;
+    camera->spatial3D_Rotation.y += dx * mouseSensitivty;
+    camera->spatial3D_Rotation.x = (f32) fmod(camera->spatial3D_Rotation.x, 360.0f);
+    camera->spatial3D_Rotation.y = (f32) fmod(camera->spatial3D_Rotation.y, 360.0f);
 }
 
 void Atlas::render() {
     while (!Render::shouldCloseWindow(window)) {
+        Render::updatedWindow(window);
+        if (window->resized) {
+            glViewport(0, 0, window->width, window->height);
+            window->resized = false;
+        }
         if (input->isKeyPressed(GLFW_KEY_ESCAPE)) {
             Render::closeWindow(window);
             return;
+        }
+        if (input->isMouseButtonPressed(GLFW_MOUSE_BUTTON_LEFT)) {
+            glfwSetInputMode(window->glfwWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
         }
         handleCameraFirstPerson(entityState, input);
         input->update();

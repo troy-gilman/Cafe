@@ -11,13 +11,20 @@ namespace Render {
 
     static const ui32 INIT_WIDTH = 960;
     static const ui32 INIT_HEIGHT = 540;
-    static const f32 FOV = 45.0f;
+    static const f32 FOV = 70.0f;
     static const f32 NEAR_PLANE = 0.1f;
     static const f32 FAR_PLANE = 1000.0f;
+
+    static ui32 _width;
+    static ui32 _height;
+    static bool _resized;
+
+    void windowResizedCallback(GLFWwindow* window, i32 w, i32 h);
 
     struct Window {
         ui32 width;
         ui32 height;
+        bool resized;
         f64 posX;
         f64 posY;
         GLFWwindow* glfwWindow;
@@ -28,6 +35,7 @@ namespace Render {
     void render(Window * window, Asset::AssetPack* assetPack, Entity::EntityState* entityState);
 
     void initWindow(Window* window);
+    void updatedWindow(Window* window);
     void closeWindow(Window * window);
     bool shouldCloseWindow(Window * window);
     void enableCulling();
