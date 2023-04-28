@@ -172,7 +172,7 @@ void handleCameraFirstPerson(Entity::EntityState* entityState, Input* input) {
     Entity::Entity* camera = entityState->entities[1];
 
     f32 moveSpeed = 0.1f;
-    f32 mouseSensitivty = 0.15f;
+    f32 mouseSensitivty = 0.3f;
     f32 verticalViewRange = 90.0f;
 
     f32 x = (f32) sin(camera->spatial3D_Rotation.y * M_PI / 180.0f) * moveSpeed;
@@ -201,8 +201,8 @@ void handleCameraFirstPerson(Entity::EntityState* entityState, Input* input) {
         camera->spatial3D_Position.y += moveSpeed;
     }
 
-    f32 dx = input->getScrollDeltaX();
-    f32 dy = input->getScrollDeltaY();
+    f32 dx = input->getMouseDeltaX();
+    f32 dy = input->getMouseDeltaY();
 
     f32 newRotationX = camera->spatial3D_Rotation.x - dy * mouseSensitivty;
     if (newRotationX > verticalViewRange || newRotationX < - verticalViewRange) {
@@ -210,17 +210,17 @@ void handleCameraFirstPerson(Entity::EntityState* entityState, Input* input) {
     }
 
     camera->spatial3D_Rotation.x -= dy * mouseSensitivty;
-    camera->spatial3D_Rotation.y += dx * mouseSensitivty;
+    camera->spatial3D_Rotation.y -= dx * mouseSensitivty;
 }
 
 void Atlas::render() {
     while (!Render::shouldCloseWindow(window)) {
-        input->update();
         if (input->isKeyPressed(GLFW_KEY_ESCAPE)) {
             Render::closeWindow(window);
             return;
         }
         handleCameraFirstPerson(entityState, input);
+        input->update();
         Render::render(window, assetPack, entityState);
     }
     Render::closeWindow(window);

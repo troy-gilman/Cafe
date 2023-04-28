@@ -23,6 +23,11 @@ void Render::initWindow(Window* window) {
         return;
     }
 
+    const GLFWvidmode* videoMode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+    f64 windowPosX = (videoMode->width - INIT_WIDTH) / 2.0f;
+    f64 windowPosY = (videoMode->height - INIT_HEIGHT) / 2.0f;
+    glfwSetWindowPos(glfwWindow, windowPosX, windowPosY);
+
     glfwMakeContextCurrent(glfwWindow);
     glEnable(GL_DEPTH_TEST);
     glfwSwapInterval(1);
@@ -37,6 +42,8 @@ void Render::initWindow(Window* window) {
 
     window->width = INIT_WIDTH;
     window->height = INIT_HEIGHT;
+    window->posX = windowPosX;
+    window->posY = windowPosY;
     window->glfwWindow = glfwWindow;
     window->backgroundColor = {0.2f, 0.3f, 0.3f};
     window->projectionMatrix = glm::perspective(glm::radians(FOV), (f32)INIT_WIDTH / (f32)INIT_HEIGHT, NEAR_PLANE, FAR_PLANE);

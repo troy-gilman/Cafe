@@ -35,7 +35,13 @@ void Render::render(Window* window, Asset::AssetPack* assetPack, Entity::EntityS
     Vector3f entity1Rot = entity1->spatial3D_Rotation;
     glm::f32vec3 cameraPosition = {entity1Pos.x, entity1Pos.y, entity1Pos.z};
     glm::f32vec3 cameraRotation = {entity1Rot.x, entity1Rot.y, entity1Rot.z};
-    glm::f32mat4 viewMatrix = glm::translate(glm::f32mat4(1.0f), cameraPosition);
+
+    glm::f32vec3 negativePos = { cameraPosition.x, cameraPosition.y, cameraPosition.z };
+    glm::f32mat4 viewMatrix(1.0f);
+    viewMatrix = glm::rotate(viewMatrix, glm::radians(cameraRotation.x), glm::f32vec3(1.0f, 0.0f, 0.0f));
+    viewMatrix = glm::rotate(viewMatrix, glm::radians(cameraRotation.y), glm::f32vec3(0.0f, 1.0f, 0.0f));
+    viewMatrix = glm::rotate(viewMatrix, glm::radians(cameraRotation.z), glm::f32vec3(0.0f, 0.0f, 1.0f));
+    viewMatrix = glm::translate(viewMatrix,  negativePos);
 
     Asset::ShaderAsset* shaderAsset = assetPack->shaderAssets.begin()->second;
     bindShader(shaderAsset);

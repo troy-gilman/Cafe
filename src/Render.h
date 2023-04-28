@@ -18,6 +18,8 @@ namespace Render {
     struct Window {
         ui32 width;
         ui32 height;
+        f64 posX;
+        f64 posY;
         GLFWwindow* glfwWindow;
         glm::f32mat4 projectionMatrix;
         Vector3f backgroundColor;
