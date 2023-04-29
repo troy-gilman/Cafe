@@ -119,6 +119,7 @@ void Atlas::start() {
     }
 }
 
+// Does not work properly
 void handleCameraThirdPerson(Entity::EntityState* entityState, Input* input) {
     Entity::Entity* camera = entityState->entities[1];
 
@@ -172,11 +173,11 @@ void handleCameraFirstPerson(Entity::EntityState* entityState, Input* input) {
     Entity::Entity* camera = entityState->entities[1];
 
     f32 moveSpeed = 0.1f;
-    f32 mouseSensitivty = 0.15f;
+    f32 mouseSensitivity = 0.15f;
     f32 verticalViewRange = 90.0f;
 
-    f32 x = (f32) sin((180-camera->spatial3D_Rotation.y) * M_PI / 180.0f) * moveSpeed;
-    f32 z = (f32) cos((180-camera->spatial3D_Rotation.y) * M_PI / 180.0f) * moveSpeed;
+    f32 x = (f32) sin((180 - camera->spatial3D_Rotation.y) * M_PI / 180.0f) * moveSpeed;
+    f32 z = (f32) cos((180 - camera->spatial3D_Rotation.y) * M_PI / 180.0f) * moveSpeed;
 
     if (input->isKeyPressed(GLFW_KEY_W)) {
         camera->spatial3D_Position.x += -x;
@@ -204,13 +205,13 @@ void handleCameraFirstPerson(Entity::EntityState* entityState, Input* input) {
     f32 dx = input->getMouseDeltaX();
     f32 dy = input->getMouseDeltaY();
 
-    f32 newRotationX = camera->spatial3D_Rotation.x - dy * mouseSensitivty;
+    f32 newRotationX = camera->spatial3D_Rotation.x - dy * mouseSensitivity;
     if (newRotationX > verticalViewRange || newRotationX < - verticalViewRange) {
         dy = 0;
     }
 
-    camera->spatial3D_Rotation.x += dy * mouseSensitivty;
-    camera->spatial3D_Rotation.y += dx * mouseSensitivty;
+    camera->spatial3D_Rotation.x += dy * mouseSensitivity;
+    camera->spatial3D_Rotation.y += dx * mouseSensitivity;
     camera->spatial3D_Rotation.x = (f32) fmod(camera->spatial3D_Rotation.x, 360.0f);
     camera->spatial3D_Rotation.y = (f32) fmod(camera->spatial3D_Rotation.y, 360.0f);
 }

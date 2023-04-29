@@ -31,8 +31,8 @@ void Render::initWindow(Window* window) {
     }
 
     const GLFWvidmode* videoMode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-    f64 windowPosX = (f64) (videoMode->width - INIT_WIDTH) / 2.0f;
-    f64 windowPosY = (f64) (videoMode->height - INIT_HEIGHT) / 2.0f;
+    i32 windowPosX = (i32) ((f32) (videoMode->width - INIT_WIDTH) / 2.0f);
+    i32 windowPosY = (i32) ((f32) (videoMode->height - INIT_HEIGHT) / 2.0f);
     glfwSetWindowPos(glfwWindow, windowPosX, windowPosY);
 
     glfwMakeContextCurrent(glfwWindow);
