@@ -16,8 +16,8 @@ private:
     Entity::EntityState* entityState;
     Asset::AssetPack* assetPack;
     Render::Window* window;
+    Input::InputState* input;
     Network::NetworkState* networkState;
-    Input* input;
 
 public:
     Atlas(bool isServer);

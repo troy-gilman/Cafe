@@ -8,9 +8,9 @@ void GLAPIENTRY MessageCallback(GLenum source, GLenum type, GLuint id, GLenum se
 }
 
 void Render::windowResizedCallback(GLFWwindow* window, i32 w, i32 h) {
-    _width = w;
-    _height = h;
-    _resized = true;
+    _windowWidth = w;
+    _windowHeight = h;
+    _windowResized = true;
 }
 
 void Render::initWindow(Window* window) {
@@ -59,12 +59,12 @@ void Render::initWindow(Window* window) {
 }
 
 void Render::updatedWindow(Render::Window *window) {
-    window->width = _width;
-    window->height = _height;
-    window->resized = _resized;
+    window->width = _windowWidth;
+    window->height = _windowHeight;
+    window->resized = _windowResized;
     if (window->resized) {
         window->projectionMatrix = MathUtils::createProjectionMatrix(FOV, NEAR_PLANE, FAR_PLANE, (f32)window->width / (f32)window->height);
-        _resized = false;
+        _windowResized = false;
     }
 }
 

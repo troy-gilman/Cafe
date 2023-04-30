@@ -9,6 +9,7 @@ Atlas::Atlas(bool isServer) : isServer(isServer) {
     entityState = new Entity::EntityState();
     assetPack = new Asset::AssetPack();
     window = new Render::Window();
+    input = new Input::InputState();
     networkState = new Network::NetworkState();
 }
 
@@ -22,7 +23,7 @@ Atlas::~Atlas() {
 
 void Atlas::init() {
     Render::initWindow(window);
-    input = Input::getInstance();
+    Input::initInputState(input, window->glfwWindow);
 
     Entity::Entity* entity = new Entity::Entity();
     entity->id = 1;
@@ -120,30 +121,30 @@ void Atlas::start() {
 }
 
 // Does not work properly
-void handleCameraThirdPerson(Entity::EntityState* entityState, Input* input) {
+void handleCameraThirdPerson(Entity::EntityState* entityState, Input::InputState* input) {
     Entity::Entity* camera = entityState->entities[1];
 
-    if (input->isKeyPressed(GLFW_KEY_W)) {
+    if (input->keys[GLFW_KEY_W]) {
         camera->spatial3D_Position.z += 0.1f;
     }
-    if (input->isKeyPressed(GLFW_KEY_S)) {
+    if (input->keys[GLFW_KEY_S]) {
         camera->spatial3D_Position.z -= 0.1f;
     }
-    if (input->isKeyPressed(GLFW_KEY_A)) {
+    if (input->keys[GLFW_KEY_A]) {
         camera->spatial3D_Position.x += 0.1f;
     }
-    if (input->isKeyPressed(GLFW_KEY_D)) {
+    if (input->keys[GLFW_KEY_D]) {
         camera->spatial3D_Position.x -= 0.1f;
     }
-    if (input->isKeyPressed(GLFW_KEY_SPACE)) {
+    if (input->keys[GLFW_KEY_SPACE]) {
         camera->spatial3D_Position.y -= 0.1f;
     }
-    if (input->isKeyPressed(GLFW_KEY_LEFT_SHIFT)) {
+    if (input->keys[GLFW_KEY_LEFT_SHIFT]) {
         camera->spatial3D_Position.y += 0.1f;
     }
 
-    f32 dx = (f32) input->getMouseDeltaX();
-    f32 dy = (f32) input->getMouseDeltaY();
+    f32 dx = (f32) (input->mouseX - input->oldMouseX);
+    f32 dy = (f32) (input->mouseY - input->oldMouseY);
 
     f32 mouseSensitivity = 0.15f;
     f32 verticalViewAngle = 90.0f;
@@ -169,7 +170,7 @@ void handleCameraThirdPerson(Entity::EntityState* entityState, Input* input) {
     camera->spatial3D_Rotation = { camera->camera_VerticalAngle, 180 - objectRotationY, 0.0f };
 }
 
-void handleCameraFirstPerson(Entity::EntityState* entityState, Input* input) {
+void handleCameraFirstPerson(Entity::EntityState* entityState, Input::InputState* input) {
     Entity::Entity* camera = entityState->entities[1];
 
     f32 moveSpeed = 0.1f;
@@ -179,31 +180,31 @@ void handleCameraFirstPerson(Entity::EntityState* entityState, Input* input) {
     f32 x = (f32) sin((180 - camera->spatial3D_Rotation.y) * M_PI / 180.0f) * moveSpeed;
     f32 z = (f32) cos((180 - camera->spatial3D_Rotation.y) * M_PI / 180.0f) * moveSpeed;
 
-    if (input->isKeyPressed(GLFW_KEY_W)) {
+    if (input->keys[GLFW_KEY_W]) {
         camera->spatial3D_Position.x += -x;
         camera->spatial3D_Position.z += -z;
     }
-    if (input->isKeyPressed(GLFW_KEY_S)) {
+    if (input->keys[GLFW_KEY_S]) {
         camera->spatial3D_Position.x += x;
         camera->spatial3D_Position.z += z;
     }
-    if (input->isKeyPressed(GLFW_KEY_A)) {
+    if (input->keys[GLFW_KEY_A]) {
         camera->spatial3D_Position.x += -z;
         camera->spatial3D_Position.z += x;
     }
-    if (input->isKeyPressed(GLFW_KEY_D)) {
+    if (input->keys[GLFW_KEY_D]) {
         camera->spatial3D_Position.x += z;
         camera->spatial3D_Position.z += -x;
     }
-    if (input->isKeyPressed(GLFW_KEY_SPACE)) {
+    if (input->keys[GLFW_KEY_SPACE]) {
         camera->spatial3D_Position.y -= moveSpeed;
     }
-    if (input->isKeyPressed(GLFW_KEY_LEFT_SHIFT)) {
+    if (input->keys[GLFW_KEY_LEFT_SHIFT]) {
         camera->spatial3D_Position.y += moveSpeed;
     }
 
-    f32 dx = input->getMouseDeltaX();
-    f32 dy = input->getMouseDeltaY();
+    f32 dx = (f32) (input->mouseX - input->oldMouseX);
+    f32 dy = (f32) (input->mouseY - input->oldMouseY);
 
     f32 newRotationX = camera->spatial3D_Rotation.x - dy * mouseSensitivity;
     if (newRotationX > verticalViewRange || newRotationX < - verticalViewRange) {
@@ -223,15 +224,15 @@ void Atlas::render() {
             glViewport(0, 0, window->width, window->height);
             window->resized = false;
         }
-        if (input->isKeyPressed(GLFW_KEY_ESCAPE)) {
+        if (input->keys[GLFW_KEY_ESCAPE]) {
             Render::closeWindow(window);
             return;
         }
-        if (input->isMouseButtonPressed(GLFW_MOUSE_BUTTON_LEFT)) {
+        if (input->mouseButtons[GLFW_MOUSE_BUTTON_LEFT]) {
             glfwSetInputMode(window->glfwWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
         }
         handleCameraFirstPerson(entityState, input);
-        input->update();
+        Input::updateInputState(input);
         Render::render(window, assetPack, entityState);
     }
     Render::closeWindow(window);

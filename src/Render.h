@@ -9,16 +9,19 @@
 
 namespace Render {
 
+    // CONSTANTS
     static const i32 INIT_WIDTH = 960;
     static const i32 INIT_HEIGHT = 540;
     static const f32 FOV = 70.0f;
     static const f32 NEAR_PLANE = 0.1f;
     static const f32 FAR_PLANE = 1000.0f;
 
-    static i32 _width;
-    static i32 _height;
-    static bool _resized;
+    // GLOBALS
+    static i32 _windowWidth;
+    static i32 _windowHeight;
+    static bool _windowResized;
 
+    // CALLBACKS
     void windowResizedCallback(GLFWwindow* window, i32 w, i32 h);
 
     struct Window {
@@ -47,6 +50,7 @@ namespace Render {
     void bindTexture(Asset::ShaderAsset* shaderAsset, Asset::TextureAsset* textureAsset, Asset::ShaderUniform uniform, i32 textureUnit);
     void unbindTexture();
 
+    // UNIFORM SETTERS
     void setUniform(Asset::ShaderAsset* shaderAsset, Asset::ShaderUniform uniform, i32 value);
     void setUniform(Asset::ShaderAsset* shaderAsset, Asset::ShaderUniform uniform, f32 value);
     void setUniform(Asset::ShaderAsset* shaderAsset, Asset::ShaderUniform uniform, bool value);
