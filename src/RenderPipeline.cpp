@@ -1,5 +1,6 @@
 #include "Render.h"
 #include "glm/gtc/matrix_transform.hpp"
+#include "util/MapUtils.h"
 
 Vector2f calcTextureAtlasOffset(ui32 atlasSize, ui32 index) {
     if (index == 0) {
@@ -10,7 +11,7 @@ Vector2f calcTextureAtlasOffset(ui32 atlasSize, ui32 index) {
     return {(f32) x / (f32) atlasSize, (f32) y / (f32) atlasSize};
 }
 
-void Render::render(Window* window, Asset::AssetPack* assetPack, Entity::EntityState* entityState) {
+void Render::render(Window* window, Asset::AssetPack* assetPack, ECS::EntityComponentSystem* ecs) {
     glClearColor(window->backgroundColor.x, window->backgroundColor.y, window->backgroundColor.z, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -30,9 +31,10 @@ void Render::render(Window* window, Asset::AssetPack* assetPack, Entity::EntityS
         {1.0f, 0.0f, 0.0f}
     };
 
-    Entity::Entity* entity1 = entityState->entities.at(1);
-    Vector3f entity1Pos = entity1->spatial3D_Position;
-    Vector3f entity1Rot = entity1->spatial3D_Rotation;
+    ECS::Entity* entity1 = ecs->entities.at(1);
+    ECS::Component* componentSpatial3d = MapUtils::getValueOrNullPtr(entity1->components, ECS::COMPONENT_TYPE_SPATIAL_3D);
+    Vector3f entity1Pos = componentSpatial3d->fields[ECS::Spatial3d::FIELD_INDEX_POSITION].field_Vector3f;
+    Vector3f entity1Rot = componentSpatial3d->fields[ECS::Spatial3d::FIELD_INDEX_ROTATION].field_Vector3f;
     glm::f32vec3 cameraPosition = {entity1Pos.x, entity1Pos.y, entity1Pos.z};
     glm::f32vec3 cameraRotation = {entity1Rot.x, entity1Rot.y, entity1Rot.z};
 

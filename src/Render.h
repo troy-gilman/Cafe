@@ -3,7 +3,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include "asset/Asset.h"
-#include "Entity.h"
+#include "ECS.h"
 #include <vector>
 #include "glm/glm.hpp"
 
@@ -35,7 +35,7 @@ namespace Render {
         Vector3f backgroundColor;
     };
 
-    void render(Window * window, Asset::AssetPack* assetPack, Entity::EntityState* entityState);
+    void render(Window * window, Asset::AssetPack* assetPack, ECS::EntityComponentSystem* ecs);
 
     void initWindow(Window* window);
     void updatedWindow(Window* window);

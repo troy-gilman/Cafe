@@ -13,7 +13,7 @@ class Atlas {
 private:
     bool isServer;
     Event::EventState* eventState;
-    Entity::EntityState* entityState;
+    ECS::EntityComponentSystem* ecs;
     Asset::AssetPack* assetPack;
     Render::Window* window;
     Input::InputState* input;

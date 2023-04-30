@@ -7,13 +7,17 @@
 
 namespace StringUtils {
 
-    inline void copyStringToBuffer(const char* string, char* buffer, ui64 bufferSize) {
+    inline void copyStringToBuffer(char* buffer, const char* string, ui64 bufferSize) {
         ui64 stringLength = strlen(string);
         if (stringLength > bufferSize) {
             stringLength = bufferSize;
         }
         strncpy(buffer, string, stringLength);
         buffer[stringLength] = '\0';
+    }
+
+    inline void copyStringToBuffer(char* buffer, const char* string) {
+        copyStringToBuffer(buffer, string, CHAR_BUFFER_SIZE);
     }
 
     inline bool startsWith(const char* string, const char* prefix) {

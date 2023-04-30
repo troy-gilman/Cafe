@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cstring>
-#include "Entity.h"
+#include "ECS.h"
 #include "util/Types.h"
 #include "util/ThreadSafeQueue.h"
 #include "util/ObjectPool.h"
@@ -13,40 +13,22 @@ namespace Event {
         NONE,
         ENTITY_CREATE,
         ENTITY_DESTROY,
-        ENTITY_UPDATE_CAMERA_DISTANCE_FROM_TARGET,
-        ENTITY_GET_CAMERA_DISTANCE_FROM_TARGET,
-        ENTITY_UPDATE_CAMERA_VERTICAL_ANGLE,
-        ENTITY_GET_CAMERA_VERTICAL_ANGLE,
-        ENTITY_UPDATE_LIGHT_COLOR,
-        ENTITY_GET_LIGHT_COLOR,
-        ENTITY_UPDATE_LIGHT_ATTENUATION,
-        ENTITY_GET_LIGHT_ATTENUATION,
-        ENTITY_UPDATE_RENDERABLE3D_MESH_ASSET_ID,
-        ENTITY_GET_RENDERABLE3D_MESH_ASSET_ID,
-        ENTITY_UPDATE_RENDERABLE3D_MATERIAL_ASSET_ID,
-        ENTITY_GET_RENDERABLE3D_MATERIAL_ASSET_ID,
-        ENTITY_UPDATE_RENDERABLE3D_TEXTURE_ATLAS_INDEX,
-        ENTITY_GET_RENDERABLE3D_TEXTURE_ATLAS_INDEX,
-        ENTITY_UPDATE_SPATIAL3D_POSITION,
-        ENTITY_GET_SPATIAL3D_POSITION,
-        ENTITY_UPDATE_SPATIAL3D_ROTATION,
-        ENTITY_GET_SPATIAL3D_ROTATION,
-        ENTITY_UPDATE_SPATIAL3D_SCALE,
-        ENTITY_GET_SPATIAL3D_SCALE,
+        ENTITY_ADD_COMPONENT,
+        ENTITY_REMOVE_COMPONENT,
+        COMPONENT_SET_FIELD,
+        COMPONENT_GET_FIELD,
     };
 
     struct Event {
         UUID eventId;
-        int eventType;
+        i32 eventType;
         bool isProcessed;
         bool success;
 
-        UUID dataId;
-        f32 dataFloat;
-        i32 dataInt;
-        bool dataBool;
-        CharBuffer dataString;
-        Vector3f dataVector3f;
+        FieldUnion field1;
+        FieldUnion field2;
+        FieldUnion field3;
+        FieldUnion field4;
     };
 
     struct EventState {

@@ -59,7 +59,7 @@ bool Asset::loadTextureAsset(TextureAsset* asset, const char* filePath) {
 
     // Set the texture asset properties
     asset->assetId = UUIDGenerator::getInstance()->generateUUID();
-    StringUtils::copyStringToBuffer(filePath, asset->filePath, CHAR_BUFFER_SIZE);
+    StringUtils::copyStringToBuffer(asset->filePath, filePath, CHAR_BUFFER_SIZE);
     asset->textureId = textureId;
     asset->atlasSize = 1;
     return true;
