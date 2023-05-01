@@ -38,8 +38,8 @@ void Render::initWindow(Window* window) {
 
     glfwMakeContextCurrent(glfwWindow);
     glEnable(GL_DEPTH_TEST);
-    glfwSwapInterval(0);
-    //glfwSwapInterval(1);
+    glfwSwapInterval(0); // Unlimited FPS
+    //glfwSwapInterval(1); // VSync
 
     if (glewInit() != GLEW_OK) {
         std::cout << "ERROR: Unable to initialize GLEW\n";
@@ -55,7 +55,7 @@ void Render::initWindow(Window* window) {
     window->resized = false;
     window->posX = windowPosX;
     window->posY = windowPosY;
-    window->lastFpsUpdateTimeMs = TimeUtils::getCurrentTimeMillis();
+    window->lastFpsUpdateMs = TimeUtils::getCurrentTimeMillis();
     window->framesSinceLastFpsUpdate = 0;
     window->glfwWindow = glfwWindow;
     window->backgroundColor = {0.2f, 0.3f, 0.3f};
@@ -71,14 +71,20 @@ void Render::updateWindow(Render::Window *window) {
         _windowResized = false;
     }
 
-    window->framesSinceLastFpsUpdate++;
     std::chrono::milliseconds currentTime = TimeUtils::getCurrentTimeMillis();
-    if (currentTime >= window->lastFpsUpdateTimeMs + std::chrono::milliseconds(1000)) {
+
+    // Update FPS counter
+    window->framesSinceLastFpsUpdate++;
+    if (currentTime >= window->lastFpsUpdateMs + std::chrono::milliseconds(1000)) {
         std::string title = std::string(WINDOW_TITLE) + " |FPS: " + std::to_string(window->framesSinceLastFpsUpdate) + "|";
         glfwSetWindowTitle(window->glfwWindow, title.c_str());
-        window->lastFpsUpdateTimeMs = currentTime;
+        window->lastFpsUpdateMs = currentTime;
         window->framesSinceLastFpsUpdate = 0;
     }
+
+    // Update last frame time
+    window->lastFrameTimeMs = (f32) (currentTime - window->lastWindowUpdateMs).count();
+    window->lastWindowUpdateMs = currentTime;
 }
 
 void Render::closeWindow(Window* window) {

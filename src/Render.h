@@ -32,7 +32,9 @@ namespace Render {
         bool resized;
         i32 posX;
         i32 posY;
-        std::chrono::milliseconds lastFpsUpdateTimeMs;
+        f32 lastFrameTimeMs;
+        std::chrono::milliseconds lastWindowUpdateMs;
+        std::chrono::milliseconds lastFpsUpdateMs;
         i32 framesSinceLastFpsUpdate;
         GLFWwindow* glfwWindow;
         glm::f32mat4 projectionMatrix;

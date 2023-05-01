@@ -177,7 +177,7 @@ void Atlas::start() {
 //    camera->spatial3D_Rotation = { camera->camera_VerticalAngle, 180 - objectRotationY, 0.0f };
 //}
 
-void handleCameraFirstPerson(ECS::EntityComponentSystem* ecs, Input::InputState* input) {
+void handleCameraFirstPerson(ECS::EntityComponentSystem* ecs, Input::InputState* input, f32 lastFrameTimeMs) {
     ECS::Entity* camera = ecs->entities[1];
     ECS::Component* spatial3d = MapUtils::getValueOrNullPtr(camera->components, ECS::COMPONENT_TYPE_SPATIAL_3D);
     if (spatial3d == nullptr) {
@@ -187,8 +187,8 @@ void handleCameraFirstPerson(ECS::EntityComponentSystem* ecs, Input::InputState*
     Vector3f position = spatial3d->fields[ECS::Spatial3d::FIELD_INDEX_POSITION].field_Vector3f;
     Vector3f rotation = spatial3d->fields[ECS::Spatial3d::FIELD_INDEX_ROTATION].field_Vector3f;
 
-    f32 moveSpeed = 0.1f;
-    f32 mouseSensitivity = 0.15f;
+    f32 moveSpeed = 0.01f * lastFrameTimeMs;
+    f32 mouseSensitivity = 0.2f;
     f32 verticalViewRange = 90.0f;
 
     f32 x = (f32) sin((180 - rotation.y) * M_PI / 180.0f) * moveSpeed;
@@ -248,7 +248,7 @@ void Atlas::render() {
         if (input->mouseButtons[GLFW_MOUSE_BUTTON_LEFT]) {
             glfwSetInputMode(window->glfwWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
         }
-        handleCameraFirstPerson(ecs, input);
+        handleCameraFirstPerson(ecs, input, window->lastFrameTimeMs);
         Input::updateInputState(input);
         Render::render(window, assetPack, ecs);
     }
