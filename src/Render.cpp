@@ -1,6 +1,7 @@
 #include "Render.h"
 #include <iostream>
 #include "util/MathUtils.h"
+#include "util/TimeUtils.h"
 
 
 void GLAPIENTRY MessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
@@ -24,7 +25,7 @@ void Render::initWindow(Window* window) {
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 
-    GLFWwindow* glfwWindow = glfwCreateWindow(INIT_WIDTH, INIT_HEIGHT, "GLFW Render", NULL, NULL);
+    GLFWwindow* glfwWindow = glfwCreateWindow(INIT_WIDTH, INIT_HEIGHT, WINDOW_TITLE, NULL, NULL);
     if (!glfwWindow) {
         glfwTerminate();
         return;
@@ -37,7 +38,8 @@ void Render::initWindow(Window* window) {
 
     glfwMakeContextCurrent(glfwWindow);
     glEnable(GL_DEPTH_TEST);
-    glfwSwapInterval(1);
+    glfwSwapInterval(0);
+    //glfwSwapInterval(1);
 
     if (glewInit() != GLEW_OK) {
         std::cout << "ERROR: Unable to initialize GLEW\n";
@@ -53,18 +55,29 @@ void Render::initWindow(Window* window) {
     window->resized = false;
     window->posX = windowPosX;
     window->posY = windowPosY;
+    window->lastFpsUpdateTimeMs = TimeUtils::getCurrentTimeMillis();
+    window->framesSinceLastFpsUpdate = 0;
     window->glfwWindow = glfwWindow;
     window->backgroundColor = {0.2f, 0.3f, 0.3f};
     window->projectionMatrix = MathUtils::createProjectionMatrix(FOV,  NEAR_PLANE, FAR_PLANE, (f32)window->width / (f32)window->height);
 }
 
-void Render::updatedWindow(Render::Window *window) {
+void Render::updateWindow(Render::Window *window) {
     window->width = _windowWidth;
     window->height = _windowHeight;
     window->resized = _windowResized;
     if (window->resized) {
         window->projectionMatrix = MathUtils::createProjectionMatrix(FOV, NEAR_PLANE, FAR_PLANE, (f32)window->width / (f32)window->height);
         _windowResized = false;
+    }
+
+    window->framesSinceLastFpsUpdate++;
+    std::chrono::milliseconds currentTime = TimeUtils::getCurrentTimeMillis();
+    if (currentTime >= window->lastFpsUpdateTimeMs + std::chrono::milliseconds(1000)) {
+        std::string title = std::string(WINDOW_TITLE) + " |FPS: " + std::to_string(window->framesSinceLastFpsUpdate) + "|";
+        glfwSetWindowTitle(window->glfwWindow, title.c_str());
+        window->lastFpsUpdateTimeMs = currentTime;
+        window->framesSinceLastFpsUpdate = 0;
     }
 }
 

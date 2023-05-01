@@ -236,7 +236,7 @@ void handleCameraFirstPerson(ECS::EntityComponentSystem* ecs, Input::InputState*
 
 void Atlas::render() {
     while (!Render::shouldCloseWindow(window)) {
-        Render::updatedWindow(window);
+        Render::updateWindow(window);
         if (window->resized) {
             glViewport(0, 0, window->width, window->height);
             window->resized = false;

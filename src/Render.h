@@ -6,6 +6,7 @@
 #include "ECS.h"
 #include <vector>
 #include "glm/glm.hpp"
+#include <chrono>
 
 namespace Render {
 
@@ -15,6 +16,7 @@ namespace Render {
     static const f32 FOV = 70.0f;
     static const f32 NEAR_PLANE = 0.1f;
     static const f32 FAR_PLANE = 1000.0f;
+    static const char* WINDOW_TITLE = "GLFW Render";
 
     // GLOBALS
     static i32 _windowWidth;
@@ -30,6 +32,8 @@ namespace Render {
         bool resized;
         i32 posX;
         i32 posY;
+        std::chrono::milliseconds lastFpsUpdateTimeMs;
+        i32 framesSinceLastFpsUpdate;
         GLFWwindow* glfwWindow;
         glm::f32mat4 projectionMatrix;
         Vector3f backgroundColor;
@@ -38,7 +42,7 @@ namespace Render {
     void render(Window * window, Asset::AssetPack* assetPack, ECS::EntityComponentSystem* ecs);
 
     void initWindow(Window* window);
-    void updatedWindow(Window* window);
+    void updateWindow(Window* window);
     void closeWindow(Window * window);
     bool shouldCloseWindow(Window * window);
     void enableCulling();
