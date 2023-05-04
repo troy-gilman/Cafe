@@ -31,4 +31,11 @@ public:
     bool addTextureToAssetPack(Asset::TextureAsset* textureAsset);
     bool addShaderToAssetPack(Asset::ShaderAsset* shaderAsset);
 
+    UUID createEntity();
+    bool addComponentToEntity(UUID entityId, i32 componentType);
+    bool setComponentField(UUID entityId, i32 componentType, i32 fieldIndex, FieldUnion field);
+
+    bool addSpatial3dComponentToEntity(UUID entityId, Vector3f position, Vector3f rotation, f32 scale);
+    bool addRenderable3dComponentToEntity(UUID entityId, UUID meshAssetId, UUID materialAssetId, i32 textureAtlasIndex);
+
 };

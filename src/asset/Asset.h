@@ -78,7 +78,7 @@ namespace Asset {
         ui32 programId;
         ui32 vertexShaderId;
         ui32 fragmentShaderId;
-        std::unordered_map<ShaderUniform, ui32> uniformLocations;
+        ui32 uniformLocations[TEXTURE_ATLAS_OFFSET + 1];
     };
 
     struct AssetPack {

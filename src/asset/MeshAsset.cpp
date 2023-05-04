@@ -101,7 +101,8 @@ bool Asset::loadMeshAsset(MeshAsset* asset, const char* filePath) {
 
 
     // Set the mesh asset properties
-    asset->assetId = UUIDGenerator::getInstance()->generateUUID();
+    //asset->assetId = UUIDGenerator::getInstance()->generateUUID();
+    asset->assetId = 0;
     StringUtils::copyStringToBuffer(asset->filePath, filePath, CHAR_BUFFER_SIZE);
     asset->vao = vao;
     asset->vbo = vbo;

@@ -25,6 +25,16 @@ int main(int argc, char* argv[]) {
     Asset::loadMeshAsset(meshAsset, "resources/models/tree/tree.obj");
     atlas.addMeshToAssetPack(meshAsset);
 
+    for (int i = 0; i < 100; i++) {
+        for (int j = 0; j < 10; j++) {
+            UUID entityId = atlas.createEntity();
+            atlas.addSpatial3dComponentToEntity(entityId, {5.0f * i, 0, 5.0f*j}, {0, 0, 0}, 1);
+            atlas.addRenderable3dComponentToEntity(entityId, meshAsset->assetId, materialAsset->assetId, 0);
+        }
+    }
+
+
+
     atlas.render();
 
 

@@ -29,6 +29,7 @@ void handleEventEntityAddComponent(Event::Event* event, ECS::EntityComponentSyst
     if (entity == nullptr) return;
     if (entity->components.find(componentType) != entity->components.end()) return;
     ECS::Component *component = new ECS::Component();
+    component->type = componentType;
     entity->components[componentType] = component;
     event->success = true;
 }
