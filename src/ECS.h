@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cstring>
+#include <cstddef>
 #include "util/Types.h"
 
 namespace ECS {
