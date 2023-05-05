@@ -66,6 +66,15 @@ namespace ECS {
         i32 fieldSizeBytes[MAX_FIELDS_PER_COMPONENT];
     };
 
+    struct EntityAssetGroupTable {
+        i32 numGroups;
+        i32 renderOrder[MAX_ENTITIES];
+        UUID meshIds[MAX_ENTITIES];
+        UUID materialIds[MAX_ENTITIES];
+        i32 numEntries[MAX_ENTITIES];
+        UUID table[MAX_ENTITIES][MAX_ENTITIES];
+    };
+
     i32 addFieldToComponentInfo_i32(ComponentInfo* componentInfo, const char* fieldName);
     i32 addFieldToComponentInfo_f32(ComponentInfo* componentInfo, const char* fieldName);
     i32 addFieldToComponentInfo_Boolean(ComponentInfo* componentInfo, const char* fieldName);
@@ -94,8 +103,10 @@ namespace ECS {
         Entity* entities[MAX_ENTITIES];
         i32 numComponentTypes;
         ComponentInfo* componentTypes[MAX_COMPONENT_TYPES];
+        EntityAssetGroupTable entityAssetGroupTable;
     };
 
     void initEntityComponentSystem(EntityComponentSystem* ecs);
+    void buildEntityAssetTable(EntityComponentSystem* ecs);
     i32 registerComponentType(EntityComponentSystem* ecs, ComponentInfo* componentInfo);
 }

@@ -48,28 +48,7 @@ void Render::render(Window* window, Asset::AssetPack* assetPack, ECS::EntityComp
     viewMatrix = glm::rotate(viewMatrix, glm::radians(cameraRotation.z), glm::f32vec3(0.0f, 0.0f, 1.0f));
     viewMatrix = glm::translate(viewMatrix,  negativePos);
 
-    // TODO: Make all IDs integer indexed to avoid using maps. This will speed up performance.
-
-    // ENTITIES BY MESH
-    size_t numMeshes = assetPack->numMeshAssets;
-    size_t numEntities = ecs->numEntities;
-    UUID** entitiesByMesh = new UUID*[numMeshes];
-    size_t* numEntitiesByMesh = new size_t[numEntities];
-    for (i32 i = 0; i < numEntities; i++) {
-        ECS::Entity* entity = ecs->entities[i];
-        if (entity == nullptr) continue;
-        ECS::Component* spatial3d = entity->components[ECS::COMPONENT_TYPE_SPATIAL_3D];
-        ECS::Component* renderable3d = entity->components[ECS::COMPONENT_TYPE_RENDERABLE_3D];
-        if (spatial3d == nullptr || renderable3d == nullptr) continue;
-        ECS::ComponentInfo* renderable3dInfo = ecs->componentTypes[ECS::COMPONENT_TYPE_RENDERABLE_3D];
-        UUID meshId = ECS::getField_i32(renderable3d, renderable3dInfo, ECS::Renderable3d::FIELD_INDEX_MESH_ASSET_ID);
-        if (entitiesByMesh[meshId] == nullptr) {
-            entitiesByMesh[meshId] = new UUID[numEntities];
-            numEntitiesByMesh[meshId] = 0;
-        }
-        entitiesByMesh[meshId][numEntitiesByMesh[meshId]] = entity->id;
-        numEntitiesByMesh[meshId]++;
-    }
+    ECS::buildEntityAssetTable(ecs);
 
     Asset::ShaderAsset* shaderAsset = assetPack->shaderAssets[0];
     bindShader(shaderAsset);
@@ -81,39 +60,44 @@ void Render::render(Window* window, Asset::AssetPack* assetPack, ECS::EntityComp
     setUniform(shaderAsset, Asset::ShaderUniform::LIGHT_ATTENUATIONS, lightAttenuations, numLights);
     setUniform(shaderAsset, Asset::ShaderUniform::LIGHT_COUNT, numLights);
 
-    for (i64 meshId = 0; meshId < numMeshes; meshId++) {
-        size_t numEntitiesWithMesh = numEntitiesByMesh[meshId];
-        if (numEntitiesWithMesh == 0) continue;
+    UUID prevMeshId = -1;
+    UUID prevMaterialId = -1;
+    i32 numAssetGroups = ecs->entityAssetGroupTable.numGroups;
+    for (i32 i = 0; i < numAssetGroups; i++) {
+        i32 groupIndex = ecs->entityAssetGroupTable.renderOrder[i];
+        UUID meshId = ecs->entityAssetGroupTable.meshIds[groupIndex];
+        UUID materialId = ecs->entityAssetGroupTable.materialIds[groupIndex];
+        if (meshId == -1 || materialId == -1) continue;
         Asset::MeshAsset* mesh = assetPack->meshAssets[meshId];
-        if (mesh == nullptr) continue;
-        bindMesh(mesh);
+        Asset::MaterialAsset* material = assetPack->materialAssets[materialId];
+        Asset::TextureAsset* texture = assetPack->textureAssets[material->textureAssetId];
+        //Asset::TextureAsset* normalMap = assetPack->textureAssets.at(material->normalMapAssetId);
 
-        for (size_t entityIt = 0; entityIt < numEntitiesWithMesh; entityIt++) {
-            UUID entityId = entitiesByMesh[meshId][entityIt];
-            ECS::Entity* entity = ecs->entities[entityId];
-            ECS::Component* spatial3d = entity->components[ECS::COMPONENT_TYPE_SPATIAL_3D];
-            ECS::Component* renderable3d = entity->components[ECS::COMPONENT_TYPE_RENDERABLE_3D];
-            ECS::ComponentInfo* renderable3dInfo = ecs->componentTypes[ECS::COMPONENT_TYPE_RENDERABLE_3D];
-            ECS::ComponentInfo* spatial3dInfo = ecs->componentTypes[ECS::COMPONENT_TYPE_SPATIAL_3D];
-            UUID materialId = ECS::getField_i32(renderable3d, renderable3dInfo, ECS::Renderable3d::FIELD_INDEX_MATERIAL_ASSET_ID);
-            Vector3f position = ECS::getField_Vector3f(spatial3d, spatial3dInfo, ECS::Spatial3d::FIELD_INDEX_POSITION);
-            Vector3f rotation = ECS::getField_Vector3f(spatial3d, spatial3dInfo, ECS::Spatial3d::FIELD_INDEX_ROTATION);
-            f32 scale = ECS::getField_f32(spatial3d, spatial3dInfo, ECS::Spatial3d::FIELD_INDEX_SCALE);
-
-            Asset::MaterialAsset* material = assetPack->materialAssets[materialId];
-            Asset::TextureAsset* texture = assetPack->textureAssets[material->textureAssetId];
-            //Asset::TextureAsset* normalMap = assetPack->textureAssets.at(material->normalMapAssetId);
-
-            bindTexture(shaderAsset, texture, Asset::ShaderUniform::TEXTURE_SAMPLER, 0);
-
+        if (meshId != prevMeshId) {
+            bindMesh(mesh);
+            prevMeshId = meshId;
+        }
+        if (materialId != prevMaterialId) {
             if (material->hasTransparency) {
                 disableCulling();
             }
-
+            bindTexture(shaderAsset, texture, Asset::ShaderUniform::TEXTURE_SAMPLER, 0);
             setUniform(shaderAsset, Asset::ShaderUniform::SHINE_DAMPER, material->shineDamper);
             setUniform(shaderAsset, Asset::ShaderUniform::REFLECTIVITY, material->reflectivity);
             setUniform(shaderAsset, Asset::ShaderUniform::USE_FAKE_LIGHTING, material->useFakeLighting);
             setUniform(shaderAsset, Asset::ShaderUniform::TEXTURE_ATLAS_SIZE, (i32) texture->atlasSize);
+            prevMaterialId = materialId;
+        }
+
+        i32 numEntitiesInGroup = ecs->entityAssetGroupTable.numEntries[groupIndex];
+        for (size_t entityIt = 0; entityIt < numEntitiesInGroup; entityIt++) {
+            UUID entityId = ecs->entityAssetGroupTable.table[groupIndex][entityIt];
+            ECS::Entity* entity = ecs->entities[entityId];
+            ECS::Component* spatial3d = entity->components[ECS::COMPONENT_TYPE_SPATIAL_3D];
+            ECS::ComponentInfo* spatial3dInfo = ecs->componentTypes[ECS::COMPONENT_TYPE_SPATIAL_3D];
+            Vector3f position = ECS::getField_Vector3f(spatial3d, spatial3dInfo, ECS::Spatial3d::FIELD_INDEX_POSITION);
+            Vector3f rotation = ECS::getField_Vector3f(spatial3d, spatial3dInfo, ECS::Spatial3d::FIELD_INDEX_ROTATION);
+            f32 scale = ECS::getField_f32(spatial3d, spatial3dInfo, ECS::Spatial3d::FIELD_INDEX_SCALE);
 
             glm::f32mat4 modelMatrix = glm::translate(glm::f32mat4(1.0f), {position.x, position.y, position.z});
             setUniform(shaderAsset, Asset::ShaderUniform::MODEL_MATRIX, modelMatrix);
@@ -121,17 +105,10 @@ void Render::render(Window* window, Asset::AssetPack* assetPack, ECS::EntityComp
 
             glDrawElements(GL_TRIANGLES, (i32) mesh->numIndices, GL_UNSIGNED_INT, nullptr);
         }
-
-        unbindTexture();
-        unbindMesh();
     }
+    unbindTexture();
+    unbindMesh();
     unbindShader();
-
-    for (i64 meshId = 0; meshId < numMeshes; meshId++) {
-        delete[] entitiesByMesh[meshId];
-    }
-    delete[] entitiesByMesh;
-    delete[] numEntitiesByMesh;
 
     glfwSwapBuffers(window->glfwWindow);
     glfwPollEvents();
