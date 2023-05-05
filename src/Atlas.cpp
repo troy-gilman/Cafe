@@ -171,8 +171,8 @@ void Atlas::render() {
             glfwSetInputMode(window->glfwWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
         }
         handleCameraFirstPerson(ecs, input, window->lastFrameTimeMs);
-        Input::updateInputState(input);
         Render::render(window, assetPack, ecs);
+        Input::updateInputState(input);
     }
     Render::closeWindow(window);
 }
@@ -211,7 +211,7 @@ bool Atlas::addShaderToAssetPack(Asset::ShaderAsset* asset) {
     UUID assetId = assetPack->nextShaderAssetId;
     asset->assetId = assetId;
     assetPack->shaderAssets[assetId] = asset;
-    assetPack->numTextureAssets++;
+    assetPack->numShaderAssets++;
     assetPack->nextShaderAssetId++;
     return true;
 }

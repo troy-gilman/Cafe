@@ -62,8 +62,8 @@ namespace ECS {
         i32 numFields;
         CharBuffer fieldNames[MAX_FIELDS_PER_COMPONENT];
         ComponentFieldType fieldTypes[MAX_FIELDS_PER_COMPONENT];
-        i32 fieldByteOffsets[MAX_FIELDS_PER_COMPONENT];
-        i32 fieldByteSizes[MAX_FIELDS_PER_COMPONENT];
+        i32 fieldOffsetBytes[MAX_FIELDS_PER_COMPONENT];
+        i32 fieldSizeBytes[MAX_FIELDS_PER_COMPONENT];
     };
 
     i32 addFieldToComponentInfo_i32(ComponentInfo* componentInfo, const char* fieldName);
