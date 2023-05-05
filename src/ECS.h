@@ -2,7 +2,6 @@
 
 #include <cstring>
 #include "util/Types.h"
-#include <unordered_map>
 
 namespace ECS {
 
@@ -42,18 +41,20 @@ namespace ECS {
         static const i32 FIELD_INDEX_SCALE = 2;
     }
 
+    static const i32 COMPONENT_NUM_BYTES_DATA = 252;
+
     struct Component {
         i32 type;
-        std::byte data[252];
+        std::byte data[COMPONENT_NUM_BYTES_DATA];
     };
 
     enum ComponentFieldType {
+        FIELD_TYPE_NONE,
         FIELD_TYPE_FLOAT,
         FIELD_TYPE_INTEGER,
         FIELD_TYPE_BOOLEAN,
-        FIELD_TYPE_STRING,
+        FIELD_TYPE_CHAR_BUFFER,
         FIELD_TYPE_VECTOR3F,
-        FIELD_TYPE_UUID
     };
 
     struct ComponentInfo {
@@ -65,29 +66,22 @@ namespace ECS {
         i32 fieldByteSizes[MAX_FIELDS_PER_COMPONENT];
     };
 
-    inline f32 getField_f32(Component* component, ComponentInfo* componentInfo, i32 fieldIndex) {
-        return *(f32*)(component->data + componentInfo->fieldByteOffsets[fieldIndex]);
-    }
+    i32 addFieldToComponentInfo_i32(ComponentInfo* componentInfo, const char* fieldName);
+    i32 addFieldToComponentInfo_f32(ComponentInfo* componentInfo, const char* fieldName);
+    i32 addFieldToComponentInfo_Boolean(ComponentInfo* componentInfo, const char* fieldName);
+    i32 addFieldToComponentInfo_Vector3f(ComponentInfo* componentInfo, const char* fieldName);
+    i32 addFieldToComponentInfo_CharBuffer(ComponentInfo* componentInfo, const char* fieldName, i32 numChars);
 
-    inline void setField_f32(Component* component, ComponentInfo* componentInfo, i32 fieldIndex, f32 value) {
-        *(f32*)(component->data + componentInfo->fieldByteOffsets[fieldIndex]) = value;
-    }
-
-    inline i32 getField_i32(Component* component, ComponentInfo* componentInfo, i32 fieldIndex) {
-        return *(i32*)(component->data + componentInfo->fieldByteOffsets[fieldIndex]);
-    }
-
-    inline void setField_i32(Component* component, ComponentInfo* componentInfo, i32 fieldIndex, i32 value) {
-        *(i32*)(component->data + componentInfo->fieldByteOffsets[fieldIndex]) = value;
-    }
-
-    inline Vector3f getField_Vector3f(Component* component, ComponentInfo* componentInfo, i32 fieldIndex) {
-        return *(Vector3f*)(component->data + componentInfo->fieldByteOffsets[fieldIndex]);
-    }
-
-    inline void setField_Vector3f(Component* component, ComponentInfo* componentInfo, i32 fieldIndex, Vector3f value) {
-        *(Vector3f*)(component->data + componentInfo->fieldByteOffsets[fieldIndex]) = value;
-    }
+    f32 getField_f32(Component* component, ComponentInfo* componentInfo, i32 fieldIndex);
+    void setField_f32(Component* component, ComponentInfo* componentInfo, i32 fieldIndex, f32 value);
+    i32 getField_i32(Component* component, ComponentInfo* componentInfo, i32 fieldIndex);
+    void setField_i32(Component* component, ComponentInfo* componentInfo, i32 fieldIndex, i32 value);
+    bool getField_Boolean(Component* component, ComponentInfo* componentInfo, i32 fieldIndex);
+    void setField_Boolean(Component* component, ComponentInfo* componentInfo, i32 fieldIndex, bool value);
+    Vector3f getField_Vector3f(Component* component, ComponentInfo* componentInfo, i32 fieldIndex);
+    void setField_Vector3f(Component* component, ComponentInfo* componentInfo, i32 fieldIndex, Vector3f value);
+    const char* getField_CharBuffer(Component* component, ComponentInfo* componentInfo, i32 fieldIndex);
+    void setField_CharBuffer(Component* component, ComponentInfo* componentInfo, i32 fieldIndex, const char* value);
 
     struct Entity  {
         UUID id;
