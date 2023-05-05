@@ -58,7 +58,6 @@ bool Asset::loadTextureAsset(TextureAsset* asset, const char* filePath) {
     delete image;
 
     // Set the texture asset properties
-    asset->assetId = UUIDGenerator::getInstance()->generateUUID();
     StringUtils::copyStringToBuffer(asset->filePath, filePath, CHAR_BUFFER_SIZE);
     asset->textureId = textureId;
     asset->atlasSize = 1;

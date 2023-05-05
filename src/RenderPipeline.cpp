@@ -32,13 +32,11 @@ void Render::render(Window* window, Asset::AssetPack* assetPack, ECS::EntityComp
     };
 
     // CAMERA
-    ECS::Entity* camera = ecs->entities.at(0);
-    ECS::Component* cameraSpatial3d = MapUtils::getValueOrNullPtr(camera->components, ECS::COMPONENT_TYPE_SPATIAL_3D);
+    ECS::Entity* camera = ecs->entities[0];
+    ECS::Component* cameraSpatial3d = camera->components[ECS::COMPONENT_TYPE_SPATIAL_3D];
     ECS::ComponentInfo* cameraSpatial3dInfo = ecs->componentTypes[ECS::COMPONENT_TYPE_SPATIAL_3D];
-    Vector3f cameraPos = ECS::getField_Vector3f(cameraSpatial3d, cameraSpatial3dInfo,
-                                                ECS::Spatial3d::FIELD_INDEX_POSITION);
-    Vector3f cameraRot = ECS::getField_Vector3f(cameraSpatial3d, cameraSpatial3dInfo,
-                                                ECS::Spatial3d::FIELD_INDEX_ROTATION);
+    Vector3f cameraPos = ECS::getField_Vector3f(cameraSpatial3d, cameraSpatial3dInfo, ECS::Spatial3d::FIELD_INDEX_POSITION);
+    Vector3f cameraRot = ECS::getField_Vector3f(cameraSpatial3d, cameraSpatial3dInfo, ECS::Spatial3d::FIELD_INDEX_ROTATION);
     glm::f32vec3 cameraPosition = {cameraPos.x, cameraPos.y, cameraPos.z};
     glm::f32vec3 cameraRotation = {cameraRot.x, cameraRot.y, cameraRot.z};
 
@@ -53,14 +51,15 @@ void Render::render(Window* window, Asset::AssetPack* assetPack, ECS::EntityComp
     // TODO: Make all IDs integer indexed to avoid using maps. This will speed up performance.
 
     // ENTITIES BY MESH
-    size_t numMeshes = assetPack->meshAssets.size();
-    size_t numEntities = ecs->entities.size();
+    size_t numMeshes = assetPack->numMeshAssets;
+    size_t numEntities = ecs->numEntities;
     UUID** entitiesByMesh = new UUID*[numMeshes];
     size_t* numEntitiesByMesh = new size_t[numEntities];
-    for (auto& pair : ecs->entities) {
-        ECS::Entity* entity = pair.second;
-        ECS::Component* spatial3d = MapUtils::getValueOrNullPtr(entity->components, ECS::COMPONENT_TYPE_SPATIAL_3D);
-        ECS::Component* renderable3d = MapUtils::getValueOrNullPtr(entity->components, ECS::COMPONENT_TYPE_RENDERABLE_3D);
+    for (i32 i = 0; i < numEntities; i++) {
+        ECS::Entity* entity = ecs->entities[i];
+        if (entity == nullptr) continue;
+        ECS::Component* spatial3d = entity->components[ECS::COMPONENT_TYPE_SPATIAL_3D];
+        ECS::Component* renderable3d = entity->components[ECS::COMPONENT_TYPE_RENDERABLE_3D];
         if (spatial3d == nullptr || renderable3d == nullptr) continue;
         ECS::ComponentInfo* renderable3dInfo = ecs->componentTypes[ECS::COMPONENT_TYPE_RENDERABLE_3D];
         UUID meshId = ECS::getField_i32(renderable3d, renderable3dInfo, ECS::Renderable3d::FIELD_INDEX_MESH_ASSET_ID);
@@ -72,7 +71,7 @@ void Render::render(Window* window, Asset::AssetPack* assetPack, ECS::EntityComp
         numEntitiesByMesh[meshId]++;
     }
 
-    Asset::ShaderAsset* shaderAsset = assetPack->shaderAssets.begin()->second;
+    Asset::ShaderAsset* shaderAsset = assetPack->shaderAssets[0];
     bindShader(shaderAsset);
     setUniform(shaderAsset, Asset::ShaderUniform::VIEW_MATRIX, viewMatrix);
     setUniform(shaderAsset, Asset::ShaderUniform::PROJECTION_MATRIX, window->projectionMatrix);
@@ -85,14 +84,15 @@ void Render::render(Window* window, Asset::AssetPack* assetPack, ECS::EntityComp
     for (i64 meshId = 0; meshId < numMeshes; meshId++) {
         size_t numEntitiesWithMesh = numEntitiesByMesh[meshId];
         if (numEntitiesWithMesh == 0) continue;
-        Asset::MeshAsset* mesh = assetPack->meshAssets.at(meshId);
+        Asset::MeshAsset* mesh = assetPack->meshAssets[meshId];
+        if (mesh == nullptr) continue;
         bindMesh(mesh);
 
         for (size_t entityIt = 0; entityIt < numEntitiesWithMesh; entityIt++) {
             UUID entityId = entitiesByMesh[meshId][entityIt];
-            ECS::Entity* entity = ecs->entities.at(entityId);
-            ECS::Component* spatial3d = MapUtils::getValueOrNullPtr(entity->components, ECS::COMPONENT_TYPE_SPATIAL_3D);
-            ECS::Component* renderable3d = MapUtils::getValueOrNullPtr(entity->components, ECS::COMPONENT_TYPE_RENDERABLE_3D);
+            ECS::Entity* entity = ecs->entities[entityId];
+            ECS::Component* spatial3d = entity->components[ECS::COMPONENT_TYPE_SPATIAL_3D];
+            ECS::Component* renderable3d = entity->components[ECS::COMPONENT_TYPE_RENDERABLE_3D];
             ECS::ComponentInfo* renderable3dInfo = ecs->componentTypes[ECS::COMPONENT_TYPE_RENDERABLE_3D];
             ECS::ComponentInfo* spatial3dInfo = ecs->componentTypes[ECS::COMPONENT_TYPE_SPATIAL_3D];
             UUID materialId = ECS::getField_i32(renderable3d, renderable3dInfo, ECS::Renderable3d::FIELD_INDEX_MATERIAL_ASSET_ID);
@@ -100,8 +100,8 @@ void Render::render(Window* window, Asset::AssetPack* assetPack, ECS::EntityComp
             Vector3f rotation = ECS::getField_Vector3f(spatial3d, spatial3dInfo, ECS::Spatial3d::FIELD_INDEX_ROTATION);
             f32 scale = ECS::getField_f32(spatial3d, spatial3dInfo, ECS::Spatial3d::FIELD_INDEX_SCALE);
 
-            Asset::MaterialAsset* material = assetPack->materialAssets.at(materialId);
-            Asset::TextureAsset* texture = assetPack->textureAssets.at(material->textureAssetId);
+            Asset::MaterialAsset* material = assetPack->materialAssets[materialId];
+            Asset::TextureAsset* texture = assetPack->textureAssets[material->textureAssetId];
             //Asset::TextureAsset* normalMap = assetPack->textureAssets.at(material->normalMapAssetId);
 
             bindTexture(shaderAsset, texture, Asset::ShaderUniform::TEXTURE_SAMPLER, 0);

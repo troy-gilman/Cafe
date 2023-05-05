@@ -4,7 +4,7 @@
 void handleEventEntityCreate(Event::Event* event, ECS::EntityComponentSystem* ecs) {
     event->success = false;
     UUID id = event->field1.field_UUID;
-    if (ecs->entities.find(id) != ecs->entities.end()) return;
+    if (id >= ECS::MAX_ENTITIES) return;
     ECS::Entity* entity = new ECS::Entity();
     entity->id = id;
     ecs->entities[id] = entity;
@@ -14,10 +14,11 @@ void handleEventEntityCreate(Event::Event* event, ECS::EntityComponentSystem* ec
 void handleEventEntityDestroy(Event::Event* event, ECS::EntityComponentSystem* ecs) {
     event->success = false;
     UUID entityId = event->field1.field_UUID;
-    ECS::Entity* entity = MapUtils::getValueOrNullPtr(ecs->entities, entityId);
+    if (entityId >= ecs->nextEntityId) return;
+    ECS::Entity* entity = ecs->entities[entityId];
     if (entity == nullptr) return;
     delete entity;
-    ecs->entities.erase(entityId);
+    ecs->entities[entityId] = nullptr;
     event->success = true;
 }
 
@@ -25,9 +26,9 @@ void handleEventEntityAddComponent(Event::Event* event, ECS::EntityComponentSyst
     event->success = false;
     UUID entityId = event->field1.field_UUID;
     i32 componentType = event->field2.field_Integer;
-    ECS::Entity* entity = MapUtils::getValueOrNullPtr(ecs->entities, entityId);
+    if (entityId >= ecs->nextEntityId) return;
+    ECS::Entity* entity = ecs->entities[entityId];
     if (entity == nullptr) return;
-    if (entity->components.find(componentType) != entity->components.end()) return;
     ECS::Component *component = new ECS::Component();
     component->type = componentType;
     entity->components[componentType] = component;
@@ -38,12 +39,13 @@ void handleEventEntityRemoveComponent(Event::Event* event, ECS::EntityComponentS
     event->success = false;
     UUID entityId = event->field1.field_UUID;
     i32 componentType = event->field2.field_Integer;
-    ECS::Entity* entity = MapUtils::getValueOrNullPtr(ecs->entities, entityId);
+    if (entityId >= ecs->nextEntityId) return;
+    ECS::Entity* entity = ecs->entities[entityId];
     if (entity == nullptr) return;
-    ECS::Component* component = MapUtils::getValueOrNullPtr(entity->components, componentType);
+    ECS::Component* component = entity->components[componentType];
     if (component == nullptr) return;
     delete component;
-    entity->components.erase(componentType);
+    entity->components[componentType] = nullptr;
     event->success = true;
 }
 
@@ -52,9 +54,10 @@ void handleEventSetComponentField(Event::Event* event, ECS::EntityComponentSyste
     UUID entityId = event->field1.field_UUID;
     i32 componentType = event->field2.field_Integer;
     i32 fieldIndex = event->field3.field_Integer;
-    ECS::Entity* entity = MapUtils::getValueOrNullPtr(ecs->entities, entityId);
+    if (entityId >= ecs->nextEntityId) return;
+    ECS::Entity* entity = ecs->entities[entityId];
     if (entity == nullptr) return;
-    ECS::Component* component = MapUtils::getValueOrNullPtr(entity->components, componentType);
+    ECS::Component* component = entity->components[componentType];
     if (component == nullptr) return;
     if (componentType >= ecs->numComponentTypes) return;
     ECS::ComponentInfo* componentInfo = ecs->componentTypes[componentType];
@@ -68,9 +71,10 @@ void handleEventGetComponentField(Event::Event* event, ECS::EntityComponentSyste
     UUID entityId = event->field1.field_UUID;
     i32 componentType = event->field2.field_Integer;
     i32 fieldIndex = event->field3.field_Integer;
-    ECS::Entity* entity = MapUtils::getValueOrNullPtr(ecs->entities, entityId);
+    if (entityId >= ecs->nextEntityId) return;
+    ECS::Entity* entity = ecs->entities[entityId];
     if (entity == nullptr) return;
-    ECS::Component* component = MapUtils::getValueOrNullPtr(entity->components, componentType);
+    ECS::Component* component = entity->components[componentType];
     if (component == nullptr) return;
     if (componentType >= ecs->numComponentTypes) return;
     ECS::ComponentInfo* componentInfo = ecs->componentTypes[componentType];

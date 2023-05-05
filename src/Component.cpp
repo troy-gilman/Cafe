@@ -2,7 +2,11 @@
 #include "util/StringUtils.h"
 
 
-void ECS::initComponentTypes(EntityComponentSystem* ecs) {
+void ECS::initEntityComponentSystem(EntityComponentSystem* ecs) {
+    // Initialize Entities
+    ecs->nextEntityId = 0;
+
+    // Initialize Component Info
     {   // Camera
         ComponentInfo* componentInfo = new ComponentInfo();
         StringUtils::copyStringToBuffer(componentInfo->name, Camera::COMPONENT_TYPE_STR, CHAR_BUFFER_SIZE);

@@ -75,7 +75,6 @@ bool Asset::loadShaderAsset(ShaderAsset* asset, const char* vertexFilePath, cons
     }
 
     // Set the shader asset properties
-    asset->assetId = UUIDGenerator::getInstance()->generateUUID();
     StringUtils::copyStringToBuffer(asset->vertexFilePath, vertexFilePath, CHAR_BUFFER_SIZE);
     StringUtils::copyStringToBuffer(asset->fragmentFilePath, fragmentFilePath, CHAR_BUFFER_SIZE);
     asset->programId = programId;

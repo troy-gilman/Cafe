@@ -7,8 +7,9 @@
 namespace ECS {
 
     // CONSTANTS
-    static const ui32 MAX_COMPONENT_TYPES = 256;
-    static const ui32 MAX_FIELDS_PER_COMPONENT = 16;
+    static const ui32 MAX_ENTITIES = 1024;
+    static const ui32 MAX_COMPONENT_TYPES = 64;
+    static const ui32 MAX_FIELDS_PER_COMPONENT = 32;
 
     static const i32 COMPONENT_TYPE_CAMERA = 0;
     static const i32 COMPONENT_TYPE_LIGHT = 1;
@@ -43,7 +44,7 @@ namespace ECS {
 
     struct Component {
         i32 type;
-        std::byte data[124];
+        std::byte data[252];
     };
 
     enum ComponentFieldType {
@@ -90,19 +91,17 @@ namespace ECS {
 
     struct Entity  {
         UUID id;
-        std::unordered_map<i32, Component*> components;
+        Component* components[MAX_COMPONENT_TYPES];
     };
 
     struct EntityComponentSystem {
-        std::unordered_map<UUID, Entity*> entities;
+        i32 nextEntityId;
+        i32 numEntities;
+        Entity* entities[MAX_ENTITIES];
         i32 numComponentTypes;
         ComponentInfo* componentTypes[MAX_COMPONENT_TYPES];
-
-        EntityComponentSystem() {
-            entities.reserve(1024);
-        }
     };
 
-    void initComponentTypes(EntityComponentSystem* ecs);
+    void initEntityComponentSystem(EntityComponentSystem* ecs);
     i32 registerComponentType(EntityComponentSystem* ecs, ComponentInfo* componentInfo);
 }

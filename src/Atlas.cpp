@@ -25,10 +25,10 @@ Atlas::~Atlas() {
 void Atlas::init() {
     Render::initWindow(window);
     Input::initInputState(input, window->glfwWindow);
-    ECS::initComponentTypes(ecs);
+    ECS::initEntityComponentSystem(ecs);
 
     ECS::Entity* camera = new ECS::Entity();
-    camera->id = 0;
+    camera->id = ecs->nextEntityId;
     ECS::Component* component = new ECS::Component();
     component->type = ECS::COMPONENT_TYPE_SPATIAL_3D;
     ECS::ComponentInfo* componentInfo = ecs->componentTypes[component->type];
@@ -37,6 +37,8 @@ void Atlas::init() {
     ECS::setField_f32(component, componentInfo, ECS::Spatial3d::FIELD_INDEX_SCALE, 1.0f);
     camera->components[component->type] = component;
     ecs->entities[camera->id] = camera;
+    ecs->numEntities++;
+    ecs->nextEntityId++;
 }
 
 static void networkControllerReadEventLoop(Event::EventState* eventState, Network::NetworkState* networkState, bool isServer) {
@@ -180,7 +182,7 @@ void Atlas::start() {
 
 void handleCameraFirstPerson(ECS::EntityComponentSystem* ecs, Input::InputState* input, f32 lastFrameTimeMs) {
     ECS::Entity* camera = ecs->entities[0];
-    ECS::Component* spatial3d = MapUtils::getValueOrNullPtr(camera->components, ECS::COMPONENT_TYPE_SPATIAL_3D);
+    ECS::Component* spatial3d = camera->components[ECS::COMPONENT_TYPE_SPATIAL_3D];
     if (spatial3d == nullptr) {
         return;
     }
@@ -264,10 +266,11 @@ bool Atlas::addMeshToAssetPack(Asset::MeshAsset* asset) {
     if (!asset) {
         return false;
     }
-    if (assetPack->meshAssets.find(asset->assetId) != assetPack->meshAssets.end()) {
-        return false;
-    }
-    assetPack->meshAssets[asset->assetId] = asset;
+    UUID assetId = assetPack->nextMeshAssetId;
+    asset->assetId = assetId;
+    assetPack->meshAssets[assetId] = asset;
+    assetPack->numMeshAssets++;
+    assetPack->nextMeshAssetId++;
     return true;
 }
 
@@ -275,20 +278,22 @@ bool Atlas::addMaterialToAssetPack(Asset::MaterialAsset* asset) {
     if (!asset) {
         return false;
     }
-    if (assetPack->meshAssets.find(asset->assetId) != assetPack->meshAssets.end()) {
-        return false;
-    }
-    assetPack->materialAssets[asset->assetId] = asset;
+    UUID assetId = assetPack->nextMaterialAssetId;
+    asset->assetId = assetId;
+    assetPack->materialAssets[assetId] = asset;
+    assetPack->numMaterialAssets++;
+    assetPack->nextMaterialAssetId++;
     return true;
 }
 bool Atlas::addTextureToAssetPack(Asset::TextureAsset* asset) {
     if (!asset) {
         return false;
     }
-    if (assetPack->meshAssets.find(asset->assetId) != assetPack->meshAssets.end()) {
-        return false;
-    }
-    assetPack->textureAssets[asset->assetId] = asset;
+    UUID assetId = assetPack->nextTextureAssetId;
+    asset->assetId = assetId;
+    assetPack->textureAssets[assetId] = asset;
+    assetPack->numTextureAssets++;
+    assetPack->nextTextureAssetId++;
     return true;
 }
 
@@ -296,21 +301,24 @@ bool Atlas::addShaderToAssetPack(Asset::ShaderAsset* asset) {
     if (!asset) {
         return false;
     }
-    if (assetPack->meshAssets.find(asset->assetId) != assetPack->meshAssets.end()) {
-        return false;
-    }
-    assetPack->shaderAssets[asset->assetId] = asset;
+    UUID assetId = assetPack->nextShaderAssetId;
+    asset->assetId = assetId;
+    assetPack->shaderAssets[assetId] = asset;
+    assetPack->numTextureAssets++;
+    assetPack->nextShaderAssetId++;
     return true;
 }
 
 UUID Atlas::createEntity() {
     Event::Event* event = eventState->eventPool.waitForObject();
     event->eventType = Event::EventType::ENTITY_CREATE;
-    UUID uuid = (i32) ecs->entities.size();
+    UUID uuid = ecs->nextEntityId;
     event->field1.field_UUID = uuid;
     eventState->eventQueue.push(event);
     EventHandling::handleNextEvent(eventState, ecs);
     if (event->success) {
+        ecs->numEntities++;
+        ecs->nextEntityId++;
         return uuid;
     } else {
         return -1;

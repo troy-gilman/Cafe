@@ -81,11 +81,21 @@ namespace Asset {
         ui32 uniformLocations[TEXTURE_ATLAS_OFFSET + 1];
     };
 
+    static const ui32 MAX_ASSETS_PER_TYPE_IN_PACKS = 1000;
+
     struct AssetPack {
-        std::unordered_map<UUID, MeshAsset*> meshAssets;
-        std::unordered_map<UUID, MaterialAsset*> materialAssets;
-        std::unordered_map<UUID, TextureAsset*> textureAssets;
-        std::unordered_map<UUID, ShaderAsset*> shaderAssets;
+        i32 nextMeshAssetId;
+        i32 nextMaterialAssetId;
+        i32 nextTextureAssetId;
+        i32 nextShaderAssetId;
+        i32 numMeshAssets;
+        i32 numMaterialAssets;
+        i32 numTextureAssets;
+        i32 numShaderAssets;
+        MeshAsset* meshAssets[MAX_ASSETS_PER_TYPE_IN_PACKS];
+        MaterialAsset* materialAssets[MAX_ASSETS_PER_TYPE_IN_PACKS];
+        TextureAsset* textureAssets[MAX_ASSETS_PER_TYPE_IN_PACKS];
+        ShaderAsset* shaderAssets[MAX_ASSETS_PER_TYPE_IN_PACKS];
     };
 
     bool loadMeshAsset(MeshAsset* asset, const char* filePath);
