@@ -1,5 +1,6 @@
 #include "ECS.h"
 #include <cstdlib>
+#include "util/StringUtils.h"
 
 using namespace ECS;
 
