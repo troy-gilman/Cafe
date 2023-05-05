@@ -28,12 +28,13 @@ void Atlas::init() {
     ECS::initComponentTypes(ecs);
 
     ECS::Entity* camera = new ECS::Entity();
-    camera->id = 1;
+    camera->id = 0;
     ECS::Component* component = new ECS::Component();
     component->type = ECS::COMPONENT_TYPE_SPATIAL_3D;
-    component->fields[ECS::Spatial3d::FIELD_INDEX_POSITION].field_Vector3f = { 0, -2, -5 };
-    component->fields[ECS::Spatial3d::FIELD_INDEX_ROTATION].field_Vector3f = { 0, 0, 0 };
-    component->fields[ECS::Spatial3d::FIELD_INDEX_SCALE].field_Float = 1.0f;
+    ECS::ComponentInfo* componentInfo = ecs->componentTypes[component->type];
+    ECS::setField_Vector3f(component, componentInfo, ECS::Spatial3d::FIELD_INDEX_POSITION, {0, -2, -5});
+    ECS::setField_Vector3f(component, componentInfo, ECS::Spatial3d::FIELD_INDEX_ROTATION, {0, 0, 0});
+    ECS::setField_f32(component, componentInfo, ECS::Spatial3d::FIELD_INDEX_SCALE, 1.0f);
     camera->components[component->type] = component;
     ecs->entities[camera->id] = camera;
 }
@@ -178,14 +179,18 @@ void Atlas::start() {
 //}
 
 void handleCameraFirstPerson(ECS::EntityComponentSystem* ecs, Input::InputState* input, f32 lastFrameTimeMs) {
-    ECS::Entity* camera = ecs->entities[1];
+    ECS::Entity* camera = ecs->entities[0];
     ECS::Component* spatial3d = MapUtils::getValueOrNullPtr(camera->components, ECS::COMPONENT_TYPE_SPATIAL_3D);
     if (spatial3d == nullptr) {
         return;
     }
+    ECS::ComponentInfo* spatial3dInfo = ecs->componentTypes[ECS::COMPONENT_TYPE_SPATIAL_3D];
+    if (spatial3dInfo == nullptr) {
+        return;
+    }
 
-    Vector3f position = spatial3d->fields[ECS::Spatial3d::FIELD_INDEX_POSITION].field_Vector3f;
-    Vector3f rotation = spatial3d->fields[ECS::Spatial3d::FIELD_INDEX_ROTATION].field_Vector3f;
+    Vector3f position = ECS::getField_Vector3f(spatial3d, spatial3dInfo, ECS::Spatial3d::FIELD_INDEX_POSITION);
+    Vector3f rotation = ECS::getField_Vector3f(spatial3d, spatial3dInfo, ECS::Spatial3d::FIELD_INDEX_ROTATION);
 
     f32 moveSpeed = 0.01f * lastFrameTimeMs;
     f32 mouseSensitivity = 0.2f;
@@ -230,8 +235,8 @@ void handleCameraFirstPerson(ECS::EntityComponentSystem* ecs, Input::InputState*
     rotation.x = (f32) fmod(rotation.x, 360.0f);
     rotation.y = (f32) fmod(rotation.y, 360.0f);
 
-    spatial3d->fields[ECS::Spatial3d::FIELD_INDEX_POSITION].field_Vector3f = position;
-    spatial3d->fields[ECS::Spatial3d::FIELD_INDEX_ROTATION].field_Vector3f = rotation;
+    ECS::setField_Vector3f(spatial3d, spatial3dInfo, ECS::Spatial3d::FIELD_INDEX_POSITION, position);
+    ECS::setField_Vector3f(spatial3d, spatial3dInfo, ECS::Spatial3d::FIELD_INDEX_ROTATION, rotation);
 }
 
 void Atlas::render() {
@@ -301,7 +306,7 @@ bool Atlas::addShaderToAssetPack(Asset::ShaderAsset* asset) {
 UUID Atlas::createEntity() {
     Event::Event* event = eventState->eventPool.waitForObject();
     event->eventType = Event::EventType::ENTITY_CREATE;
-    UUID uuid = UUIDGenerator::getInstance()->generateUUID();
+    UUID uuid = (i32) ecs->entities.size();
     event->field1.field_UUID = uuid;
     eventState->eventQueue.push(event);
     EventHandling::handleNextEvent(eventState, ecs);
@@ -335,17 +340,27 @@ bool Atlas::setComponentField(UUID entityId, i32 componentType, i32 fieldIndex, 
 }
 
 bool Atlas::addSpatial3dComponentToEntity(UUID entityId, Vector3f position, Vector3f rotation, f32 scale) {
-    addComponentToEntity(entityId, ECS::COMPONENT_TYPE_SPATIAL_3D);
-    setComponentField(entityId, ECS::COMPONENT_TYPE_SPATIAL_3D, ECS::Spatial3d::FIELD_INDEX_POSITION, { .field_Vector3f = position });
-    setComponentField(entityId, ECS::COMPONENT_TYPE_SPATIAL_3D, ECS::Spatial3d::FIELD_INDEX_ROTATION, { .field_Vector3f = rotation });
-    setComponentField(entityId, ECS::COMPONENT_TYPE_SPATIAL_3D, ECS::Spatial3d::FIELD_INDEX_SCALE, { .field_Float = scale });
+    ECS::Entity* entity = ecs->entities[entityId];
+    ECS::Component* component = new ECS::Component();
+    ECS::ComponentInfo* componentInfo = ecs->componentTypes[ECS::COMPONENT_TYPE_SPATIAL_3D];
+    component->type = ECS::COMPONENT_TYPE_SPATIAL_3D;
+    ECS::setField_Vector3f(component, componentInfo, ECS::Spatial3d::FIELD_INDEX_POSITION, position);
+    ECS::setField_Vector3f(component, componentInfo, ECS::Spatial3d::FIELD_INDEX_ROTATION, rotation);
+    ECS::setField_f32(component, componentInfo, ECS::Spatial3d::FIELD_INDEX_SCALE, scale);
+    entity->components[component->type] = component;
+    return true;
 }
 
 bool Atlas::addRenderable3dComponentToEntity(UUID entityId, UUID meshAssetId, UUID materialAssetId, i32 textureAtlasIndex) {
-    addComponentToEntity(entityId, ECS::COMPONENT_TYPE_RENDERABLE_3D);
-    setComponentField(entityId, ECS::COMPONENT_TYPE_RENDERABLE_3D, ECS::Renderable3d::FIELD_INDEX_MESH_ASSET_ID, { .field_UUID = meshAssetId });
-    setComponentField(entityId, ECS::COMPONENT_TYPE_RENDERABLE_3D, ECS::Renderable3d::FIELD_INDEX_MATERIAL_ASSET_ID, { .field_UUID = materialAssetId });
-    setComponentField(entityId, ECS::COMPONENT_TYPE_RENDERABLE_3D, ECS::Renderable3d::FIELD_INDEX_TEXTURE_ATLAS_INDEX, { .field_Integer = textureAtlasIndex });
+    ECS::Entity* entity = ecs->entities[entityId];
+    ECS::Component* component = new ECS::Component();
+    ECS::ComponentInfo* componentInfo = ecs->componentTypes[ECS::COMPONENT_TYPE_RENDERABLE_3D];
+    component->type = ECS::COMPONENT_TYPE_RENDERABLE_3D;
+    ECS::setField_i32(component, componentInfo, ECS::Renderable3d::FIELD_INDEX_MESH_ASSET_ID, meshAssetId);
+    ECS::setField_i32(component, componentInfo, ECS::Renderable3d::FIELD_INDEX_MATERIAL_ASSET_ID, materialAssetId);
+    ECS::setField_i32(component, componentInfo, ECS::Renderable3d::FIELD_INDEX_TEXTURE_ATLAS_INDEX, textureAtlasIndex);
+    entity->components[component->type] = component;
+    return true;
 }
 
 

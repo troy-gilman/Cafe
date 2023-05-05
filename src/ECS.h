@@ -43,15 +43,50 @@ namespace ECS {
 
     struct Component {
         i32 type;
-        FieldUnion fields[MAX_FIELDS_PER_COMPONENT];
+        std::byte data[124];
+    };
+
+    enum ComponentFieldType {
+        FIELD_TYPE_FLOAT,
+        FIELD_TYPE_INTEGER,
+        FIELD_TYPE_BOOLEAN,
+        FIELD_TYPE_STRING,
+        FIELD_TYPE_VECTOR3F,
+        FIELD_TYPE_UUID
     };
 
     struct ComponentInfo {
         CharBuffer name;
         i32 numFields;
         CharBuffer fieldNames[MAX_FIELDS_PER_COMPONENT];
-        FieldType fieldTypes[MAX_FIELDS_PER_COMPONENT];
+        ComponentFieldType fieldTypes[MAX_FIELDS_PER_COMPONENT];
+        i32 fieldByteOffsets[MAX_FIELDS_PER_COMPONENT];
+        i32 fieldByteSizes[MAX_FIELDS_PER_COMPONENT];
     };
+
+    inline f32 getField_f32(Component* component, ComponentInfo* componentInfo, i32 fieldIndex) {
+        return *(f32*)(component->data + componentInfo->fieldByteOffsets[fieldIndex]);
+    }
+
+    inline void setField_f32(Component* component, ComponentInfo* componentInfo, i32 fieldIndex, f32 value) {
+        *(f32*)(component->data + componentInfo->fieldByteOffsets[fieldIndex]) = value;
+    }
+
+    inline i32 getField_i32(Component* component, ComponentInfo* componentInfo, i32 fieldIndex) {
+        return *(i32*)(component->data + componentInfo->fieldByteOffsets[fieldIndex]);
+    }
+
+    inline void setField_i32(Component* component, ComponentInfo* componentInfo, i32 fieldIndex, i32 value) {
+        *(i32*)(component->data + componentInfo->fieldByteOffsets[fieldIndex]) = value;
+    }
+
+    inline Vector3f getField_Vector3f(Component* component, ComponentInfo* componentInfo, i32 fieldIndex) {
+        return *(Vector3f*)(component->data + componentInfo->fieldByteOffsets[fieldIndex]);
+    }
+
+    inline void setField_Vector3f(Component* component, ComponentInfo* componentInfo, i32 fieldIndex, Vector3f value) {
+        *(Vector3f*)(component->data + componentInfo->fieldByteOffsets[fieldIndex]) = value;
+    }
 
     struct Entity  {
         UUID id;
@@ -61,7 +96,7 @@ namespace ECS {
     struct EntityComponentSystem {
         std::unordered_map<UUID, Entity*> entities;
         i32 numComponentTypes;
-        ComponentInfo componentTypes[MAX_COMPONENT_TYPES];
+        ComponentInfo* componentTypes[MAX_COMPONENT_TYPES];
 
         EntityComponentSystem() {
             entities.reserve(1024);
@@ -69,5 +104,5 @@ namespace ECS {
     };
 
     void initComponentTypes(EntityComponentSystem* ecs);
-    i32 registerComponentType(EntityComponentSystem* ecs, ComponentInfo componentInfo);
+    i32 registerComponentType(EntityComponentSystem* ecs, ComponentInfo* componentInfo);
 }

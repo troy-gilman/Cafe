@@ -9,7 +9,7 @@ typedef int64_t i64;
 typedef uint32_t ui32;
 typedef uint64_t ui64;
 
-typedef ui64 UUID;
+typedef i32 UUID;
 
 struct Vector2f {
     f32 x;
@@ -32,14 +32,5 @@ union FieldUnion {
     CharBuffer field_String;
     Vector3f field_Vector3f;
     UUID field_UUID;
-};
-
-enum FieldType {
-    FIELD_TYPE_FLOAT,
-    FIELD_TYPE_INTEGER,
-    FIELD_TYPE_BOOLEAN,
-    FIELD_TYPE_STRING,
-    FIELD_TYPE_VECTOR3F,
-    FIELD_TYPE_UUID
 };
 

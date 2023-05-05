@@ -56,7 +56,10 @@ void handleEventSetComponentField(Event::Event* event, ECS::EntityComponentSyste
     if (entity == nullptr) return;
     ECS::Component* component = MapUtils::getValueOrNullPtr(entity->components, componentType);
     if (component == nullptr) return;
-    component->fields[fieldIndex] = event->field4;
+    if (componentType >= ecs->numComponentTypes) return;
+    ECS::ComponentInfo* componentInfo = ecs->componentTypes[componentType];
+    if (componentInfo == nullptr) return;
+    ECS::setField_f32(component, componentInfo, fieldIndex, event->field4.field_Float);
     event->success = true;
 }
 
@@ -69,7 +72,10 @@ void handleEventGetComponentField(Event::Event* event, ECS::EntityComponentSyste
     if (entity == nullptr) return;
     ECS::Component* component = MapUtils::getValueOrNullPtr(entity->components, componentType);
     if (component == nullptr) return;
-    event->field4 = component->fields[fieldIndex];
+    if (componentType >= ecs->numComponentTypes) return;
+    ECS::ComponentInfo* componentInfo = ecs->componentTypes[componentType];
+    if (componentInfo == nullptr) return;
+    event->field4.field_Float = ECS::getField_f32(component, componentInfo, fieldIndex);
     event->success = true;
 }
 
