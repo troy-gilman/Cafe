@@ -1,10 +1,10 @@
 #pragma once
 
 #include <cstring>
-#include "ECS.h"
-#include "util/Types.h"
-#include "util/ThreadSafeQueue.h"
-#include "util/ObjectPool.h"
+#include "../ECS.h"
+#include "../util/Types.h"
+#include "../util/ThreadSafeQueue.h"
+#include "../util/ObjectPool.h"
 
 
 namespace Event {

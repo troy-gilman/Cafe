@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Event.h"
-#include "ECS.h"
+#include "../ECS.h"
 
 namespace EventHandling {
 

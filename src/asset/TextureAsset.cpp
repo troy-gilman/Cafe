@@ -1,7 +1,7 @@
 #include "Asset.h"
 #include "../util/Image.h"
 #include "../util/StringUtils.h"
-#include "../util/UUIDGenerator.h"
+#include "../deprecated/UUIDGenerator.h"
 #include <iostream>
 
 bool Asset::loadTextureAsset(TextureAsset* asset, const char* filePath) {

@@ -1,7 +1,6 @@
 #include "Asset.h"
 
 #include "../util/StringUtils.h"
-#include "../util/UUIDGenerator.h"
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>

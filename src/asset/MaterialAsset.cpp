@@ -1,5 +1,5 @@
 #include "Asset.h"
-#include "../util/UUIDGenerator.h"
+#include "../deprecated/UUIDGenerator.h"
 
 
 bool Asset::loadMaterialAsset(MaterialAsset* asset, UUID shaderAssetId, UUID textureAssetId, UUID normalMapAssetId) {

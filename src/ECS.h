@@ -6,9 +6,9 @@
 namespace ECS {
 
     // CONSTANTS
-    static const ui32 MAX_ENTITIES = 1024;
-    static const ui32 MAX_COMPONENT_TYPES = 64;
-    static const ui32 MAX_FIELDS_PER_COMPONENT = 32;
+    static const i32 MAX_ENTITIES = 1024;
+    static const i32 MAX_COMPONENT_TYPES = 64;
+    static const i32 MAX_FIELDS_PER_COMPONENT = 32;
 
     static const i32 COMPONENT_TYPE_CAMERA = 0;
     static const i32 COMPONENT_TYPE_LIGHT = 1;

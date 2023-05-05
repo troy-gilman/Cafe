@@ -1,25 +1,20 @@
 #include "Atlas.h"
-#include <thread>
-#include "util/UUIDGenerator.h"
-#include "EventHandling.h"
+
 #include <iostream>
 #include "util/MapUtils.h"
 
-Atlas::Atlas(bool isServer) : isServer(isServer) {
-    eventState = new Event::EventState(10000);
+Atlas::Atlas() {
     ecs = new ECS::EntityComponentSystem();
     assetPack = new Asset::AssetPack();
     window = new Render::Window();
     input = new Input::InputState();
-    networkState = new Network::NetworkState();
 }
 
 Atlas::~Atlas() {
-    delete eventState;
     delete ecs;
     delete assetPack;
     delete window;
-    delete networkState;
+    delete input;
 }
 
 void Atlas::init() {
@@ -41,92 +36,12 @@ void Atlas::init() {
     ecs->nextEntityId++;
 }
 
-static void networkControllerReadEventLoop(Event::EventState* eventState, Network::NetworkState* networkState, bool isServer) {
-    if (isServer) {
-        Network::startServer(networkState);
-    } else {
-        Network::startClient(networkState);
-    }
-    while (true) {
-        Network::receiveEventMsg(networkState);
-        Network::EventMsg* eventMsg = &(networkState->eventMsgIn);
-        if (eventMsg->numEvents == 0) {
-            continue;
-        }
-        for (ui64 i = 0; i < eventMsg->numEvents; i++) {
-            Event::Event* event = eventState->eventPool.waitForObject();
-            Event::copyEvent(&eventMsg->events[i], event);
-            eventState->eventQueue.push(event);
-        }
-        eventMsg->numEvents = 0;
-    }
-}
-
-static void eventCreatorLoop(Event::EventState* eventState, bool isServer, bool* done) {
-    if (isServer) {
-        *done = true;
-        return;
-    }
-    UUIDGenerator* uuidGenerator = UUIDGenerator::getInstance();
-    ui64 numEvents = 10000;
-    for (ui64 i = 0; i < numEvents; i++) {
-        Event::Event* event = eventState->eventPool.waitForObject();
-        Event::resetEvent(event);
-
-        Event::EventType eventType = static_cast<Event::EventType>(i % 6);
-        event->eventType = eventType;
-
-        UUID id = uuidGenerator->generateUUID();
-        event->field1.field_UUID = id;
-
-        eventState->eventQueue.push(event);
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-    }
-    std::cout << "Done creating events" << std::endl;
-    *done = true;
-}
-
 void Atlas::start() {
     bool done = false;
-    std::thread eventReaderThread(networkControllerReadEventLoop, eventState, networkState, isServer);
-    std::thread eventCreatorThread(eventCreatorLoop, eventState, isServer, &done);
     int eventsProcessed = 0;
     auto start = std::chrono::high_resolution_clock::now();
     while (true) {
-        // Process events in our queue
-        if (!eventState->eventQueue.empty()) {
-            bool success = EventHandling::handleNextEvent(eventState, ecs);
-            if (success) {
-                eventsProcessed++;
-            }
-            if (eventsProcessed % 1000 == 0) {
-                std::cout << "Events successfully processed: " << eventsProcessed << std::endl;
-            }
-        }
-        // Handle events that were processed
-        if (!eventState->eventQueueProcessed.empty()) {
-            Event::Event* event = eventState->eventQueueProcessed.pop();
-            if (!isServer) {
-                Network::EventMsg* eventMsg = &(networkState->eventMsgOut);
-                int numEvents = eventMsg->numEvents;
-                Event::copyEvent(event, &eventMsg->events[numEvents]);
-                eventMsg->numEvents++;
-                if (eventMsg->numEvents == Network::MAX_EVENTS_PER_MSG) {
-                    Network::sendEventMsg(networkState);
-                }
-            }
-            eventState->eventPool.returnObject(event);
-        }
 
-        auto end = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> elapsed = end - start;
-        bool shouldExit = !isServer || (isServer && elapsed.count() > 30);
-        if (done && eventState->eventQueue.empty() && shouldExit) {
-            eventReaderThread.detach();
-            eventCreatorThread.join();
-            std::cout << "Successfully processed " << eventsProcessed << " events" << std::endl;
-            return;
-        }
     }
 }
 
@@ -263,9 +178,7 @@ void Atlas::render() {
 }
 
 bool Atlas::addMeshToAssetPack(Asset::MeshAsset* asset) {
-    if (!asset) {
-        return false;
-    }
+    if (!asset) return false;
     UUID assetId = assetPack->nextMeshAssetId;
     asset->assetId = assetId;
     assetPack->meshAssets[assetId] = asset;
@@ -275,9 +188,7 @@ bool Atlas::addMeshToAssetPack(Asset::MeshAsset* asset) {
 }
 
 bool Atlas::addMaterialToAssetPack(Asset::MaterialAsset* asset) {
-    if (!asset) {
-        return false;
-    }
+    if (!asset) return false;
     UUID assetId = assetPack->nextMaterialAssetId;
     asset->assetId = assetId;
     assetPack->materialAssets[assetId] = asset;
@@ -286,9 +197,7 @@ bool Atlas::addMaterialToAssetPack(Asset::MaterialAsset* asset) {
     return true;
 }
 bool Atlas::addTextureToAssetPack(Asset::TextureAsset* asset) {
-    if (!asset) {
-        return false;
-    }
+    if (!asset) return false;
     UUID assetId = assetPack->nextTextureAssetId;
     asset->assetId = assetId;
     assetPack->textureAssets[assetId] = asset;
@@ -298,9 +207,7 @@ bool Atlas::addTextureToAssetPack(Asset::TextureAsset* asset) {
 }
 
 bool Atlas::addShaderToAssetPack(Asset::ShaderAsset* asset) {
-    if (!asset) {
-        return false;
-    }
+    if (!asset) return false;
     UUID assetId = assetPack->nextShaderAssetId;
     asset->assetId = assetId;
     assetPack->shaderAssets[assetId] = asset;
@@ -310,47 +217,30 @@ bool Atlas::addShaderToAssetPack(Asset::ShaderAsset* asset) {
 }
 
 UUID Atlas::createEntity() {
-    Event::Event* event = eventState->eventPool.waitForObject();
-    event->eventType = Event::EventType::ENTITY_CREATE;
-    UUID uuid = ecs->nextEntityId;
-    event->field1.field_UUID = uuid;
-    eventState->eventQueue.push(event);
-    EventHandling::handleNextEvent(eventState, ecs);
-    if (event->success) {
-        ecs->numEntities++;
-        ecs->nextEntityId++;
-        return uuid;
-    } else {
-        return -1;
-    }
-}
-
-bool Atlas::addComponentToEntity(UUID entityId, i32 componentType) {
-    Event::Event* event = eventState->eventPool.waitForObject();
-    event->eventType = Event::EventType::ENTITY_ADD_COMPONENT;
-    event->field1.field_UUID = entityId;
-    event->field2.field_Integer = componentType;
-    eventState->eventQueue.push(event);
-    EventHandling::handleNextEvent(eventState, ecs);
-    return event->success;
-}
-
-bool Atlas::setComponentField(UUID entityId, i32 componentType, i32 fieldIndex, FieldUnion field) {
-    Event::Event* event = eventState->eventPool.waitForObject();
-    event->eventType = Event::EventType::COMPONENT_SET_FIELD;
-    event->field1.field_UUID = entityId;
-    event->field2.field_Integer = componentType;
-    event->field3.field_Integer = fieldIndex;
-    event->field4 = field;
-    eventState->eventQueue.push(event);
-    EventHandling::handleNextEvent(eventState, ecs);
-    return event->success;
+    UUID entityId = ecs->nextEntityId;
+    if (entityId == -1) return -1;
+    ECS::Entity* entity = new ECS::Entity();
+    entity->id = entityId;
+    ecs->entities[entityId] = entity;
+    ecs->numEntities++;
+    i32 nextEntityId = entityId;
+    do {
+        nextEntityId = (nextEntityId + 1) % ECS::MAX_ENTITIES;
+        if (nextEntityId == ecs->nextEntityId) {
+            nextEntityId = -1;
+            break;
+        }
+    } while (ecs->entities[nextEntityId] != nullptr);
+    ecs->nextEntityId = nextEntityId;
+    return entityId;
 }
 
 bool Atlas::addSpatial3dComponentToEntity(UUID entityId, Vector3f position, Vector3f rotation, f32 scale) {
+    if (entityId < 0 || entityId >= ECS::MAX_ENTITIES) return false;
     ECS::Entity* entity = ecs->entities[entityId];
-    ECS::Component* component = new ECS::Component();
     ECS::ComponentInfo* componentInfo = ecs->componentTypes[ECS::COMPONENT_TYPE_SPATIAL_3D];
+    if (entity == nullptr || componentInfo == nullptr) return false;
+    ECS::Component* component = new ECS::Component();
     component->type = ECS::COMPONENT_TYPE_SPATIAL_3D;
     ECS::setField_Vector3f(component, componentInfo, ECS::Spatial3d::FIELD_INDEX_POSITION, position);
     ECS::setField_Vector3f(component, componentInfo, ECS::Spatial3d::FIELD_INDEX_ROTATION, rotation);
@@ -360,9 +250,11 @@ bool Atlas::addSpatial3dComponentToEntity(UUID entityId, Vector3f position, Vect
 }
 
 bool Atlas::addRenderable3dComponentToEntity(UUID entityId, UUID meshAssetId, UUID materialAssetId, i32 textureAtlasIndex) {
+    if (entityId < 0 || entityId >= ECS::MAX_ENTITIES) return false;
     ECS::Entity* entity = ecs->entities[entityId];
-    ECS::Component* component = new ECS::Component();
     ECS::ComponentInfo* componentInfo = ecs->componentTypes[ECS::COMPONENT_TYPE_RENDERABLE_3D];
+    if (entity == nullptr || componentInfo == nullptr) return false;
+    ECS::Component* component = new ECS::Component();
     component->type = ECS::COMPONENT_TYPE_RENDERABLE_3D;
     ECS::setField_i32(component, componentInfo, ECS::Renderable3d::FIELD_INDEX_MESH_ASSET_ID, meshAssetId);
     ECS::setField_i32(component, componentInfo, ECS::Renderable3d::FIELD_INDEX_MATERIAL_ASSET_ID, materialAssetId);

@@ -1,6 +1,5 @@
 #include "Asset.h"
 #include "../util/StringUtils.h"
-#include "../util/UUIDGenerator.h"
 #include <iostream>
 
 bool Asset::loadShaderAsset(ShaderAsset* asset, const char* vertexFilePath, const char* fragmentFilePath) {
