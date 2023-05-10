@@ -27,5 +27,7 @@ public:
 
     bool addSpatial3dComponentToEntity(UUID entityId, Vector3f position, Vector3f rotation, f32 scale);
     bool addRenderable3dComponentToEntity(UUID entityId, UUID meshAssetId, UUID materialAssetId, i32 textureAtlasIndex);
+    bool addCameraComponentToEntity(UUID entityId, f32 distanceFromTarget, f32 verticalAngle);
+    bool addLightComponentToEntity(UUID entityId, Vector3f color, Vector3f attenuation);
 
 };

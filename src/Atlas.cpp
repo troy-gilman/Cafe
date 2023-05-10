@@ -21,19 +21,6 @@ void Atlas::init() {
     Render::initWindow(window);
     Input::initInputState(input, window->glfwWindow);
     ECS::initEntityComponentSystem(ecs);
-
-    ECS::Entity* camera = new ECS::Entity();
-    camera->id = ecs->nextEntityId;
-    ECS::Component* component = new ECS::Component();
-    component->type = ECS::COMPONENT_TYPE_SPATIAL_3D;
-    ECS::ComponentInfo* componentInfo = ecs->componentTypes[component->type];
-    ECS::setField_Vector3f(component, componentInfo, ECS::Spatial3d::FIELD_INDEX_POSITION, {0, -2, -5});
-    ECS::setField_Vector3f(component, componentInfo, ECS::Spatial3d::FIELD_INDEX_ROTATION, {0, 0, 0});
-    ECS::setField_f32(component, componentInfo, ECS::Spatial3d::FIELD_INDEX_SCALE, 1.0f);
-    camera->components[component->type] = component;
-    ecs->entities[camera->id] = camera;
-    ecs->numEntities++;
-    ecs->nextEntityId++;
 }
 
 void Atlas::start() {
@@ -259,6 +246,32 @@ bool Atlas::addRenderable3dComponentToEntity(UUID entityId, UUID meshAssetId, UU
     ECS::setField_i32(component, componentInfo, ECS::Renderable3d::FIELD_INDEX_MESH_ASSET_ID, meshAssetId);
     ECS::setField_i32(component, componentInfo, ECS::Renderable3d::FIELD_INDEX_MATERIAL_ASSET_ID, materialAssetId);
     ECS::setField_i32(component, componentInfo, ECS::Renderable3d::FIELD_INDEX_TEXTURE_ATLAS_INDEX, textureAtlasIndex);
+    entity->components[component->type] = component;
+    return true;
+}
+
+bool Atlas::addCameraComponentToEntity(UUID entityId, f32 distanceFromTarget, f32 verticalAngle) {
+    if (entityId < 0 || entityId >= ECS::MAX_ENTITIES) return false;
+    ECS::Entity* entity = ecs->entities[entityId];
+    ECS::ComponentInfo* componentInfo = ecs->componentTypes[ECS::COMPONENT_TYPE_CAMERA];
+    if (entity == nullptr || componentInfo == nullptr) return false;
+    ECS::Component* component = new ECS::Component();
+    component->type = ECS::COMPONENT_TYPE_CAMERA;
+    ECS::setField_f32(component, componentInfo, ECS::Camera::FIELD_INDEX_DISTANCE_FROM_TARGET, distanceFromTarget);
+    ECS::setField_f32(component, componentInfo, ECS::Camera::FIELD_INDEX_VERTICAL_ANGLE, verticalAngle);
+    entity->components[component->type] = component;
+    return true;
+}
+
+bool Atlas::addLightComponentToEntity(UUID entityId, Vector3f color, Vector3f attenuation) {
+    if (entityId < 0 || entityId >= ECS::MAX_ENTITIES) return false;
+    ECS::Entity* entity = ecs->entities[entityId];
+    ECS::ComponentInfo* componentInfo = ecs->componentTypes[ECS::COMPONENT_TYPE_LIGHT];
+    if (entity == nullptr || componentInfo == nullptr) return false;
+    ECS::Component* component = new ECS::Component();
+    component->type = ECS::COMPONENT_TYPE_LIGHT;
+    ECS::setField_Vector3f(component, componentInfo, ECS::Light::FIELD_INDEX_COLOR, color);
+    ECS::setField_Vector3f(component, componentInfo, ECS::Light::FIELD_INDEX_ATTENUATION, attenuation);
     entity->components[component->type] = component;
     return true;
 }

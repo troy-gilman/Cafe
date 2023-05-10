@@ -17,19 +17,29 @@ void Render::render(Window* window, Asset::AssetPack* assetPack, ECS::EntityComp
 
     enableCulling();
 
-    i32 numLights = 1;
-
-    Vector3f lightPositions[] = {
-        {100.0f, 100.0f, 100.0f}
-    };
-
-    Vector3f lightColors[] = {
-        {1.0f, 1.0f, 1.0f}
-    };
-
-    Vector3f lightAttenuations[] = {
-        {1.0f, 0.0f, 0.0f}
-    };
+    // LIGHTS
+    i32 numLights = 0;
+    const i32 numMaxLights = 4;
+    Vector3f lightPositions[numMaxLights];
+    Vector3f lightColors[numMaxLights];
+    Vector3f lightAttenuations[numMaxLights];
+    for (i32 entityId = 0; entityId < ecs->numEntities; entityId++) {
+        ECS::Entity* entity = ecs->entities[entityId];
+        if (entity == nullptr) continue;
+        ECS::Component* spatial3d = entity->components[ECS::COMPONENT_TYPE_SPATIAL_3D];
+        ECS::Component* light = entity->components[ECS::COMPONENT_TYPE_LIGHT];
+        if (spatial3d == nullptr || light == nullptr) continue;
+        ECS::ComponentInfo* spatial3dInfo = ecs->componentTypes[ECS::COMPONENT_TYPE_SPATIAL_3D];
+        ECS::ComponentInfo* lightInfo = ecs->componentTypes[ECS::COMPONENT_TYPE_LIGHT];
+        Vector3f position = ECS::getField_Vector3f(spatial3d, spatial3dInfo, ECS::Spatial3d::FIELD_INDEX_POSITION);
+        Vector3f color = ECS::getField_Vector3f(light, lightInfo, ECS::Light::FIELD_INDEX_COLOR);
+        Vector3f attenuation = ECS::getField_Vector3f(light, lightInfo, ECS::Light::FIELD_INDEX_ATTENUATION);
+        lightPositions[numLights] = position;
+        lightColors[numLights] = color;
+        lightAttenuations[numLights] = attenuation;
+        numLights++;
+        if (numLights == numMaxLights) break;
+    }
 
     // CAMERA
     ECS::Entity* camera = ecs->entities[0];
