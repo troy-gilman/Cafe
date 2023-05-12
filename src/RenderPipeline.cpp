@@ -37,8 +37,8 @@ void Render::prepareRenderState(RenderState* renderState, ECS::EntityComponentSy
         if (hasLight && hasSpatial3d && lightData.numLights < MAX_NUM_LIGHTS) {
             ECS::Component& spatial3d = ecs->components[ECS::COMPONENT_TYPE_SPATIAL_3D][entityId];
             ECS::Component& light = ecs->components[ECS::COMPONENT_TYPE_LIGHT][entityId];
-            ECS::ComponentInfo* spatial3dInfo = ecs->componentTypes[ECS::COMPONENT_TYPE_SPATIAL_3D];
-            ECS::ComponentInfo* lightInfo = ecs->componentTypes[ECS::COMPONENT_TYPE_LIGHT];
+            ECS::ComponentInfo& spatial3dInfo = ecs->componentTypes[ECS::COMPONENT_TYPE_SPATIAL_3D];
+            ECS::ComponentInfo& lightInfo = ecs->componentTypes[ECS::COMPONENT_TYPE_LIGHT];
             Vector3f position = ECS::getField_Vector3f(spatial3d, spatial3dInfo, ECS::Spatial3d::FIELD_INDEX_POSITION);
             Vector3f color = ECS::getField_Vector3f(light, lightInfo, ECS::Light::FIELD_INDEX_COLOR);
             Vector3f attenuation = ECS::getField_Vector3f(light, lightInfo, ECS::Light::FIELD_INDEX_ATTENUATION);
@@ -50,8 +50,8 @@ void Render::prepareRenderState(RenderState* renderState, ECS::EntityComponentSy
 
         // Add this entity to the entity asset group table
         if (hasRenderable3d && hasSpatial3d) {
-            ECS::Component &renderable3d = ecs->components[ECS::COMPONENT_TYPE_RENDERABLE_3D][entityId];
-            ECS::ComponentInfo *renderable3dInfo = ecs->componentTypes[ECS::COMPONENT_TYPE_RENDERABLE_3D];
+            ECS::Component& renderable3d = ecs->components[ECS::COMPONENT_TYPE_RENDERABLE_3D][entityId];
+            ECS::ComponentInfo& renderable3dInfo = ecs->componentTypes[ECS::COMPONENT_TYPE_RENDERABLE_3D];
             UUID meshId = ECS::getField_i32(renderable3d, renderable3dInfo, ECS::Renderable3d::FIELD_INDEX_MESH_ASSET_ID);
             UUID materialId = ECS::getField_i32(renderable3d, renderable3dInfo, ECS::Renderable3d::FIELD_INDEX_MATERIAL_ASSET_ID);
             if (meshId != -1 && materialId != -1) {
@@ -103,7 +103,7 @@ void Render::render(RenderState* renderState, Asset::AssetPack* assetPack, ECS::
     // CAMERA
     UUID cameraEntityId = 0;
     ECS::Component& cameraSpatial3d = ecs->components[ECS::COMPONENT_TYPE_SPATIAL_3D][cameraEntityId];
-    ECS::ComponentInfo* cameraSpatial3dInfo = ecs->componentTypes[ECS::COMPONENT_TYPE_SPATIAL_3D];
+    ECS::ComponentInfo& cameraSpatial3dInfo = ecs->componentTypes[ECS::COMPONENT_TYPE_SPATIAL_3D];
     Vector3f cameraPos = ECS::getField_Vector3f(cameraSpatial3d, cameraSpatial3dInfo, ECS::Spatial3d::FIELD_INDEX_POSITION);
     Vector3f cameraRot = ECS::getField_Vector3f(cameraSpatial3d, cameraSpatial3dInfo, ECS::Spatial3d::FIELD_INDEX_ROTATION);
     glm::f32vec3 cameraPosition = {cameraPos.x, cameraPos.y, cameraPos.z};
@@ -164,7 +164,7 @@ void Render::render(RenderState* renderState, Asset::AssetPack* assetPack, ECS::
         for (size_t entityIt = 0; entityIt < numEntitiesInGroup; entityIt++) {
             UUID entityId = entityAssetGroupTable.table[groupIndex][entityIt];
             ECS::Component& spatial3d = ecs->components[ECS::COMPONENT_TYPE_SPATIAL_3D][entityId];
-            ECS::ComponentInfo* spatial3dInfo = ecs->componentTypes[ECS::COMPONENT_TYPE_SPATIAL_3D];
+            ECS::ComponentInfo& spatial3dInfo = ecs->componentTypes[ECS::COMPONENT_TYPE_SPATIAL_3D];
             Vector3f position = ECS::getField_Vector3f(spatial3d, spatial3dInfo, ECS::Spatial3d::FIELD_INDEX_POSITION);
             // Vector3f rotation = ECS::getField_Vector3f(spatial3d, spatial3dInfo, ECS::Spatial3d::FIELD_INDEX_ROTATION);
             // f32 scale = ECS::getField_f32(spatial3d, spatial3dInfo, ECS::Spatial3d::FIELD_INDEX_SCALE);

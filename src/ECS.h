@@ -67,22 +67,22 @@ namespace ECS {
 
 
 
-    i32 addFieldToComponentInfo_i32(ComponentInfo* componentInfo, const char* fieldName);
-    i32 addFieldToComponentInfo_f32(ComponentInfo* componentInfo, const char* fieldName);
-    i32 addFieldToComponentInfo_Boolean(ComponentInfo* componentInfo, const char* fieldName);
-    i32 addFieldToComponentInfo_Vector3f(ComponentInfo* componentInfo, const char* fieldName);
-    i32 addFieldToComponentInfo_CharBuffer(ComponentInfo* componentInfo, const char* fieldName, i32 numChars);
+    i32 addFieldToComponentInfo_i32(ComponentInfo& componentInfo, const char* fieldName);
+    i32 addFieldToComponentInfo_f32(ComponentInfo& componentInfo, const char* fieldName);
+    i32 addFieldToComponentInfo_Boolean(ComponentInfo& componentInfo, const char* fieldName);
+    i32 addFieldToComponentInfo_Vector3f(ComponentInfo& componentInfo, const char* fieldName);
+    i32 addFieldToComponentInfo_CharBuffer(ComponentInfo& componentInfo, const char* fieldName, i32 numChars);
 
-    f32 getField_f32(const Component& component, const ComponentInfo* componentInfo, i32 fieldIndex);
-    void setField_f32(Component& component, const ComponentInfo* componentInfo, i32 fieldIndex, f32 value);
-    i32 getField_i32(const Component& component, const ComponentInfo* componentInfo, i32 fieldIndex);
-    void setField_i32(Component& component, const ComponentInfo* componentInfo, i32 fieldIndex, i32 value);
-    bool getField_Boolean(const Component& component, const ComponentInfo* componentInfo, i32 fieldIndex);
-    void setField_Boolean(Component& component, const ComponentInfo* componentInfo, i32 fieldIndex, bool value);
-    Vector3f getField_Vector3f(const Component& component, const ComponentInfo* componentInfo, i32 fieldIndex);
-    void setField_Vector3f(Component& component, const ComponentInfo* componentInfo, i32 fieldIndex, Vector3f value);
-    const char* getField_CharBuffer(const Component& component, const ComponentInfo* componentInfo, i32 fieldIndex);
-    void setField_CharBuffer(Component& component, const ComponentInfo* componentInfo, i32 fieldIndex, const char* value);
+    f32 getField_f32(const Component& component, const ComponentInfo& componentInfo, i32 fieldIndex);
+    void setField_f32(Component& component, const ComponentInfo& componentInfo, i32 fieldIndex, f32 value);
+    i32 getField_i32(const Component& component, const ComponentInfo& componentInfo, i32 fieldIndex);
+    void setField_i32(Component& component, const ComponentInfo& componentInfo, i32 fieldIndex, i32 value);
+    bool getField_Boolean(const Component& component, const ComponentInfo& componentInfo, i32 fieldIndex);
+    void setField_Boolean(Component& component, const ComponentInfo& componentInfo, i32 fieldIndex, bool value);
+    Vector3f getField_Vector3f(const Component& component, const ComponentInfo& componentInfo, i32 fieldIndex);
+    void setField_Vector3f(Component& component, const ComponentInfo& componentInfo, i32 fieldIndex, Vector3f value);
+    const char* getField_CharBuffer(const Component& component, const ComponentInfo& componentInfo, i32 fieldIndex);
+    void setField_CharBuffer(Component& component, const ComponentInfo& componentInfo, i32 fieldIndex, const char* value);
 
     struct EntityComponentSystem {
         i32 nextEntityId;
@@ -91,9 +91,8 @@ namespace ECS {
         bool activeComponents[MAX_COMPONENT_TYPES][MAX_ENTITIES];
         Component components[MAX_COMPONENT_TYPES][MAX_ENTITIES];
         i32 numComponentTypes;
-        ComponentInfo* componentTypes[MAX_COMPONENT_TYPES];
+        ComponentInfo componentTypes[MAX_COMPONENT_TYPES];
     };
 
     void initEntityComponentSystem(EntityComponentSystem* ecs);
-    i32 registerComponentType(EntityComponentSystem* ecs, ComponentInfo* componentInfo);
 }
