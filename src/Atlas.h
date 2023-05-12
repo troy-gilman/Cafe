@@ -8,7 +8,7 @@ class Atlas {
 private:
     ECS::EntityComponentSystem* ecs;
     Asset::AssetPack* assetPack;
-    Render::Window* window;
+    Render::RenderState* renderState;
     Input::InputState* input;
 
 public:

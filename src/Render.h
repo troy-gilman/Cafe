@@ -41,12 +41,37 @@ namespace Render {
         Vector3f backgroundColor;
     };
 
-    void render(Window * window, Asset::AssetPack* assetPack, ECS::EntityComponentSystem* ecs);
+    struct EntityAssetGroupTable {
+        i32 numGroups;
+        i32 renderOrder[ECS::MAX_ENTITIES];
+        UUID meshIds[ECS::MAX_ENTITIES];
+        UUID materialIds[ECS::MAX_ENTITIES];
+        i32 numEntries[ECS::MAX_ENTITIES];
+        UUID table[ECS::MAX_ENTITIES][ECS::MAX_ENTITIES];
+    };
 
-    void initWindow(Window* window);
-    void updateWindow(Window* window);
-    void closeWindow(Window * window);
-    bool shouldCloseWindow(Window * window);
+    static const i32 MAX_NUM_LIGHTS = 4;
+
+    struct LightData {
+        i32 numLights;
+        Vector3f lightPositions[MAX_NUM_LIGHTS];
+        Vector3f lightColors[MAX_NUM_LIGHTS];
+        Vector3f lightAttenuations[MAX_NUM_LIGHTS];
+    };
+
+    struct RenderState {
+        Window window;
+        EntityAssetGroupTable entityAssetGroupTable;
+        LightData lightData;
+    };
+
+    void prepareRenderState(RenderState* renderState, ECS::EntityComponentSystem* ecs);
+    void render(RenderState* renderState, Asset::AssetPack* assetPack, ECS::EntityComponentSystem* ecs);
+
+    void initWindow(Window& window);
+    void updateWindow(Window& window);
+    void closeWindow(const Window& window);
+    bool shouldCloseWindow(const Window& window);
     void enableCulling();
     void disableCulling();
     void bindShader(Asset::ShaderAsset* shaderAsset);

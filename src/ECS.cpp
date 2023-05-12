@@ -1,7 +1,6 @@
 #include "ECS.h"
 #include <cstdlib>
 #include "util/StringUtils.h"
-#include "util/ArrayUtils.h"
 
 using namespace ECS;
 
@@ -45,107 +44,54 @@ i32 ECS::addFieldToComponentInfo_CharBuffer(ComponentInfo* componentInfo, const 
     return addFieldToComponentInfo(componentInfo, fieldName, FIELD_TYPE_CHAR_BUFFER, numChars * (i32) sizeof(char));
 }
 
-f32 ECS::getField_f32(Component* component, ComponentInfo* componentInfo, i32 fieldIndex) {
+f32 ECS::getField_f32(const Component& component, const ComponentInfo* componentInfo, i32 fieldIndex) {
     i32 byteOffset = componentInfo->fieldOffsetBytes[fieldIndex];
-    return *(f32*)(component->data + byteOffset);
+    return *(f32*)(component.data + byteOffset);
 }
 
-void ECS::setField_f32(Component* component, ComponentInfo* componentInfo, i32 fieldIndex, f32 value) {
+void ECS::setField_f32(Component& component, const ComponentInfo* componentInfo, i32 fieldIndex, f32 value) {
     i32 byteOffset = componentInfo->fieldOffsetBytes[fieldIndex];
-    *(f32*)(component->data + byteOffset) = value;
+    *(f32*)(component.data + byteOffset) = value;
 }
 
-i32 ECS::getField_i32(Component* component, ComponentInfo* componentInfo, i32 fieldIndex) {
+i32 ECS::getField_i32(const Component& component, const ComponentInfo* componentInfo, i32 fieldIndex) {
     i32 byteOffset = componentInfo->fieldOffsetBytes[fieldIndex];
-    return *(i32*)(component->data + byteOffset);
+    return *(i32*)(component.data + byteOffset);
 }
 
-void ECS::setField_i32(Component* component, ComponentInfo* componentInfo, i32 fieldIndex, i32 value) {
+void ECS::setField_i32(Component& component, const ComponentInfo* componentInfo, i32 fieldIndex, i32 value) {
     i32 byteOffset = componentInfo->fieldOffsetBytes[fieldIndex];
-    *(i32*)(component->data + byteOffset) = value;
+    *(i32*)(component.data + byteOffset) = value;
 }
 
-bool ECS::getField_Boolean(Component* component, ComponentInfo* componentInfo, i32 fieldIndex) {
+bool ECS::getField_Boolean(const Component& component, const ComponentInfo* componentInfo, i32 fieldIndex) {
     i32 byteOffset = componentInfo->fieldOffsetBytes[fieldIndex];
-    return *(bool*)(component->data + byteOffset);
+    return *(bool*)(component.data + byteOffset);
 }
 
-void ECS::setField_Boolean(Component* component, ComponentInfo* componentInfo, i32 fieldIndex, bool value) {
+void ECS::setField_Boolean(Component& component, const ComponentInfo* componentInfo, i32 fieldIndex, bool value) {
     i32 byteOffset = componentInfo->fieldOffsetBytes[fieldIndex];
-    *(bool*)(component->data + byteOffset) = value;
+    *(bool*)(component.data + byteOffset) = value;
 }
 
-Vector3f ECS::getField_Vector3f(Component* component, ComponentInfo* componentInfo, i32 fieldIndex) {
+Vector3f ECS::getField_Vector3f(const Component& component, const ComponentInfo* componentInfo, i32 fieldIndex) {
     i32 byteOffset = componentInfo->fieldOffsetBytes[fieldIndex];
-    return *(Vector3f*)(component->data + byteOffset);
+    return *(Vector3f*)(component.data + byteOffset);
 }
 
-void ECS::setField_Vector3f(Component* component, ComponentInfo* componentInfo, i32 fieldIndex, Vector3f value) {
+void ECS::setField_Vector3f(Component& component, const ComponentInfo* componentInfo, i32 fieldIndex, Vector3f value) {
     i32 byteOffset = componentInfo->fieldOffsetBytes[fieldIndex];
-    *(Vector3f*)(component->data + byteOffset) = value;
+    *(Vector3f*)(component.data + byteOffset) = value;
 }
 
-const char* ECS::getField_CharBuffer(Component* component, ComponentInfo* componentInfo, i32 fieldIndex) {
+const char* ECS::getField_CharBuffer(const Component& component, const ComponentInfo* componentInfo, i32 fieldIndex) {
     i32 byteOffset = componentInfo->fieldOffsetBytes[fieldIndex];
-    return (const char*)(component->data + byteOffset);
+    return (const char*)(component.data + byteOffset);
 }
 
-void ECS::setField_CharBuffer(Component* component, ComponentInfo* componentInfo, i32 fieldIndex, const char* value) {
+void ECS::setField_CharBuffer(Component& component, const ComponentInfo* componentInfo, i32 fieldIndex, const char* value) {
     i32 byteOffset = componentInfo->fieldOffsetBytes[fieldIndex];
     i32 numChars = componentInfo->fieldSizeBytes[fieldIndex];
-    StringUtils::copyStringToBuffer((char*)(component->data + byteOffset), value, numChars);
-}
-
-void ECS::buildEntityAssetTable(ECS::EntityComponentSystem *ecs) {
-    // Reset EntityAssetGroupTable
-    memset(&ecs->entityAssetGroupTable, 0, sizeof(ecs->entityAssetGroupTable));
-
-    // Iterate through all entities
-    size_t numEntities = ecs->numEntities;
-    for (i32 entityId = 0; entityId < numEntities; entityId++) {
-        ECS::Entity* entity = ecs->entities[entityId];
-        if (entity == nullptr) continue;
-        ECS::Component* spatial3d = entity->components[ECS::COMPONENT_TYPE_SPATIAL_3D];
-        ECS::Component* renderable3d = entity->components[ECS::COMPONENT_TYPE_RENDERABLE_3D];
-        if (spatial3d == nullptr || renderable3d == nullptr) continue;
-        ECS::ComponentInfo* renderable3dInfo = ecs->componentTypes[ECS::COMPONENT_TYPE_RENDERABLE_3D];
-        UUID meshId = ECS::getField_i32(renderable3d, renderable3dInfo, ECS::Renderable3d::FIELD_INDEX_MESH_ASSET_ID);
-        UUID materialId = ECS::getField_i32(renderable3d, renderable3dInfo, ECS::Renderable3d::FIELD_INDEX_MATERIAL_ASSET_ID);
-        if (meshId == -1 || materialId == -1) continue;
-
-        // Find the asset group for this mesh and material
-        i32 tableIndex = 0;
-        while (tableIndex < ecs->entityAssetGroupTable.numGroups) {
-            UUID assetGroupMeshId = ecs->entityAssetGroupTable.meshIds[tableIndex];
-            UUID assetGroupMaterialId = ecs->entityAssetGroupTable.meshIds[tableIndex];
-            if (assetGroupMeshId == meshId && assetGroupMaterialId == materialId) break;
-            tableIndex++;
-        }
-
-        // If no asset group exists for this mesh and material, create one
-        // We have to find the correct place to insert it in the render order
-        i32 numEntries = ecs->entityAssetGroupTable.numEntries[tableIndex];
-        if (numEntries == 0) {
-            i32 numGroups = ecs->entityAssetGroupTable.numGroups;
-            i32 orderIndex = 0;
-            while (orderIndex < numGroups) {
-                i32 groupIndex = ecs->entityAssetGroupTable.renderOrder[orderIndex];
-                UUID assetGroupMeshId = ecs->entityAssetGroupTable.meshIds[groupIndex];
-                if (assetGroupMeshId == meshId) {
-                    ArrayUtils::shiftArrayRight(ecs->entityAssetGroupTable.renderOrder, numGroups, orderIndex);
-                    break;
-                }
-                orderIndex++;
-            }
-            ecs->entityAssetGroupTable.renderOrder[orderIndex] = tableIndex;
-            ecs->entityAssetGroupTable.meshIds[tableIndex] = meshId;
-            ecs->entityAssetGroupTable.materialIds[tableIndex] = materialId;
-            ecs->entityAssetGroupTable.numGroups++;
-        }
-
-        // Add this entity to the asset group
-        ecs->entityAssetGroupTable.table[tableIndex][numEntries] = entityId;
-        ecs->entityAssetGroupTable.numEntries[tableIndex]++;
-    }
+    StringUtils::copyStringToBuffer((char*)(component.data + byteOffset), value, numChars);
 }
 

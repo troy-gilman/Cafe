@@ -14,7 +14,7 @@ void Render::windowResizedCallback(GLFWwindow* window, i32 w, i32 h) {
     _windowResized = true;
 }
 
-void Render::initWindow(Window* window) {
+void Render::initWindow(Window& window) {
     if (!glfwInit()) {
         return;
     }
@@ -50,50 +50,50 @@ void Render::initWindow(Window* window) {
     //glDebugMessageCallback(MessageCallback, nullptr); // macOS doesn't support this
     glfwSetWindowSizeCallback(glfwWindow, windowResizedCallback);
 
-    window->width = INIT_WIDTH;
-    window->height = INIT_HEIGHT;
-    window->resized = false;
-    window->posX = windowPosX;
-    window->posY = windowPosY;
-    window->lastFpsUpdateMs = TimeUtils::getCurrentTimeMillis();
-    window->framesSinceLastFpsUpdate = 0;
-    window->glfwWindow = glfwWindow;
-    window->backgroundColor = {0.2f, 0.3f, 0.3f};
-    window->projectionMatrix = MathUtils::createProjectionMatrix(FOV,  NEAR_PLANE, FAR_PLANE, (f32)window->width / (f32)window->height);
+    window.width = INIT_WIDTH;
+    window.height = INIT_HEIGHT;
+    window.resized = false;
+    window.posX = windowPosX;
+    window.posY = windowPosY;
+    window.lastFpsUpdateMs = TimeUtils::getCurrentTimeMillis();
+    window.framesSinceLastFpsUpdate = 0;
+    window.glfwWindow = glfwWindow;
+    window.backgroundColor = {0.2f, 0.3f, 0.3f};
+    window.projectionMatrix = MathUtils::createProjectionMatrix(FOV,  NEAR_PLANE, FAR_PLANE, (f32)window.width / (f32)window.height);
 }
 
-void Render::updateWindow(Render::Window *window) {
-    window->width = _windowWidth;
-    window->height = _windowHeight;
-    window->resized = _windowResized;
-    if (window->resized) {
-        window->projectionMatrix = MathUtils::createProjectionMatrix(FOV, NEAR_PLANE, FAR_PLANE, (f32)window->width / (f32)window->height);
+void Render::updateWindow(Window& window) {
+    window.width = _windowWidth;
+    window.height = _windowHeight;
+    window.resized = _windowResized;
+    if (window.resized) {
+        window.projectionMatrix = MathUtils::createProjectionMatrix(FOV, NEAR_PLANE, FAR_PLANE, (f32)window.width / (f32)window.height);
         _windowResized = false;
     }
 
     std::chrono::milliseconds currentTime = TimeUtils::getCurrentTimeMillis();
 
     // Update FPS counter
-    window->framesSinceLastFpsUpdate++;
-    if (currentTime >= window->lastFpsUpdateMs + std::chrono::milliseconds(1000)) {
-        std::string title = std::string(WINDOW_TITLE) + " |FPS: " + std::to_string(window->framesSinceLastFpsUpdate) + "|";
-        glfwSetWindowTitle(window->glfwWindow, title.c_str());
-        window->lastFpsUpdateMs = currentTime;
-        window->framesSinceLastFpsUpdate = 0;
+    window.framesSinceLastFpsUpdate++;
+    if (currentTime >= window.lastFpsUpdateMs + std::chrono::milliseconds(1000)) {
+        std::string title = std::string(WINDOW_TITLE) + " |FPS: " + std::to_string(window.framesSinceLastFpsUpdate) + "|";
+        glfwSetWindowTitle(window.glfwWindow, title.c_str());
+        window.lastFpsUpdateMs = currentTime;
+        window.framesSinceLastFpsUpdate = 0;
     }
 
     // Update last frame time
-    window->lastFrameTimeMs = (f32) (currentTime - window->lastWindowUpdateMs).count();
-    window->lastWindowUpdateMs = currentTime;
+    window.lastFrameTimeMs = (f32) (currentTime - window.lastWindowUpdateMs).count();
+    window.lastWindowUpdateMs = currentTime;
 }
 
-void Render::closeWindow(Window* window) {
-    glfwDestroyWindow(window->glfwWindow);
+void Render::closeWindow(const Window& window) {
+    glfwDestroyWindow(window.glfwWindow);
     glfwTerminate();
 }
 
-bool Render::shouldCloseWindow(Window* window) {
-    return glfwWindowShouldClose(window->glfwWindow);
+bool Render::shouldCloseWindow(const Window& window) {
+    return glfwWindowShouldClose(window.glfwWindow);
 }
 
 void Render::enableCulling() {

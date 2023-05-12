@@ -1,6 +1,7 @@
 #include "Render.h"
 #include "glm/gtc/matrix_transform.hpp"
 #include "util/MapUtils.h"
+#include "util/ArrayUtils.h"
 
 Vector2f calcTextureAtlasOffset(ui32 atlasSize, ui32 index) {
     if (index == 0) {
@@ -11,39 +12,97 @@ Vector2f calcTextureAtlasOffset(ui32 atlasSize, ui32 index) {
     return {(f32) x / (f32) atlasSize, (f32) y / (f32) atlasSize};
 }
 
-void Render::render(Window* window, Asset::AssetPack* assetPack, ECS::EntityComponentSystem* ecs) {
-    glClearColor(window->backgroundColor.x, window->backgroundColor.y, window->backgroundColor.z, 1.0f);
+void Render::prepareRenderState(RenderState* renderState, ECS::EntityComponentSystem* ecs) {
+    LightData& lightData = renderState->lightData;
+    EntityAssetGroupTable& entityAssetGroupTable = renderState->entityAssetGroupTable;
+
+    // Reset number of lights
+    lightData.numLights = 0;
+
+    // Reset EntityAssetGroupTable
+    entityAssetGroupTable.numGroups = 0;
+    memset(entityAssetGroupTable.numEntries, 0, sizeof(i32) * ECS::MAX_ENTITIES);
+
+
+    // Iterate through all entities
+    for (i32 entityId = 0; entityId < ECS::MAX_ENTITIES; entityId++) {
+        if (!ecs->entityExists[entityId]) continue;
+
+        bool hasRenderable3d = ecs->activeComponents[ECS::COMPONENT_TYPE_RENDERABLE_3D][entityId];
+        bool hasSpatial3d = ecs->activeComponents[ECS::COMPONENT_TYPE_SPATIAL_3D][entityId];
+        bool hasCamera = ecs->activeComponents[ECS::COMPONENT_TYPE_CAMERA][entityId];
+        bool hasLight = ecs->activeComponents[ECS::COMPONENT_TYPE_LIGHT][entityId];
+
+        // Add this entity to the light data
+        if (hasLight && hasSpatial3d && lightData.numLights < MAX_NUM_LIGHTS) {
+            ECS::Component& spatial3d = ecs->components[ECS::COMPONENT_TYPE_SPATIAL_3D][entityId];
+            ECS::Component& light = ecs->components[ECS::COMPONENT_TYPE_LIGHT][entityId];
+            ECS::ComponentInfo* spatial3dInfo = ecs->componentTypes[ECS::COMPONENT_TYPE_SPATIAL_3D];
+            ECS::ComponentInfo* lightInfo = ecs->componentTypes[ECS::COMPONENT_TYPE_LIGHT];
+            Vector3f position = ECS::getField_Vector3f(spatial3d, spatial3dInfo, ECS::Spatial3d::FIELD_INDEX_POSITION);
+            Vector3f color = ECS::getField_Vector3f(light, lightInfo, ECS::Light::FIELD_INDEX_COLOR);
+            Vector3f attenuation = ECS::getField_Vector3f(light, lightInfo, ECS::Light::FIELD_INDEX_ATTENUATION);
+            lightData.lightPositions[lightData.numLights] = position;
+            lightData.lightColors[lightData.numLights] = color;
+            lightData.lightAttenuations[lightData.numLights] = attenuation;
+            lightData.numLights++;
+        }
+
+        // Add this entity to the entity asset group table
+        if (hasRenderable3d && hasSpatial3d) {
+            ECS::Component &renderable3d = ecs->components[ECS::COMPONENT_TYPE_RENDERABLE_3D][entityId];
+            ECS::ComponentInfo *renderable3dInfo = ecs->componentTypes[ECS::COMPONENT_TYPE_RENDERABLE_3D];
+            UUID meshId = ECS::getField_i32(renderable3d, renderable3dInfo, ECS::Renderable3d::FIELD_INDEX_MESH_ASSET_ID);
+            UUID materialId = ECS::getField_i32(renderable3d, renderable3dInfo, ECS::Renderable3d::FIELD_INDEX_MATERIAL_ASSET_ID);
+            if (meshId != -1 && materialId != -1) {
+                // Find the asset group for this mesh and material
+                i32 tableIndex = 0;
+                while (tableIndex < entityAssetGroupTable.numGroups) {
+                    UUID assetGroupMeshId = entityAssetGroupTable.meshIds[tableIndex];
+                    UUID assetGroupMaterialId = entityAssetGroupTable.meshIds[tableIndex];
+                    if (assetGroupMeshId == meshId && assetGroupMaterialId == materialId) break;
+                    tableIndex++;
+                }
+
+                // If no asset group exists for this mesh and material, create one
+                // We have to find the correct place to insert it in the render order
+                i32 numEntries = entityAssetGroupTable.numEntries[tableIndex];
+                if (numEntries == 0) {
+                    i32 numGroups = entityAssetGroupTable.numGroups;
+                    i32 orderIndex = 0;
+                    while (orderIndex < numGroups) {
+                        i32 groupIndex = entityAssetGroupTable.renderOrder[orderIndex];
+                        UUID assetGroupMeshId = entityAssetGroupTable.meshIds[groupIndex];
+                        if (assetGroupMeshId == meshId) {
+                            ArrayUtils::shiftArrayRight(entityAssetGroupTable.renderOrder, numGroups, orderIndex);
+                            break;
+                        }
+                        orderIndex++;
+                    }
+                    entityAssetGroupTable.renderOrder[orderIndex] = tableIndex;
+                    entityAssetGroupTable.meshIds[tableIndex] = meshId;
+                    entityAssetGroupTable.materialIds[tableIndex] = materialId;
+                    entityAssetGroupTable.numGroups++;
+                }
+
+                // Add this entity to the asset group
+                entityAssetGroupTable.table[tableIndex][numEntries] = entityId;
+                entityAssetGroupTable.numEntries[tableIndex]++;
+            }
+        }
+    }
+}
+
+void Render::render(RenderState* renderState, Asset::AssetPack* assetPack, ECS::EntityComponentSystem* ecs) {
+    Vector3f backgroundColor = renderState->window.backgroundColor;
+    glClearColor(backgroundColor.x, backgroundColor.y, backgroundColor.z, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     enableCulling();
 
-    // LIGHTS
-    i32 numLights = 0;
-    const i32 numMaxLights = 4;
-    Vector3f lightPositions[numMaxLights];
-    Vector3f lightColors[numMaxLights];
-    Vector3f lightAttenuations[numMaxLights];
-    for (i32 entityId = 0; entityId < ecs->numEntities; entityId++) {
-        ECS::Entity* entity = ecs->entities[entityId];
-        if (entity == nullptr) continue;
-        ECS::Component* spatial3d = entity->components[ECS::COMPONENT_TYPE_SPATIAL_3D];
-        ECS::Component* light = entity->components[ECS::COMPONENT_TYPE_LIGHT];
-        if (spatial3d == nullptr || light == nullptr) continue;
-        ECS::ComponentInfo* spatial3dInfo = ecs->componentTypes[ECS::COMPONENT_TYPE_SPATIAL_3D];
-        ECS::ComponentInfo* lightInfo = ecs->componentTypes[ECS::COMPONENT_TYPE_LIGHT];
-        Vector3f position = ECS::getField_Vector3f(spatial3d, spatial3dInfo, ECS::Spatial3d::FIELD_INDEX_POSITION);
-        Vector3f color = ECS::getField_Vector3f(light, lightInfo, ECS::Light::FIELD_INDEX_COLOR);
-        Vector3f attenuation = ECS::getField_Vector3f(light, lightInfo, ECS::Light::FIELD_INDEX_ATTENUATION);
-        lightPositions[numLights] = position;
-        lightColors[numLights] = color;
-        lightAttenuations[numLights] = attenuation;
-        numLights++;
-        if (numLights == numMaxLights) break;
-    }
-
     // CAMERA
-    ECS::Entity* camera = ecs->entities[0];
-    ECS::Component* cameraSpatial3d = camera->components[ECS::COMPONENT_TYPE_SPATIAL_3D];
+    UUID cameraEntityId = 0;
+    ECS::Component& cameraSpatial3d = ecs->components[ECS::COMPONENT_TYPE_SPATIAL_3D][cameraEntityId];
     ECS::ComponentInfo* cameraSpatial3dInfo = ecs->componentTypes[ECS::COMPONENT_TYPE_SPATIAL_3D];
     Vector3f cameraPos = ECS::getField_Vector3f(cameraSpatial3d, cameraSpatial3dInfo, ECS::Spatial3d::FIELD_INDEX_POSITION);
     Vector3f cameraRot = ECS::getField_Vector3f(cameraSpatial3d, cameraSpatial3dInfo, ECS::Spatial3d::FIELD_INDEX_ROTATION);
@@ -58,25 +117,27 @@ void Render::render(Window* window, Asset::AssetPack* assetPack, ECS::EntityComp
     viewMatrix = glm::rotate(viewMatrix, glm::radians(cameraRotation.z), glm::f32vec3(0.0f, 0.0f, 1.0f));
     viewMatrix = glm::translate(viewMatrix,  negativePos);
 
-    ECS::buildEntityAssetTable(ecs);
+    prepareRenderState(renderState, ecs);
+    LightData& lightData = renderState->lightData;
+    EntityAssetGroupTable& entityAssetGroupTable = renderState->entityAssetGroupTable;
 
     Asset::ShaderAsset* shaderAsset = assetPack->shaderAssets[0];
     bindShader(shaderAsset);
     setUniform(shaderAsset, Asset::ShaderUniform::VIEW_MATRIX, viewMatrix);
-    setUniform(shaderAsset, Asset::ShaderUniform::PROJECTION_MATRIX, window->projectionMatrix);
-    setUniform(shaderAsset, Asset::ShaderUniform::SKY_COLOR, window->backgroundColor);
-    setUniform(shaderAsset, Asset::ShaderUniform::LIGHT_POSITIONS, lightPositions, numLights);
-    setUniform(shaderAsset, Asset::ShaderUniform::LIGHT_COLORS, lightColors, numLights);
-    setUniform(shaderAsset, Asset::ShaderUniform::LIGHT_ATTENUATIONS, lightAttenuations, numLights);
-    setUniform(shaderAsset, Asset::ShaderUniform::LIGHT_COUNT, numLights);
+    setUniform(shaderAsset, Asset::ShaderUniform::PROJECTION_MATRIX, renderState->window.projectionMatrix);
+    setUniform(shaderAsset, Asset::ShaderUniform::SKY_COLOR, renderState->window.backgroundColor);
+    setUniform(shaderAsset, Asset::ShaderUniform::LIGHT_POSITIONS, lightData.lightPositions, lightData.numLights);
+    setUniform(shaderAsset, Asset::ShaderUniform::LIGHT_COLORS, lightData.lightColors, lightData.numLights);
+    setUniform(shaderAsset, Asset::ShaderUniform::LIGHT_ATTENUATIONS, lightData.lightAttenuations, lightData.numLights);
+    setUniform(shaderAsset, Asset::ShaderUniform::LIGHT_COUNT, lightData.numLights);
 
     UUID prevMeshId = -1;
     UUID prevMaterialId = -1;
-    i32 numAssetGroups = ecs->entityAssetGroupTable.numGroups;
+    i32 numAssetGroups = entityAssetGroupTable.numGroups;
     for (i32 i = 0; i < numAssetGroups; i++) {
-        i32 groupIndex = ecs->entityAssetGroupTable.renderOrder[i];
-        UUID meshId = ecs->entityAssetGroupTable.meshIds[groupIndex];
-        UUID materialId = ecs->entityAssetGroupTable.materialIds[groupIndex];
+        i32 groupIndex = entityAssetGroupTable.renderOrder[i];
+        UUID meshId = entityAssetGroupTable.meshIds[groupIndex];
+        UUID materialId = entityAssetGroupTable.materialIds[groupIndex];
         if (meshId == -1 || materialId == -1) continue;
         Asset::MeshAsset* mesh = assetPack->meshAssets[meshId];
         Asset::MaterialAsset* material = assetPack->materialAssets[materialId];
@@ -99,15 +160,14 @@ void Render::render(Window* window, Asset::AssetPack* assetPack, ECS::EntityComp
             prevMaterialId = materialId;
         }
 
-        i32 numEntitiesInGroup = ecs->entityAssetGroupTable.numEntries[groupIndex];
+        i32 numEntitiesInGroup = entityAssetGroupTable.numEntries[groupIndex];
         for (size_t entityIt = 0; entityIt < numEntitiesInGroup; entityIt++) {
-            UUID entityId = ecs->entityAssetGroupTable.table[groupIndex][entityIt];
-            ECS::Entity* entity = ecs->entities[entityId];
-            ECS::Component* spatial3d = entity->components[ECS::COMPONENT_TYPE_SPATIAL_3D];
+            UUID entityId = entityAssetGroupTable.table[groupIndex][entityIt];
+            ECS::Component& spatial3d = ecs->components[ECS::COMPONENT_TYPE_SPATIAL_3D][entityId];
             ECS::ComponentInfo* spatial3dInfo = ecs->componentTypes[ECS::COMPONENT_TYPE_SPATIAL_3D];
             Vector3f position = ECS::getField_Vector3f(spatial3d, spatial3dInfo, ECS::Spatial3d::FIELD_INDEX_POSITION);
-            Vector3f rotation = ECS::getField_Vector3f(spatial3d, spatial3dInfo, ECS::Spatial3d::FIELD_INDEX_ROTATION);
-            f32 scale = ECS::getField_f32(spatial3d, spatial3dInfo, ECS::Spatial3d::FIELD_INDEX_SCALE);
+            // Vector3f rotation = ECS::getField_Vector3f(spatial3d, spatial3dInfo, ECS::Spatial3d::FIELD_INDEX_ROTATION);
+            // f32 scale = ECS::getField_f32(spatial3d, spatial3dInfo, ECS::Spatial3d::FIELD_INDEX_SCALE);
 
             glm::f32mat4 modelMatrix = glm::translate(glm::f32mat4(1.0f), {position.x, position.y, position.z});
             setUniform(shaderAsset, Asset::ShaderUniform::MODEL_MATRIX, modelMatrix);
@@ -120,6 +180,6 @@ void Render::render(Window* window, Asset::AssetPack* assetPack, ECS::EntityComp
     unbindMesh();
     unbindShader();
 
-    glfwSwapBuffers(window->glfwWindow);
+    glfwSwapBuffers(renderState->window.glfwWindow);
     glfwPollEvents();
 }

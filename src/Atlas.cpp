@@ -6,20 +6,20 @@
 Atlas::Atlas() {
     ecs = new ECS::EntityComponentSystem();
     assetPack = new Asset::AssetPack();
-    window = new Render::Window();
+    renderState = new Render::RenderState();
     input = new Input::InputState();
 }
 
 Atlas::~Atlas() {
     delete ecs;
     delete assetPack;
-    delete window;
+    delete renderState;
     delete input;
 }
 
 void Atlas::init() {
-    Render::initWindow(window);
-    Input::initInputState(input, window->glfwWindow);
+    Render::initWindow(renderState->window);
+    Input::initInputState(input, renderState->window.glfwWindow);
     ECS::initEntityComponentSystem(ecs);
 }
 
@@ -83,11 +83,9 @@ void Atlas::start() {
 //}
 
 void handleCameraFirstPerson(ECS::EntityComponentSystem* ecs, Input::InputState* input, f32 lastFrameTimeMs) {
-    ECS::Entity* camera = ecs->entities[0];
-    ECS::Component* spatial3d = camera->components[ECS::COMPONENT_TYPE_SPATIAL_3D];
-    if (spatial3d == nullptr) {
-        return;
-    }
+    UUID cameraEntityId = 0;
+    if (!ecs->activeComponents[ECS::COMPONENT_TYPE_SPATIAL_3D][cameraEntityId]) return;
+    ECS::Component& spatial3d = ecs->components[ECS::COMPONENT_TYPE_SPATIAL_3D][cameraEntityId];
     ECS::ComponentInfo* spatial3dInfo = ecs->componentTypes[ECS::COMPONENT_TYPE_SPATIAL_3D];
     if (spatial3dInfo == nullptr) {
         return;
@@ -144,21 +142,22 @@ void handleCameraFirstPerson(ECS::EntityComponentSystem* ecs, Input::InputState*
 }
 
 void Atlas::render() {
+    Render::Window& window = renderState->window;
     while (!Render::shouldCloseWindow(window)) {
         Render::updateWindow(window);
-        if (window->resized) {
-            glViewport(0, 0, window->width, window->height);
-            window->resized = false;
+        if (window.resized) {
+            glViewport(0, 0, window.width, window.height);
+            window.resized = false;
         }
         if (input->keys[GLFW_KEY_ESCAPE]) {
             Render::closeWindow(window);
             return;
         }
         if (input->mouseButtons[GLFW_MOUSE_BUTTON_LEFT]) {
-            glfwSetInputMode(window->glfwWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+            glfwSetInputMode(window.glfwWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
         }
-        handleCameraFirstPerson(ecs, input, window->lastFrameTimeMs);
-        Render::render(window, assetPack, ecs);
+        handleCameraFirstPerson(ecs, input, window.lastFrameTimeMs);
+        Render::render(renderState, assetPack, ecs);
         Input::updateInputState(input);
     }
     Render::closeWindow(window);
@@ -206,9 +205,10 @@ bool Atlas::addShaderToAssetPack(Asset::ShaderAsset* asset) {
 UUID Atlas::createEntity() {
     UUID entityId = ecs->nextEntityId;
     if (entityId == -1) return -1;
-    ECS::Entity* entity = new ECS::Entity();
-    entity->id = entityId;
-    ecs->entities[entityId] = entity;
+    ecs->entityExists[entityId] = true;
+    for (i32 componentType = 0; componentType < ECS::MAX_COMPONENT_TYPES; componentType++) {
+        ecs->activeComponents[componentType][entityId] = false;
+    }
     ecs->numEntities++;
     i32 nextEntityId = entityId;
     do {
@@ -217,62 +217,66 @@ UUID Atlas::createEntity() {
             nextEntityId = -1;
             break;
         }
-    } while (ecs->entities[nextEntityId] != nullptr);
+    } while (ecs->entityExists[nextEntityId]);
     ecs->nextEntityId = nextEntityId;
     return entityId;
 }
 
 bool Atlas::addSpatial3dComponentToEntity(UUID entityId, Vector3f position, Vector3f rotation, f32 scale) {
     if (entityId < 0 || entityId >= ECS::MAX_ENTITIES) return false;
-    ECS::Entity* entity = ecs->entities[entityId];
+    if (!ecs->entityExists[entityId]) return false;
+    if (ecs->activeComponents[ECS::COMPONENT_TYPE_SPATIAL_3D][entityId]) return false;
     ECS::ComponentInfo* componentInfo = ecs->componentTypes[ECS::COMPONENT_TYPE_SPATIAL_3D];
-    if (entity == nullptr || componentInfo == nullptr) return false;
-    ECS::Component* component = new ECS::Component();
-    component->type = ECS::COMPONENT_TYPE_SPATIAL_3D;
+    if (componentInfo == nullptr) return false;
+    ECS::Component& component = ecs->components[ECS::COMPONENT_TYPE_SPATIAL_3D][entityId];
+    memset(&component, 0, sizeof(ECS::Component));
     ECS::setField_Vector3f(component, componentInfo, ECS::Spatial3d::FIELD_INDEX_POSITION, position);
     ECS::setField_Vector3f(component, componentInfo, ECS::Spatial3d::FIELD_INDEX_ROTATION, rotation);
     ECS::setField_f32(component, componentInfo, ECS::Spatial3d::FIELD_INDEX_SCALE, scale);
-    entity->components[component->type] = component;
+    ecs->activeComponents[ECS::COMPONENT_TYPE_SPATIAL_3D][entityId] = true;
     return true;
 }
 
 bool Atlas::addRenderable3dComponentToEntity(UUID entityId, UUID meshAssetId, UUID materialAssetId, i32 textureAtlasIndex) {
     if (entityId < 0 || entityId >= ECS::MAX_ENTITIES) return false;
-    ECS::Entity* entity = ecs->entities[entityId];
+    if (!ecs->entityExists[entityId]) return false;
+    if (ecs->activeComponents[ECS::COMPONENT_TYPE_RENDERABLE_3D][entityId]) return false;
     ECS::ComponentInfo* componentInfo = ecs->componentTypes[ECS::COMPONENT_TYPE_RENDERABLE_3D];
-    if (entity == nullptr || componentInfo == nullptr) return false;
-    ECS::Component* component = new ECS::Component();
-    component->type = ECS::COMPONENT_TYPE_RENDERABLE_3D;
+    if (componentInfo == nullptr) return false;
+    ECS::Component& component = ecs->components[ECS::COMPONENT_TYPE_RENDERABLE_3D][entityId];
+    memset(&component, 0, sizeof(ECS::Component));
     ECS::setField_i32(component, componentInfo, ECS::Renderable3d::FIELD_INDEX_MESH_ASSET_ID, meshAssetId);
     ECS::setField_i32(component, componentInfo, ECS::Renderable3d::FIELD_INDEX_MATERIAL_ASSET_ID, materialAssetId);
     ECS::setField_i32(component, componentInfo, ECS::Renderable3d::FIELD_INDEX_TEXTURE_ATLAS_INDEX, textureAtlasIndex);
-    entity->components[component->type] = component;
+    ecs->activeComponents[ECS::COMPONENT_TYPE_RENDERABLE_3D][entityId] = true;
     return true;
 }
 
 bool Atlas::addCameraComponentToEntity(UUID entityId, f32 distanceFromTarget, f32 verticalAngle) {
     if (entityId < 0 || entityId >= ECS::MAX_ENTITIES) return false;
-    ECS::Entity* entity = ecs->entities[entityId];
+    if (!ecs->entityExists[entityId]) return false;
+    if (ecs->activeComponents[ECS::COMPONENT_TYPE_CAMERA][entityId]) return false;
     ECS::ComponentInfo* componentInfo = ecs->componentTypes[ECS::COMPONENT_TYPE_CAMERA];
-    if (entity == nullptr || componentInfo == nullptr) return false;
-    ECS::Component* component = new ECS::Component();
-    component->type = ECS::COMPONENT_TYPE_CAMERA;
+    if (componentInfo == nullptr) return false;
+    ECS::Component& component = ecs->components[ECS::COMPONENT_TYPE_CAMERA][entityId];
+    memset(&component, 0, sizeof(ECS::Component));
     ECS::setField_f32(component, componentInfo, ECS::Camera::FIELD_INDEX_DISTANCE_FROM_TARGET, distanceFromTarget);
     ECS::setField_f32(component, componentInfo, ECS::Camera::FIELD_INDEX_VERTICAL_ANGLE, verticalAngle);
-    entity->components[component->type] = component;
+    ecs->activeComponents[ECS::COMPONENT_TYPE_CAMERA][entityId] = true;
     return true;
 }
 
 bool Atlas::addLightComponentToEntity(UUID entityId, Vector3f color, Vector3f attenuation) {
     if (entityId < 0 || entityId >= ECS::MAX_ENTITIES) return false;
-    ECS::Entity* entity = ecs->entities[entityId];
+    if (!ecs->entityExists[entityId]) return false;
+    if (ecs->activeComponents[ECS::COMPONENT_TYPE_LIGHT][entityId]) return false;
     ECS::ComponentInfo* componentInfo = ecs->componentTypes[ECS::COMPONENT_TYPE_LIGHT];
-    if (entity == nullptr || componentInfo == nullptr) return false;
-    ECS::Component* component = new ECS::Component();
-    component->type = ECS::COMPONENT_TYPE_LIGHT;
+    if (componentInfo == nullptr) return false;
+    ECS::Component& component = ecs->components[ECS::COMPONENT_TYPE_LIGHT][entityId];
+    memset(&component, 0, sizeof(ECS::Component));
     ECS::setField_Vector3f(component, componentInfo, ECS::Light::FIELD_INDEX_COLOR, color);
     ECS::setField_Vector3f(component, componentInfo, ECS::Light::FIELD_INDEX_ATTENUATION, attenuation);
-    entity->components[component->type] = component;
+    ecs->activeComponents[ECS::COMPONENT_TYPE_LIGHT][entityId] = true;
     return true;
 }
 
