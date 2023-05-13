@@ -34,8 +34,8 @@ namespace Input {
         f64 oldScrollY;
     };
 
-    void initInputState(InputState* state, GLFWwindow* glfwWindow);
-    void updateInputState(InputState* state);
+    void initInputState(InputState& state, GLFWwindow* glfwWindow);
+    void updateInputState(InputState& state);
 }
 
 #endif // INPUT_H

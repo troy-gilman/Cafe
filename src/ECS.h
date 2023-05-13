@@ -94,5 +94,11 @@ namespace ECS {
         ComponentInfo componentTypes[MAX_COMPONENT_TYPES];
     };
 
-    void initEntityComponentSystem(EntityComponentSystem* ecs);
+    void initEntityComponentSystem(EntityComponentSystem& ecs);
+
+    UUID createEntity(EntityComponentSystem& ecs);
+    bool addSpatial3dComponentToEntity(EntityComponentSystem& ecs, UUID entityId, Vector3f position, Vector3f rotation, f32 scale);
+    bool addRenderable3dComponentToEntity(EntityComponentSystem& ecs, UUID entityId, UUID meshAssetId, UUID materialAssetId, i32 textureAtlasIndex);
+    bool addCameraComponentToEntity(EntityComponentSystem& ecs, UUID entityId, f32 distanceFromTarget, f32 verticalAngle);
+    bool addLightComponentToEntity(EntityComponentSystem& ecs, UUID entityId, Vector3f color, Vector3f attenuation);
 }

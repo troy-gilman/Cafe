@@ -65,8 +65,8 @@ namespace Render {
         LightData lightData;
     };
 
-    void prepareRenderState(RenderState* renderState, ECS::EntityComponentSystem* ecs);
-    void render(RenderState* renderState, Asset::AssetPack* assetPack, ECS::EntityComponentSystem* ecs);
+    void prepareRenderState(RenderState& renderState, const ECS::EntityComponentSystem& ecs);
+    void render(RenderState& renderState, const Asset::AssetPack& assetPack, const ECS::EntityComponentSystem& ecs);
 
     void initWindow(Window& window);
     void updateWindow(Window& window);

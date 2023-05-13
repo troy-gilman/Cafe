@@ -1,8 +1,9 @@
 #include "Asset.h"
-#include "../deprecated/UUIDGenerator.h"
 
 
-bool Asset::loadMaterialAsset(MaterialAsset* asset, UUID shaderAssetId, UUID textureAssetId, UUID normalMapAssetId) {
+UUID Asset::loadMaterialAsset(AssetPack& assetPack, UUID shaderAssetId, UUID textureAssetId, UUID normalMapAssetId) {
+    // Create the material asset
+    MaterialAsset* asset = new MaterialAsset();
     asset->shaderAssetId = shaderAssetId;
     asset->textureAssetId = textureAssetId;
     asset->normalMapAssetId = normalMapAssetId;
@@ -10,5 +11,12 @@ bool Asset::loadMaterialAsset(MaterialAsset* asset, UUID shaderAssetId, UUID tex
     asset->reflectivity = 0.0f;
     asset->hasTransparency = false;
     asset->useFakeLighting = false;
-    return true;
+
+    // Add the material asset to the asset pack
+    UUID assetId = assetPack.nextMaterialAssetId;
+    asset->assetId = assetId;
+    assetPack.materialAssets[assetId] = asset;
+    assetPack.numMaterialAssets++;
+    assetPack.nextMaterialAssetId++;
+    return assetId;
 }

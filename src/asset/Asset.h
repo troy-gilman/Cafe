@@ -98,10 +98,10 @@ namespace Asset {
         ShaderAsset* shaderAssets[MAX_ASSETS_PER_TYPE_IN_PACKS];
     };
 
-    bool loadMeshAsset(MeshAsset* asset, const char* filePath);
-    bool loadMaterialAsset(MaterialAsset* asset, UUID shaderAssetId, UUID textureAssetId, UUID normalMapAssetId);
-    bool loadTextureAsset(TextureAsset* asset, const char* filePath);
-    bool loadShaderAsset(ShaderAsset* asset, const char* vertexFilePath, const char* fragmentFilePath);
+    UUID loadMeshAsset(AssetPack& assetPack, const char* filePath);
+    UUID loadMaterialAsset(AssetPack& assetPack, UUID shaderAssetId, UUID textureAssetId, UUID normalMapAssetId);
+    UUID loadTextureAsset(AssetPack& assetPack, const char* filePath);
+    UUID loadShaderAsset(AssetPack& assetPack, const char* vertexFilePath, const char* fragmentFilePath);
 }
 
 #endif //ASSET_H

@@ -24,7 +24,7 @@ void processNode(aiNode* node, const aiScene* scene, Asset::MeshAsset* asset) {
     }
 }
 
-bool Asset::loadMeshAsset(MeshAsset* asset, const char* filePath) {
+UUID Asset::loadMeshAsset(AssetPack& assetPack, const char* filePath) {
     Assimp::Importer importer;
     const aiScene* scene = importer.ReadFile(filePath, aiProcess_Triangulate | aiProcess_FlipUVs);
 
@@ -98,8 +98,8 @@ bool Asset::loadMeshAsset(MeshAsset* asset, const char* filePath) {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, (i64) (indicesBufferSize * sizeof(ui32)), indices, GL_STATIC_DRAW);
 
-
-    // Set the mesh asset properties
+    // Create the mesh asset
+    MeshAsset* asset = new MeshAsset();
     StringUtils::copyStringToBuffer(asset->filePath, filePath, CHAR_BUFFER_SIZE);
     asset->vao = vao;
     asset->vbo = vbo;
@@ -108,5 +108,11 @@ bool Asset::loadMeshAsset(MeshAsset* asset, const char* filePath) {
     asset->ibo = ibo;
     asset->numIndices = indicesBufferSize;
 
-    return true;
+    // Add the mesh asset to the asset pack
+    UUID assetId = assetPack.nextMeshAssetId;
+    asset->assetId = assetId;
+    assetPack.meshAssets[assetId] = asset;
+    assetPack.numMeshAssets++;
+    assetPack.nextMeshAssetId++;
+    return assetId;
 }
