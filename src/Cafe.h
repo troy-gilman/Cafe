@@ -4,7 +4,7 @@
 #include "Render.h"
 #include "Input.h"
 
-namespace Atlas {
+namespace Cafe {
 
     struct EngineState {
         ECS::EntityComponentSystem ecs;

@@ -1,9 +1,9 @@
-#include "Atlas.h"
+#include "Cafe.h"
 
 #include <iostream>
 #include "util/MapUtils.h"
 
-void Atlas::init(EngineState* engineState) {
+void Cafe::init(EngineState* engineState) {
     Render::initWindow(engineState->renderState.window);
     Input::initInputState(engineState->input, engineState->renderState.window.glfwWindow);
     ECS::initEntityComponentSystem(engineState->ecs);

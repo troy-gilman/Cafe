@@ -1,7 +1,7 @@
-#include "Atlas.h"
+#include "Cafe.h"
 
-void initEngine(Atlas::EngineState* engine) {
-    Atlas::init(engine);
+void initEngine(Cafe::EngineState* engine) {
+    Cafe::init(engine);
 
     UUID textureId = Asset::loadTextureAsset(engine->assetPack, "resources/models/tree/tree.png");
     UUID shaderId = Asset::loadShaderAsset(engine->assetPack, "resources/shaders/mainVertex.glsl", "resources/shaders/mainFragment.glsl");
@@ -85,7 +85,7 @@ void handleCameraFirstPerson(ECS::EntityComponentSystem& ecs, const Input::Input
     ECS::setField_Vector3f(spatial3d, spatial3dInfo, ECS::Spatial3d::FIELD_INDEX_ROTATION, rotation);
 }
 
-void gameLoop(Atlas::EngineState* engine) {
+void gameLoop(Cafe::EngineState* engine) {
     Render::Window& window = engine->renderState.window;
     Input::InputState& input = engine->input;
     while (!Render::shouldCloseWindow(window)) {
@@ -105,7 +105,7 @@ void gameLoop(Atlas::EngineState* engine) {
 }
 
 int main(int argc, char* argv[]) {
-    auto* engine = new Atlas::EngineState();
+    auto* engine = new Cafe::EngineState();
     initEngine(engine);
     gameLoop(engine);
     return 0;
