@@ -30,8 +30,6 @@ namespace Render {
         i32 width;
         i32 height;
         bool resized;
-        i32 posX;
-        i32 posY;
         f32 lastFrameTimeMs;
         std::chrono::milliseconds lastWindowUpdateMs;
         std::chrono::milliseconds lastFpsUpdateMs;

@@ -9,8 +9,8 @@ void GLAPIENTRY MessageCallback(GLenum source, GLenum type, GLuint id, GLenum se
 }
 
 void Render::windowResizedCallback(GLFWwindow* window, i32 w, i32 h) {
-    _windowWidth = w;
-    _windowHeight = h;
+    _windowWidth = w*2;
+    _windowHeight = h*2;
     _windowResized = true;
 }
 
@@ -31,11 +31,6 @@ void Render::initWindow(Window& window) {
         return;
     }
 
-    const GLFWvidmode* videoMode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-    i32 windowPosX = (i32) ((f32) (videoMode->width - INIT_WIDTH) / 2.0f);
-    i32 windowPosY = (i32) ((f32) (videoMode->height - INIT_HEIGHT) / 2.0f);
-    glfwSetWindowPos(glfwWindow, windowPosX, windowPosY);
-
     glfwMakeContextCurrent(glfwWindow);
     glEnable(GL_DEPTH_TEST);
     glfwSwapInterval(0); // Unlimited FPS
@@ -53,8 +48,6 @@ void Render::initWindow(Window& window) {
     window.width = INIT_WIDTH;
     window.height = INIT_HEIGHT;
     window.resized = false;
-    window.posX = windowPosX;
-    window.posY = windowPosY;
     window.lastFpsUpdateMs = TimeUtils::getCurrentTimeMillis();
     window.framesSinceLastFpsUpdate = 0;
     window.glfwWindow = glfwWindow;
@@ -67,6 +60,7 @@ void Render::updateWindow(Window& window) {
     window.height = _windowHeight;
     window.resized = _windowResized;
     if (window.resized) {
+        glViewport(0, 0, window.width, window.height);
         window.projectionMatrix = MathUtils::createProjectionMatrix(FOV, NEAR_PLANE, FAR_PLANE, (f32)window.width / (f32)window.height);
         _windowResized = false;
     }

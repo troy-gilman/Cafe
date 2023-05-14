@@ -14,5 +14,4 @@ namespace Atlas {
     };
 
     void init(EngineState* engineState);
-    void render(EngineState* engineState);
 };
