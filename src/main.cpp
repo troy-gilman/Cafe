@@ -30,76 +30,11 @@ void initCafe(Cafe::EngineState* engine) {
     }
 }
 
-void handleCameraFirstPerson(ECS::EntityComponentSystem& ecs, const Input::InputState& input, f32 lastFrameTimeMs) {
-    UUID cameraEntityId = 0;
-
-    if (!ecs.activeComponents[ECS::COMPONENT_TYPE_SPATIAL_3D][cameraEntityId]) return;
-    ECS::Component& spatial3d = ecs.components[ECS::COMPONENT_TYPE_SPATIAL_3D][cameraEntityId];
-    const ECS::ComponentInfo& spatial3dInfo = ecs.componentTypes[ECS::COMPONENT_TYPE_SPATIAL_3D];
-
-    Vector3f position = ECS::getField_Vector3f(spatial3d, spatial3dInfo, ECS::Spatial3d::FIELD_INDEX_POSITION);
-    Vector3f rotation = ECS::getField_Vector3f(spatial3d, spatial3dInfo, ECS::Spatial3d::FIELD_INDEX_ROTATION);
-
-    if (!ecs.activeComponents[ECS::COMPONENT_TYPE_CONTROLLER_1P][cameraEntityId]) return;
-    ECS::Component& controller1p = ecs.components[ECS::COMPONENT_TYPE_CONTROLLER_1P][cameraEntityId];
-    const ECS::ComponentInfo& controller1pInfo = ecs.componentTypes[ECS::COMPONENT_TYPE_CONTROLLER_1P];
-
-    f32 moveSpeed = ECS::getField_f32(controller1p, controller1pInfo, ECS::Controller1p::FIELD_INDEX_MOVE_SPEED);
-    f32 mouseSensitivity = ECS::getField_f32(controller1p, controller1pInfo, ECS::Controller1p::FIELD_INDEX_MOUSE_SENSITIVITY);
-    Vector2f verticalViewRange = ECS::getField_Vector2f(controller1p, controller1pInfo, ECS::Controller1p::FIELD_INDEX_VERTICAL_VIEW_RANGE);
-    f32 adjustedMoveSpeed = moveSpeed * lastFrameTimeMs;
-
-    f32 x = (f32) sin((180 - rotation.y) * M_PI / 180.0f) * adjustedMoveSpeed;
-    f32 z = (f32) cos((180 - rotation.y) * M_PI / 180.0f) * adjustedMoveSpeed;
-
-    if (input.keys[GLFW_KEY_W]) {
-        position.x += -x;
-        position.z += -z;
-    }
-    if (input.keys[GLFW_KEY_S]) {
-        position.x += x;
-        position.z += z;
-    }
-    if (input.keys[GLFW_KEY_A]) {
-        position.x += -z;
-        position.z += x;
-    }
-    if (input.keys[GLFW_KEY_D]) {
-        position.x += z;
-        position.z += -x;
-    }
-    if (input.keys[GLFW_KEY_SPACE]) {
-        position.y -= adjustedMoveSpeed;
-    }
-    if (input.keys[GLFW_KEY_LEFT_SHIFT]) {
-        position.y += adjustedMoveSpeed;
-    }
-
-    f32 dx = (f32) (input.mouseX - input.oldMouseX);
-    f32 dy = (f32) (input.mouseY - input.oldMouseY);
-
-    f32 newRotationX = rotation.x + dy * mouseSensitivity;
-    if (newRotationX >= verticalViewRange.x) {
-        rotation.x = verticalViewRange.x;
-    } else if (newRotationX <= verticalViewRange.y) {
-        rotation.x = verticalViewRange.y;
-    } else {
-        rotation.x = newRotationX;
-    }
-
-    rotation.y += dx * mouseSensitivity;
-    rotation.x = (f32) fmod(rotation.x, 360.0f);
-    rotation.y = (f32) fmod(rotation.y, 360.0f);
-
-    ECS::setField_Vector3f(spatial3d, spatial3dInfo, ECS::Spatial3d::FIELD_INDEX_POSITION, position);
-    ECS::setField_Vector3f(spatial3d, spatial3dInfo, ECS::Spatial3d::FIELD_INDEX_ROTATION, rotation);
-}
-
 void gameLoop(Cafe::EngineState* engine) {
     Render::Window& window = engine->renderState.window;
     Input::InputState& input = engine->input;
     while (!Render::shouldCloseWindow(window)) {
-        Render::updateWindow(window);
+        Cafe::update(engine);
         if (input.keys[GLFW_KEY_ESCAPE]) {
             Render::closeWindow(window);
             return;
@@ -107,11 +42,9 @@ void gameLoop(Cafe::EngineState* engine) {
         if (input.mouseButtons[GLFW_MOUSE_BUTTON_LEFT]) {
             glfwSetInputMode(window.glfwWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
         }
-        handleCameraFirstPerson(engine->ecs, input, window.lastFrameTimeMs);
-        Render::render(engine->renderState, engine->assetPack, engine->ecs);
-        Input::updateInputState(input);
+        Cafe::render(engine);
     }
-    Render::closeWindow(window);
+    Cafe::destroy(engine);
 }
 
 int main(int argc, char* argv[]) {

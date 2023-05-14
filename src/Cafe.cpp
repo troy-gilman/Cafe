@@ -3,10 +3,24 @@
 #include <iostream>
 #include "util/MapUtils.h"
 
-void Cafe::init(EngineState* engineState) {
-    Render::initWindow(engineState->renderState.window);
-    Input::initInputState(engineState->input, engineState->renderState.window.glfwWindow);
-    ECS::initEntityComponentSystem(engineState->ecs);
+void Cafe::init(EngineState* engine) {
+    Render::initWindow(engine->renderState.window);
+    Input::initInputState(engine->input, engine->renderState.window.glfwWindow);
+    ECS::initEntityComponentSystem(engine->ecs);
+}
+
+void Cafe::destroy(EngineState* engine) {
+    Render::closeWindow(engine->renderState.window);
+}
+
+void Cafe::update(EngineState* engine) {
+    Render::updateWindow(engine->renderState.window);
+    Input::updateInputState(engine->input);
+    Trait::handleController1p_Move(engine->ecs, engine->input, engine->renderState.window.lastFrameTimeMs);
+}
+
+void Cafe::render(EngineState* engine) {
+    Render::render(engine->renderState, engine->assetPack, engine->ecs);
 }
 
 // Does not work properly

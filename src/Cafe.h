@@ -13,5 +13,12 @@ namespace Cafe {
         Input::InputState input;
     };
 
-    void init(EngineState* engineState);
+    void init(EngineState* engine);
+    void destroy(EngineState* engine);
+    void update(EngineState* engine);
+    void render(EngineState* engine);
+
+    namespace Trait {
+        void handleController1p_Move(ECS::EntityComponentSystem& ecs, const Input::InputState& input, f32 lastFrameTimeMs);
+    }
 };
