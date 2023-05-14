@@ -3,15 +3,15 @@
 using namespace Cafe;
 
 void Trait::handleController1p_Move(ECS::EntityComponentSystem& ecs, const Input::InputState& input, f32 lastFrameTimeMs) {
-    const ECS::ComponentInfo& controller1pInfo = ecs.componentTypes[ECS::COMPONENT_TYPE_CONTROLLER_1P];
-    const ECS::ComponentInfo& spatial3dInfo = ecs.componentTypes[ECS::COMPONENT_TYPE_SPATIAL_3D];
+    const ECS::ComponentInfo& controller1pInfo = ecs.componentTypes.at(ECS::COMPONENT_TYPE_CONTROLLER_1P);
+    const ECS::ComponentInfo& spatial3dInfo = ecs.componentTypes.at(ECS::COMPONENT_TYPE_SPATIAL_3D);
 
     for (UUID entityId = 0; entityId < ECS::MAX_ENTITIES; entityId++) {
-        if (!ecs.activeComponents[ECS::COMPONENT_TYPE_CONTROLLER_1P][entityId]) return;
-        ECS::Component& controller1p = ecs.components[ECS::COMPONENT_TYPE_CONTROLLER_1P][entityId];
+        if (!ECS::isComponentActive(ecs, entityId, ECS::COMPONENT_TYPE_CONTROLLER_1P)) return;
+        ECS::Component& controller1p = ECS::getComponent(ecs, entityId, ECS::COMPONENT_TYPE_CONTROLLER_1P);
 
-        if (!ecs.activeComponents[ECS::COMPONENT_TYPE_SPATIAL_3D][entityId]) return;
-        ECS::Component& spatial3d = ecs.components[ECS::COMPONENT_TYPE_SPATIAL_3D][entityId];
+        if (!ECS::isComponentActive(ecs, entityId, ECS::COMPONENT_TYPE_SPATIAL_3D)) return;
+        ECS::Component& spatial3d = ECS::getComponent(ecs, entityId, ECS::COMPONENT_TYPE_SPATIAL_3D);
 
         f32 moveSpeed = ECS::getField_f32(controller1p, controller1pInfo, ECS::Controller1p::FIELD_INDEX_MOVE_SPEED);
         f32 mouseSensitivity = ECS::getField_f32(controller1p, controller1pInfo, ECS::Controller1p::FIELD_INDEX_MOUSE_SENSITIVITY);

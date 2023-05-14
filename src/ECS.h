@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <vector>
 #include "util/Types.h"
 
 namespace ECS {
@@ -96,17 +97,32 @@ namespace ECS {
     const char* getField_CharBuffer(const Component& component, const ComponentInfo& componentInfo, i32 fieldIndex);
     void setField_CharBuffer(Component& component, const ComponentInfo& componentInfo, i32 fieldIndex, const char* value);
 
+//    struct EntityComponentSystem {
+//        i32 nextEntityId;
+//        i32 numEntities;
+//        bool entityExists[MAX_ENTITIES];
+//        bool activeComponentTable[MAX_COMPONENT_TYPES][MAX_ENTITIES];
+//        Component componentTable[MAX_COMPONENT_TYPES][MAX_ENTITIES];
+//        i32 numComponentTypes;
+//        ComponentInfo componentTypes[MAX_COMPONENT_TYPES];
+//    };
+
     struct EntityComponentSystem {
         i32 nextEntityId;
         i32 numEntities;
-        bool entityExists[MAX_ENTITIES];
-        bool activeComponents[MAX_COMPONENT_TYPES][MAX_ENTITIES];
-        Component components[MAX_COMPONENT_TYPES][MAX_ENTITIES];
+        i32 maxEntities;
+        std::vector<bool> entityExists;
+        std::vector<bool> activeComponentTable;
+        std::vector<Component> componentTable;
         i32 numComponentTypes;
-        ComponentInfo componentTypes[MAX_COMPONENT_TYPES];
+        i32 maxComponentTypes;
+        std::vector<ComponentInfo> componentTypes;
     };
 
     void initEntityComponentSystem(EntityComponentSystem& ecs);
+    bool isComponentActive(const EntityComponentSystem& ecs, UUID entityId, i32 componentType);
+    void setComponentActive(EntityComponentSystem& ecs, UUID entityId, i32 componentType, bool isActive);
+    Component& getComponent(const EntityComponentSystem& ecs, UUID entityId, i32 componentType);
 
     UUID createEntity(EntityComponentSystem& ecs);
     bool addComponentToEntity(EntityComponentSystem& ecs, UUID entityId, i32 componentType);
