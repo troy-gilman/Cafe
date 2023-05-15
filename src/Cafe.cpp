@@ -4,7 +4,7 @@
 #include "util/MapUtils.h"
 
 void Cafe::init(EngineState* engine) {
-    Render::initWindow(engine->renderState.window);
+    Render::initRenderState(engine->renderState);
     Input::initInputState(engine->input, engine->renderState.window.glfwWindow);
     ECS::initEntityComponentSystem(engine->ecs);
 }

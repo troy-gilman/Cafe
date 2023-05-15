@@ -41,11 +41,13 @@ namespace Render {
 
     struct EntityAssetGroupTable {
         i32 numGroups;
-        i32 renderOrder[ECS::MAX_ENTITIES];
-        UUID meshIds[ECS::MAX_ENTITIES];
-        UUID materialIds[ECS::MAX_ENTITIES];
-        i32 numEntries[ECS::MAX_ENTITIES];
-        UUID table[ECS::MAX_ENTITIES][ECS::MAX_ENTITIES];
+        i32 maxGroups;
+        i32 maxEntities;
+        std::vector<i32> renderOrder;
+        std::vector<UUID> meshIds;
+        std::vector<UUID> materialIds;
+        std::vector<i32> numEntries;
+        std::vector<UUID> table;
     };
 
     static const i32 MAX_NUM_LIGHTS = 4;
@@ -63,6 +65,8 @@ namespace Render {
         LightData lightData;
     };
 
+    void initRenderState(RenderState& renderState);
+    void initEntityAssetGroupTable(EntityAssetGroupTable& entityAssetGroupTable);
     void prepareRenderState(RenderState& renderState, const ECS::EntityComponentSystem& ecs);
     void render(RenderState& renderState, const Asset::AssetPack& assetPack, const ECS::EntityComponentSystem& ecs);
 

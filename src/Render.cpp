@@ -3,6 +3,18 @@
 #include "util/MathUtils.h"
 #include "util/TimeUtils.h"
 
+void Render::initRenderState(RenderState& renderState) {
+    initWindow(renderState.window);
+    initEntityAssetGroupTable(renderState.entityAssetGroupTable);
+}
+
+void Render::initEntityAssetGroupTable(EntityAssetGroupTable& entityAssetGroupTable) {
+    entityAssetGroupTable.maxGroups = 64;
+    entityAssetGroupTable.renderOrder.resize(entityAssetGroupTable.maxGroups);
+    entityAssetGroupTable.meshIds.resize(entityAssetGroupTable.maxGroups);
+    entityAssetGroupTable.materialIds.resize(entityAssetGroupTable.maxGroups);
+    entityAssetGroupTable.numEntries.resize(entityAssetGroupTable.maxGroups);
+}
 
 void GLAPIENTRY MessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
     std::cout << message << "\n";
