@@ -173,14 +173,18 @@ UUID ECS::createEntity(EntityComponentSystem& ecs) {
         i32 newMaxEntities = ecs.maxEntities * 2;
         std::vector<Component> temp(ecs.maxComponentTypes * newMaxEntities);
         std::vector<bool> tempActive(ecs.maxComponentTypes * newMaxEntities);
+        const auto componentTableBegin = ecs.componentTable.begin();
+        const auto activeComponentTableBegin = ecs.activeComponentTable.begin();
+        const auto tempComponentTableBegin = temp.begin();
+        const auto tempActiveComponentTableBegin = tempActive.begin();
         for (i32 componentType = 0; componentType < ecs.maxComponentTypes; componentType++) {
-            for (i32 entityId = 0; entityId < ecs.maxEntities; entityId++) {
-                temp.at(componentType * newMaxEntities + entityId) = ecs.componentTable.at(componentType * ecs.maxEntities + entityId);
-                tempActive.at(componentType * newMaxEntities + entityId) = ecs.activeComponentTable.at(componentType * ecs.maxEntities + entityId);
-            }
+            i32 offset = componentType * ecs.maxEntities;
+            i32 tempOffset = componentType * newMaxEntities;
+            std::copy(componentTableBegin + offset, componentTableBegin + offset + ecs.maxEntities, tempComponentTableBegin + tempOffset);
+            std::copy(activeComponentTableBegin + offset, activeComponentTableBegin + offset + ecs.maxEntities, tempActiveComponentTableBegin + tempOffset);
         }
-        ecs.componentTable = std::move(temp);
-        ecs.activeComponentTable = std::move(tempActive);
+        ecs.componentTable.swap(temp);
+        ecs.activeComponentTable.swap(tempActive);
         ecs.entityExists.resize(newMaxEntities);
         ecs.maxEntities = newMaxEntities;
     }
