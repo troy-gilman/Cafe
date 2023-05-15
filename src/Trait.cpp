@@ -6,7 +6,7 @@ void Trait::handleController1p_Move(ECS::EntityComponentSystem& ecs, const Input
     const ECS::ComponentInfo& controller1pInfo = ecs.componentTypes.at(ECS::COMPONENT_TYPE_CONTROLLER_1P);
     const ECS::ComponentInfo& spatial3dInfo = ecs.componentTypes.at(ECS::COMPONENT_TYPE_SPATIAL_3D);
 
-    for (UUID entityId = 0; entityId < ECS::MAX_ENTITIES; entityId++) {
+    for (UUID entityId = 0; entityId < ecs.maxEntities; entityId++) {
         if (!ECS::isComponentActive(ecs, entityId, ECS::COMPONENT_TYPE_CONTROLLER_1P)) return;
         ECS::Component& controller1p = ECS::getComponent(ecs, entityId, ECS::COMPONENT_TYPE_CONTROLLER_1P);
 

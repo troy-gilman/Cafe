@@ -108,12 +108,12 @@ namespace ECS {
 //    };
 
     struct EntityComponentSystem {
-        i32 nextEntityId;
+        i32 prevEntityId;
         i32 numEntities;
         i32 maxEntities;
         std::vector<bool> entityExists;
-        std::vector<bool> activeComponentTable;
         std::vector<Component> componentTable;
+        std::vector<bool> activeComponentTable;
         i32 numComponentTypes;
         i32 maxComponentTypes;
         std::vector<ComponentInfo> componentTypes;

@@ -21,11 +21,11 @@ void Render::prepareRenderState(RenderState& renderState, const ECS::EntityCompo
 
     // Reset EntityAssetGroupTable
     entityAssetGroupTable.numGroups = 0;
-    memset(entityAssetGroupTable.numEntries, 0, sizeof(i32) * ECS::MAX_ENTITIES);
+    memset(entityAssetGroupTable.numEntries, 0, sizeof(i32) * ecs.maxEntities);
 
 
     // Iterate through all entities
-    for (i32 entityId = 0; entityId < ECS::MAX_ENTITIES; entityId++) {
+    for (i32 entityId = 0; entityId < ecs.maxEntities; entityId++) {
         if (!ecs.entityExists.at(entityId)) continue;
 
         bool hasRenderable3d  = ECS::isComponentActive(ecs, entityId, ECS::COMPONENT_TYPE_RENDERABLE_3D);

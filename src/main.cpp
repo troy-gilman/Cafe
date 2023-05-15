@@ -21,7 +21,7 @@ void initCafe(Cafe::EngineState* engine) {
         ECS::addLightComponentToEntity(engine->ecs, entityId, {1.0f, 1.0f, 1.0f}, {1.0f, 0.0f, 0.0f});
     }
 
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 100; i++) {
         for (int j = 0; j < 100; j++) {
             UUID entityId = ECS::createEntity(engine->ecs);
             ECS::addSpatial3dComponentToEntity(engine->ecs, entityId, {5.0f * i, 0, 5.0f*j}, {0, 0, 0}, 1);

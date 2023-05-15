@@ -168,27 +168,45 @@ Component& ECS::getComponent(const EntityComponentSystem& ecs, UUID entityId, i3
 }
 
 UUID ECS::createEntity(EntityComponentSystem& ecs) {
-    UUID entityId = ecs.nextEntityId;
-    if (entityId == -1) return -1;
+    // Increase max entities if necessary (2x)
+    if (ecs.numEntities == ecs.maxEntities) {
+        i32 newMaxEntities = ecs.maxEntities * 2;
+        std::vector<Component> temp(ecs.maxComponentTypes * newMaxEntities);
+        std::vector<bool> tempActive(ecs.maxComponentTypes * newMaxEntities);
+        for (i32 componentType = 0; componentType < ecs.maxComponentTypes; componentType++) {
+            for (i32 entityId = 0; entityId < ecs.maxEntities; entityId++) {
+                temp.at(componentType * newMaxEntities + entityId) = ecs.componentTable.at(componentType * ecs.maxEntities + entityId);
+                tempActive.at(componentType * newMaxEntities + entityId) = ecs.activeComponentTable.at(componentType * ecs.maxEntities + entityId);
+            }
+        }
+        ecs.componentTable = std::move(temp);
+        ecs.activeComponentTable = std::move(tempActive);
+        ecs.entityExists.resize(newMaxEntities);
+        ecs.maxEntities = newMaxEntities;
+    }
+
+    // Find next available entity id
+    i32 entityId = ecs.prevEntityId;
+    while (ecs.entityExists.at(entityId)) {
+        entityId = (entityId + 1) % ecs.maxEntities;
+        if (entityId == ecs.prevEntityId) {
+            return -1;
+        }
+    }
+
+    // Initialize entity
     ecs.entityExists.at(entityId) = true;
     for (i32 componentType = 0; componentType < ecs.maxComponentTypes; componentType++) {
         ECS::setComponentActive(ecs, entityId, componentType, false);
     }
+    ecs.prevEntityId = entityId;
     ecs.numEntities++;
-    i32 nextEntityId = entityId;
-    do {
-        nextEntityId = (nextEntityId + 1) % ecs.maxEntities;
-        if (nextEntityId == ecs.nextEntityId) {
-            nextEntityId = -1;
-            break;
-        }
-    } while (ecs.entityExists.at(nextEntityId));
-    ecs.nextEntityId = nextEntityId;
+
     return entityId;
 }
 
 bool ECS::addComponentToEntity(EntityComponentSystem& ecs, UUID entityId, i32 componentType) {
-    if (entityId < 0 || entityId >= MAX_ENTITIES) return false;
+    if (entityId < 0 || entityId >= ecs.maxEntities) return false;
     if (!ecs.entityExists.at(entityId)) return false;
     if (ECS::isComponentActive(ecs, entityId, componentType)) return false;
     Component& component = ECS::getComponent(ecs, entityId, componentType);
