@@ -1,7 +1,7 @@
 #include "Render.h"
 #include "glm/gtc/matrix_transform.hpp"
-#include "util/MapUtils.h"
 #include "util/ArrayUtils.h"
+#include <cstring>
 
 Vector2f calcTextureAtlasOffset(ui32 atlasSize, ui32 index) {
     if (index == 0) {

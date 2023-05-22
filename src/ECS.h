@@ -113,7 +113,7 @@ namespace ECS {
         i32 maxEntities;
         std::vector<bool> entityExists;
         std::vector<Component> componentTable;
-        std::vector<bool> activeComponentTable;
+        bool* activeComponentTable;
         i32 numComponentTypes;
         i32 maxComponentTypes;
         std::vector<ComponentInfo> componentTypes;
