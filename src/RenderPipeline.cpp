@@ -16,8 +16,14 @@ void Render::prepareRenderState(RenderState& renderState, const ECS::EntityCompo
     LightData& lightData = renderState.lightData;
     EntityAssetGroupTable& entityAssetGroupTable = renderState.entityAssetGroupTable;
 
-    // Reset number of lights
-    lightData.numLights = 0;
+    if (!lightData.needsUpdate && !entityAssetGroupTable.needsUpdate) {
+        return;
+    }
+
+    if (lightData.needsUpdate) {
+        // Reset LightData
+        lightData.numLights = 0;
+    }
 
     if (entityAssetGroupTable.needsUpdate) {
         // Reset EntityAssetGroupTable
@@ -39,19 +45,22 @@ void Render::prepareRenderState(RenderState& renderState, const ECS::EntityCompo
         bool hasCamera        = ECS::isComponentActive(ecs, entityId, ECS::COMPONENT_TYPE_CAMERA);
         bool hasLight         = ECS::isComponentActive(ecs, entityId, ECS::COMPONENT_TYPE_LIGHT);
 
-        // Add this entity to the light data
-        if (hasLight && hasSpatial3d && lightData.numLights < MAX_NUM_LIGHTS) {
-            const ECS::Component& spatial3d = ECS::getComponent(ecs, entityId, ECS::COMPONENT_TYPE_SPATIAL_3D);
-            const ECS::Component& light = ECS::getComponent(ecs, entityId, ECS::COMPONENT_TYPE_LIGHT);
-            const ECS::ComponentInfo& spatial3dInfo = ecs.componentTypesArray[ECS::COMPONENT_TYPE_SPATIAL_3D];
-            const ECS::ComponentInfo& lightInfo = ecs.componentTypesArray[ECS::COMPONENT_TYPE_LIGHT];
-            Vector3f position = ECS::getField_Vector3f(spatial3d, spatial3dInfo, ECS::Spatial3d::FIELD_INDEX_POSITION);
-            Vector3f color = ECS::getField_Vector3f(light, lightInfo, ECS::Light::FIELD_INDEX_COLOR);
-            Vector3f attenuation = ECS::getField_Vector3f(light, lightInfo, ECS::Light::FIELD_INDEX_ATTENUATION);
-            lightData.lightPositions[lightData.numLights] = position;
-            lightData.lightColors[lightData.numLights] = color;
-            lightData.lightAttenuations[lightData.numLights] = attenuation;
-            lightData.numLights++;
+        if (lightData.needsUpdate) {
+            // Add this entity to the light data
+            if (hasLight && hasSpatial3d && lightData.numLights < MAX_NUM_LIGHTS) {
+                const ECS::Component &spatial3d = ECS::getComponent(ecs, entityId, ECS::COMPONENT_TYPE_SPATIAL_3D);
+                const ECS::Component &light = ECS::getComponent(ecs, entityId, ECS::COMPONENT_TYPE_LIGHT);
+                const ECS::ComponentInfo &spatial3dInfo = ecs.componentTypesArray[ECS::COMPONENT_TYPE_SPATIAL_3D];
+                const ECS::ComponentInfo &lightInfo = ecs.componentTypesArray[ECS::COMPONENT_TYPE_LIGHT];
+                Vector3f position = ECS::getField_Vector3f(spatial3d, spatial3dInfo,
+                                                           ECS::Spatial3d::FIELD_INDEX_POSITION);
+                Vector3f color = ECS::getField_Vector3f(light, lightInfo, ECS::Light::FIELD_INDEX_COLOR);
+                Vector3f attenuation = ECS::getField_Vector3f(light, lightInfo, ECS::Light::FIELD_INDEX_ATTENUATION);
+                lightData.lightPositions[lightData.numLights] = position;
+                lightData.lightColors[lightData.numLights] = color;
+                lightData.lightAttenuations[lightData.numLights] = attenuation;
+                lightData.numLights++;
+            }
         }
 
         if (entityAssetGroupTable.needsUpdate) {
@@ -102,6 +111,7 @@ void Render::prepareRenderState(RenderState& renderState, const ECS::EntityCompo
             }
         }
     }
+    lightData.needsUpdate = false;
     entityAssetGroupTable.needsUpdate = false;
 }
 

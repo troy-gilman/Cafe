@@ -2,10 +2,12 @@
 #include <iostream>
 #include "util/MathUtils.h"
 #include "util/TimeUtils.h"
+#include <cstring>
 
 void Render::initRenderState(RenderState& renderState) {
     initWindow(renderState.window);
     initEntityAssetGroupTable(renderState.entityAssetGroupTable);
+    initLightData(renderState.lightData);
 }
 
 void Render::initEntityAssetGroupTable(EntityAssetGroupTable& entityAssetGroupTable) {
@@ -26,6 +28,28 @@ void Render::initEntityAssetGroupTable(EntityAssetGroupTable& entityAssetGroupTa
     entityAssetGroupTable.materialIdArray = new UUID[entityAssetGroupTable.maxGroups];
     entityAssetGroupTable.numEntitiesArray = new i32[entityAssetGroupTable.maxGroups];
     entityAssetGroupTable.groupTable = nullptr;
+    memset(entityAssetGroupTable.renderOrderArray, 0, sizeof(i32) * entityAssetGroupTable.maxGroups);
+    memset(entityAssetGroupTable.meshIdArray, 0, sizeof(UUID) * entityAssetGroupTable.maxGroups);
+    memset(entityAssetGroupTable.materialIdArray, 0, sizeof(UUID) * entityAssetGroupTable.maxGroups);
+    memset(entityAssetGroupTable.numEntitiesArray, 0, sizeof(i32) * entityAssetGroupTable.maxGroups);
+}
+
+void Render::initLightData(Render::LightData &lightData) {
+    // Delete old data
+    delete lightData.lightPositions;
+    delete lightData.lightColors;
+    delete lightData.lightAttenuations;
+
+    // Initialize new data
+    lightData.needsUpdate = true;
+    lightData.numLights = 0;
+    lightData.maxLights = MAX_NUM_LIGHTS;
+    lightData.lightPositions = new Vector3f[lightData.maxLights];
+    lightData.lightColors = new Vector3f[lightData.maxLights];
+    lightData.lightAttenuations = new Vector3f[lightData.maxLights];
+    memset(lightData.lightPositions, 0, sizeof(Vector3f) * lightData.maxLights);
+    memset(lightData.lightColors, 0, sizeof(Vector3f) * lightData.maxLights);
+    memset(lightData.lightAttenuations, 0, sizeof(Vector3f) * lightData.maxLights);
 }
 
 void GLAPIENTRY MessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {

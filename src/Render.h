@@ -54,10 +54,12 @@ namespace Render {
     static const i32 MAX_NUM_LIGHTS = 4;
 
     struct LightData {
+        bool needsUpdate;
         i32 numLights;
-        Vector3f lightPositions[MAX_NUM_LIGHTS];
-        Vector3f lightColors[MAX_NUM_LIGHTS];
-        Vector3f lightAttenuations[MAX_NUM_LIGHTS];
+        i32 maxLights;
+        Vector3f* lightPositions;
+        Vector3f* lightColors;
+        Vector3f* lightAttenuations;
     };
 
     struct RenderState {
@@ -68,6 +70,7 @@ namespace Render {
 
     void initRenderState(RenderState& renderState);
     void initEntityAssetGroupTable(EntityAssetGroupTable& entityAssetGroupTable);
+    void initLightData(LightData& lightData);
     void prepareRenderState(RenderState& renderState, const ECS::EntityComponentSystem& ecs);
     void render(RenderState& renderState, const Asset::AssetPack& assetPack, const ECS::EntityComponentSystem& ecs);
 
