@@ -19,12 +19,15 @@ void Render::prepareRenderState(RenderState& renderState, const ECS::EntityCompo
     // Reset number of lights
     lightData.numLights = 0;
 
-    // Reset EntityAssetGroupTable
-    entityAssetGroupTable.numGroups = 0;
-    memset(entityAssetGroupTable.numEntries.data(), 0, sizeof(i32) * entityAssetGroupTable.numEntries.size());
-    if (entityAssetGroupTable.maxEntities != ecs.maxEntities) {
-        entityAssetGroupTable.maxEntities = ecs.maxEntities;
-        entityAssetGroupTable.table.resize(entityAssetGroupTable.maxGroups * ecs.maxEntities);
+    if (entityAssetGroupTable.needsUpdate) {
+        // Reset EntityAssetGroupTable
+        entityAssetGroupTable.numGroups = 0;
+        memset(entityAssetGroupTable.numEntitiesArray, 0, sizeof(i32) * entityAssetGroupTable.maxGroups);
+        if (entityAssetGroupTable.maxEntities != ecs.maxEntities) {
+            entityAssetGroupTable.maxEntities = ecs.maxEntities;
+            delete entityAssetGroupTable.groupTable;
+            entityAssetGroupTable.groupTable = new UUID[entityAssetGroupTable.maxGroups * ecs.maxEntities];
+        }
     }
 
     // Iterate through all entities
@@ -51,49 +54,55 @@ void Render::prepareRenderState(RenderState& renderState, const ECS::EntityCompo
             lightData.numLights++;
         }
 
-        // Add this entity to the entity asset group table
-        if (hasRenderable3d && hasSpatial3d) {
-            const ECS::Component& renderable3d = ECS::getComponent(ecs, entityId, ECS::COMPONENT_TYPE_RENDERABLE_3D);
-            const ECS::ComponentInfo& renderable3dInfo = ecs.componentTypesArray[ECS::COMPONENT_TYPE_RENDERABLE_3D];
-            UUID meshId = ECS::getField_i32(renderable3d, renderable3dInfo, ECS::Renderable3d::FIELD_INDEX_MESH_ASSET_ID);
-            UUID materialId = ECS::getField_i32(renderable3d, renderable3dInfo, ECS::Renderable3d::FIELD_INDEX_MATERIAL_ASSET_ID);
-            if (meshId != -1 && materialId != -1) {
-                // Find the asset group for this mesh and material
-                i32 tableIndex = 0;
-                while (tableIndex < entityAssetGroupTable.numGroups) {
-                    UUID assetGroupMeshId = entityAssetGroupTable.meshIds.at(tableIndex);
-                    UUID assetGroupMaterialId = entityAssetGroupTable.meshIds.at(tableIndex);
-                    if (assetGroupMeshId == meshId && assetGroupMaterialId == materialId) break;
-                    tableIndex++;
-                }
-
-                // If no asset group exists for this mesh and material, create one
-                // We have to find the correct place to insert it in the render order
-                i32 numEntries = entityAssetGroupTable.numEntries.at(tableIndex);
-                if (numEntries == 0) {
-                    i32 numGroups = entityAssetGroupTable.numGroups;
-                    i32 orderIndex = 0;
-                    while (orderIndex < numGroups) {
-                        i32 groupIndex = entityAssetGroupTable.renderOrder.at(orderIndex);
-                        UUID assetGroupMeshId = entityAssetGroupTable.meshIds.at(groupIndex);
-                        if (assetGroupMeshId == meshId) {
-                            ArrayUtils::shiftArrayRight(entityAssetGroupTable.renderOrder.data(), numGroups, orderIndex);
-                            break;
-                        }
-                        orderIndex++;
+        if (entityAssetGroupTable.needsUpdate) {
+            // Add this entity to the entity asset group table
+            if (hasRenderable3d && hasSpatial3d) {
+                const ECS::Component &renderable3d = ECS::getComponent(ecs, entityId,
+                                                                       ECS::COMPONENT_TYPE_RENDERABLE_3D);
+                const ECS::ComponentInfo &renderable3dInfo = ecs.componentTypesArray[ECS::COMPONENT_TYPE_RENDERABLE_3D];
+                UUID meshId = ECS::getField_i32(renderable3d, renderable3dInfo,
+                                                ECS::Renderable3d::FIELD_INDEX_MESH_ASSET_ID);
+                UUID materialId = ECS::getField_i32(renderable3d, renderable3dInfo,
+                                                    ECS::Renderable3d::FIELD_INDEX_MATERIAL_ASSET_ID);
+                if (meshId != -1 && materialId != -1) {
+                    // Find the asset group for this mesh and material
+                    i32 tableIndex = 0;
+                    while (tableIndex < entityAssetGroupTable.numGroups) {
+                        UUID assetGroupMeshId = entityAssetGroupTable.meshIdArray[tableIndex];
+                        UUID assetGroupMaterialId = entityAssetGroupTable.meshIdArray[tableIndex];
+                        if (assetGroupMeshId == meshId && assetGroupMaterialId == materialId) break;
+                        tableIndex++;
                     }
-                    entityAssetGroupTable.renderOrder.at(orderIndex) = tableIndex;
-                    entityAssetGroupTable.meshIds.at(tableIndex) = meshId;
-                    entityAssetGroupTable.materialIds.at(tableIndex) = materialId;
-                    entityAssetGroupTable.numGroups++;
-                }
 
-                // Add this entity to the asset group
-                entityAssetGroupTable.table.at(tableIndex * entityAssetGroupTable.maxEntities + numEntries) = entityId;
-                entityAssetGroupTable.numEntries.at(tableIndex)++;
+                    // If no asset group exists for this mesh and material, create one
+                    // We have to find the correct place to insert it in the render order
+                    i32 numEntries = entityAssetGroupTable.numEntitiesArray[tableIndex];
+                    if (numEntries == 0) {
+                        i32 numGroups = entityAssetGroupTable.numGroups;
+                        i32 orderIndex = 0;
+                        while (orderIndex < numGroups) {
+                            i32 groupIndex = entityAssetGroupTable.renderOrderArray[orderIndex];
+                            UUID assetGroupMeshId = entityAssetGroupTable.meshIdArray[groupIndex];
+                            if (assetGroupMeshId == meshId) {
+                                ArrayUtils::shiftArrayRight(entityAssetGroupTable.renderOrderArray, numGroups, orderIndex);
+                                break;
+                            }
+                            orderIndex++;
+                        }
+                        entityAssetGroupTable.renderOrderArray[orderIndex] = tableIndex;
+                        entityAssetGroupTable.meshIdArray[tableIndex] = meshId;
+                        entityAssetGroupTable.materialIdArray[tableIndex] = materialId;
+                        entityAssetGroupTable.numGroups++;
+                    }
+
+                    // Add this entity to the asset group
+                    entityAssetGroupTable.groupTable[tableIndex * entityAssetGroupTable.maxEntities + numEntries] = entityId;
+                    entityAssetGroupTable.numEntitiesArray[tableIndex]++;
+                }
             }
         }
     }
+    entityAssetGroupTable.needsUpdate = false;
 }
 
 void Render::render(RenderState& renderState, const Asset::AssetPack& assetPack, const ECS::EntityComponentSystem& ecs) {
@@ -138,9 +147,9 @@ void Render::render(RenderState& renderState, const Asset::AssetPack& assetPack,
     UUID prevMaterialId = -1;
     i32 numAssetGroups = entityAssetGroupTable.numGroups;
     for (i32 i = 0; i < numAssetGroups; i++) {
-        i32 groupIndex = entityAssetGroupTable.renderOrder.at(i);
-        UUID meshId = entityAssetGroupTable.meshIds.at(groupIndex);
-        UUID materialId = entityAssetGroupTable.materialIds.at(groupIndex);
+        i32 groupIndex = entityAssetGroupTable.renderOrderArray[i];
+        UUID meshId = entityAssetGroupTable.meshIdArray[groupIndex];
+        UUID materialId = entityAssetGroupTable.materialIdArray[groupIndex];
         if (meshId == -1 || materialId == -1) continue;
         Asset::MeshAsset* mesh = assetPack.meshAssets[meshId];
         Asset::MaterialAsset* material = assetPack.materialAssets[materialId];
@@ -163,9 +172,9 @@ void Render::render(RenderState& renderState, const Asset::AssetPack& assetPack,
             prevMaterialId = materialId;
         }
 
-        i32 numEntitiesInGroup = entityAssetGroupTable.numEntries.at(groupIndex);
+        i32 numEntitiesInGroup = entityAssetGroupTable.numEntitiesArray[groupIndex];
         for (size_t entityIt = 0; entityIt < numEntitiesInGroup; entityIt++) {
-            UUID entityId = entityAssetGroupTable.table.at(groupIndex * entityAssetGroupTable.maxEntities + entityIt);
+            UUID entityId = entityAssetGroupTable.groupTable[groupIndex * entityAssetGroupTable.maxEntities + entityIt];
             const ECS::Component& spatial3d = ECS::getComponent(ecs, entityId, ECS::COMPONENT_TYPE_SPATIAL_3D);
             const ECS::ComponentInfo& spatial3dInfo = ecs.componentTypesArray[ECS::COMPONENT_TYPE_SPATIAL_3D];
             Vector3f position = ECS::getField_Vector3f(spatial3d, spatial3dInfo, ECS::Spatial3d::FIELD_INDEX_POSITION);

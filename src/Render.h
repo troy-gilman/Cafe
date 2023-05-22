@@ -40,14 +40,15 @@ namespace Render {
     };
 
     struct EntityAssetGroupTable {
+        bool needsUpdate;
         i32 numGroups;
         i32 maxGroups;
         i32 maxEntities;
-        std::vector<i32> renderOrder;
-        std::vector<UUID> meshIds;
-        std::vector<UUID> materialIds;
-        std::vector<i32> numEntries;
-        std::vector<UUID> table;
+        i32* renderOrderArray;
+        UUID* meshIdArray;
+        UUID* materialIdArray;
+        i32* numEntitiesArray;
+        UUID* groupTable;
     };
 
     static const i32 MAX_NUM_LIGHTS = 4;

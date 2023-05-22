@@ -9,11 +9,23 @@ void Render::initRenderState(RenderState& renderState) {
 }
 
 void Render::initEntityAssetGroupTable(EntityAssetGroupTable& entityAssetGroupTable) {
+    // Delete old data
+    delete entityAssetGroupTable.renderOrderArray;
+    delete entityAssetGroupTable.meshIdArray;
+    delete entityAssetGroupTable.materialIdArray;
+    delete entityAssetGroupTable.numEntitiesArray;
+    delete entityAssetGroupTable.groupTable;
+
+    // Initialize new data
+    entityAssetGroupTable.needsUpdate = true;
+    entityAssetGroupTable.numGroups = 0;
     entityAssetGroupTable.maxGroups = 64;
-    entityAssetGroupTable.renderOrder.resize(entityAssetGroupTable.maxGroups);
-    entityAssetGroupTable.meshIds.resize(entityAssetGroupTable.maxGroups);
-    entityAssetGroupTable.materialIds.resize(entityAssetGroupTable.maxGroups);
-    entityAssetGroupTable.numEntries.resize(entityAssetGroupTable.maxGroups);
+    entityAssetGroupTable.maxEntities = 0;
+    entityAssetGroupTable.renderOrderArray = new i32[entityAssetGroupTable.maxGroups];
+    entityAssetGroupTable.meshIdArray = new UUID[entityAssetGroupTable.maxGroups];
+    entityAssetGroupTable.materialIdArray = new UUID[entityAssetGroupTable.maxGroups];
+    entityAssetGroupTable.numEntitiesArray = new i32[entityAssetGroupTable.maxGroups];
+    entityAssetGroupTable.groupTable = nullptr;
 }
 
 void GLAPIENTRY MessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
