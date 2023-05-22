@@ -1,5 +1,6 @@
 #include "ECS.h"
 #include <cstdlib>
+#include <stdexcept>
 #include "util/StringUtils.h"
 
 using namespace ECS;
@@ -121,10 +122,11 @@ void ECS::initEntityComponentSystem(EntityComponentSystem& ecs) {
     ecs.maxComponentTypes = MAX_COMPONENT_TYPES;
     ecs.entityExistsArray = new bool[ecs.maxEntities];
     ecs.activeComponentTable = new bool[ecs.maxComponentTypes * ecs.maxEntities];
-    ecs.componentTable.resize(ecs.maxComponentTypes * ecs.maxEntities);
+    ecs.componentTable = new Component[ecs.maxComponentTypes * ecs.maxEntities];
     ecs.componentTypes.resize(ecs.maxComponentTypes);
     memset(ecs.entityExistsArray, 0, ecs.maxEntities * sizeof(bool));
     memset(ecs.activeComponentTable, 0, ecs.maxComponentTypes * ecs.maxEntities * sizeof(bool));
+    memset(ecs.componentTable, 0, ecs.maxComponentTypes * ecs.maxEntities * sizeof(Component));
 
     // Initialize Component Info
     {   // Camera
@@ -165,43 +167,48 @@ void ECS::initEntityComponentSystem(EntityComponentSystem& ecs) {
 
 bool ECS::isComponentActive(const EntityComponentSystem& ecs, UUID entityId, i32 componentType) {
     i32 index = componentType * ecs.maxEntities + entityId;
-    if (index >= ecs.maxComponentTypes * ecs.maxEntities) return false;
+    if (index >= ecs.maxComponentTypes * ecs.maxEntities) throw std::runtime_error("Invalid component type or entity id");
     return ecs.activeComponentTable[index];
 }
 
 void ECS::setComponentActive(EntityComponentSystem& ecs, UUID entityId, i32 componentType, bool isActive) {
     i32 index = componentType * ecs.maxEntities + entityId;
-    if (index >= ecs.maxComponentTypes * ecs.maxEntities) return;
+    if (index >= ecs.maxComponentTypes * ecs.maxEntities) throw std::runtime_error("Invalid component type or entity id");
     ecs.activeComponentTable[componentType * ecs.maxEntities + entityId] = isActive;
 }
 
 Component& ECS::getComponent(const EntityComponentSystem& ecs, UUID entityId, i32 componentType) {
-    return const_cast<Component&>(ecs.componentTable.at(componentType * ecs.maxEntities + entityId));
+    i32 index = componentType * ecs.maxEntities + entityId;
+    if (index >= ecs.maxComponentTypes * ecs.maxEntities) throw std::runtime_error("Invalid component type or entity id");
+    return ecs.componentTable[componentType * ecs.maxEntities + entityId];
 }
 
 UUID ECS::createEntity(EntityComponentSystem& ecs) {
     // Increase max entities if necessary (2x)
     if (ecs.numEntities == ecs.maxEntities) {
+        // Allocate new data
         i32 newMaxEntities = ecs.maxEntities * 2;
-        std::vector<Component> temp(ecs.maxComponentTypes * newMaxEntities);
+        Component* temp = new Component[ecs.maxComponentTypes * newMaxEntities];
         bool* tempActive = new bool[ecs.maxComponentTypes * newMaxEntities];
         bool* tempEntityExists = new bool[newMaxEntities];
+        memset(temp, 0, ecs.maxComponentTypes * newMaxEntities * sizeof(Component));
         memset(tempActive, 0, ecs.maxComponentTypes * newMaxEntities * sizeof(bool));
         memset(tempEntityExists, 0, newMaxEntities * sizeof(bool));
-        const auto componentTableBegin = ecs.componentTable.begin();
-        const auto tempComponentTableBegin = temp.begin();
 
+        // Copy old data
         for (i32 componentType = 0; componentType < ecs.maxComponentTypes; componentType++) {
             i32 offset = componentType * ecs.maxEntities;
             i32 tempOffset = componentType * newMaxEntities;
-            std::copy(componentTableBegin + offset, componentTableBegin + offset + ecs.maxEntities, tempComponentTableBegin + tempOffset);
+            memcpy(temp + tempOffset, ecs.componentTable + offset, ecs.maxEntities * sizeof(Component));
             memcpy(tempActive + tempOffset, ecs.activeComponentTable + offset, ecs.maxEntities * sizeof(bool));
         }
         memcpy(tempEntityExists, ecs.entityExistsArray, ecs.maxEntities * sizeof(bool));
 
-        ecs.componentTable.swap(temp);
+        // Delete and replace old data
+        delete ecs.componentTable;
         delete ecs.activeComponentTable;
         delete ecs.entityExistsArray;
+        ecs.componentTable = temp;
         ecs.activeComponentTable = tempActive;
         ecs.entityExistsArray = tempEntityExists;
         ecs.maxEntities = newMaxEntities;
@@ -212,7 +219,7 @@ UUID ECS::createEntity(EntityComponentSystem& ecs) {
     while (ecs.entityExistsArray[entityId]) {
         entityId = (entityId + 1) % ecs.maxEntities;
         if (entityId == ecs.prevEntityId) {
-            return -1;
+            throw std::runtime_error("No more available entity ids");
         }
     }
 

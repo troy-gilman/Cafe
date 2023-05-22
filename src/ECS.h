@@ -97,22 +97,12 @@ namespace ECS {
     const char* getField_CharBuffer(const Component& component, const ComponentInfo& componentInfo, i32 fieldIndex);
     void setField_CharBuffer(Component& component, const ComponentInfo& componentInfo, i32 fieldIndex, const char* value);
 
-//    struct EntityComponentSystem {
-//        i32 nextEntityId;
-//        i32 numEntities;
-//        bool entityExists[MAX_ENTITIES];
-//        bool activeComponentTable[MAX_COMPONENT_TYPES][MAX_ENTITIES];
-//        Component componentTable[MAX_COMPONENT_TYPES][MAX_ENTITIES];
-//        i32 numComponentTypes;
-//        ComponentInfo componentTypes[MAX_COMPONENT_TYPES];
-//    };
-
     struct EntityComponentSystem {
         i32 prevEntityId;
         i32 numEntities;
         i32 maxEntities;
         bool* entityExistsArray;
-        std::vector<Component> componentTable;
+        Component* componentTable;
         bool* activeComponentTable;
         i32 numComponentTypes;
         i32 maxComponentTypes;
