@@ -114,6 +114,8 @@ void ECS::initEntityComponentSystem(EntityComponentSystem& ecs) {
     // Delete old data
     delete ecs.entityExistsArray;
     delete ecs.activeComponentTable;
+    delete ecs.componentTable;
+    delete ecs.componentTypesArray;
 
     // Initialize data
     ecs.numEntities = 0;
@@ -123,40 +125,41 @@ void ECS::initEntityComponentSystem(EntityComponentSystem& ecs) {
     ecs.entityExistsArray = new bool[ecs.maxEntities];
     ecs.activeComponentTable = new bool[ecs.maxComponentTypes * ecs.maxEntities];
     ecs.componentTable = new Component[ecs.maxComponentTypes * ecs.maxEntities];
-    ecs.componentTypes.resize(ecs.maxComponentTypes);
+    ecs.componentTypesArray = new ComponentInfo[ecs.maxComponentTypes];
     memset(ecs.entityExistsArray, 0, ecs.maxEntities * sizeof(bool));
     memset(ecs.activeComponentTable, 0, ecs.maxComponentTypes * ecs.maxEntities * sizeof(bool));
     memset(ecs.componentTable, 0, ecs.maxComponentTypes * ecs.maxEntities * sizeof(Component));
+    memset(ecs.componentTypesArray, 0, ecs.maxComponentTypes * sizeof(ComponentInfo));
 
     // Initialize Component Info
     {   // Camera
-        ComponentInfo& componentInfo = ecs.componentTypes.at(COMPONENT_TYPE_CAMERA);
+        ComponentInfo& componentInfo = ecs.componentTypesArray[COMPONENT_TYPE_CAMERA];
         StringUtils::copyStringToBuffer(componentInfo.name, Camera::COMPONENT_TYPE_STR, CHAR_BUFFER_SIZE);
         addFieldToComponentInfo_f32(componentInfo, "DistanceFromTarget");
         addFieldToComponentInfo_i32(componentInfo, "VerticalAngle");
     }
     {   // Light
-        ComponentInfo& componentInfo = ecs.componentTypes.at(COMPONENT_TYPE_LIGHT);
+        ComponentInfo& componentInfo = ecs.componentTypesArray[COMPONENT_TYPE_LIGHT];
         StringUtils::copyStringToBuffer(componentInfo.name, Light::COMPONENT_TYPE_STR, CHAR_BUFFER_SIZE);
         addFieldToComponentInfo_Vector3f(componentInfo, "Color");
         addFieldToComponentInfo_Vector3f(componentInfo, "Attenuation");
     }
     {   // Renderable3D
-        ComponentInfo& componentInfo = ecs.componentTypes.at(COMPONENT_TYPE_RENDERABLE_3D);
+        ComponentInfo& componentInfo = ecs.componentTypesArray[COMPONENT_TYPE_RENDERABLE_3D];
         StringUtils::copyStringToBuffer(componentInfo.name, Renderable3d::COMPONENT_TYPE_STR, CHAR_BUFFER_SIZE);
         addFieldToComponentInfo_i32(componentInfo, "MeshAssetId");
         addFieldToComponentInfo_i32(componentInfo, "MaterialAssetId");
         addFieldToComponentInfo_i32(componentInfo, "TextureAtlasIndex");
     }
     {   // Spatial3D
-        ComponentInfo& componentInfo = ecs.componentTypes.at(COMPONENT_TYPE_SPATIAL_3D);
+        ComponentInfo& componentInfo = ecs.componentTypesArray[COMPONENT_TYPE_SPATIAL_3D];
         StringUtils::copyStringToBuffer(componentInfo.name, Spatial3d::COMPONENT_TYPE_STR, CHAR_BUFFER_SIZE);
         addFieldToComponentInfo_Vector3f(componentInfo, "Position");
         addFieldToComponentInfo_Vector3f(componentInfo, "Rotation");
         addFieldToComponentInfo_f32(componentInfo, "Scale");
     }
     {   // Controller1p
-        ComponentInfo& componentInfo = ecs.componentTypes.at(COMPONENT_TYPE_CONTROLLER_1P);
+        ComponentInfo& componentInfo = ecs.componentTypesArray[COMPONENT_TYPE_CONTROLLER_1P];
         StringUtils::copyStringToBuffer(componentInfo.name, Controller1p::COMPONENT_TYPE_STR, CHAR_BUFFER_SIZE);
         addFieldToComponentInfo_f32(componentInfo, "MoveSpeed");
         addFieldToComponentInfo_f32(componentInfo, "MouseSensitivity");
@@ -247,7 +250,7 @@ bool ECS::addComponentToEntity(EntityComponentSystem& ecs, UUID entityId, i32 co
 bool ECS::addSpatial3dComponentToEntity(EntityComponentSystem& ecs, UUID entityId, Vector3f position, Vector3f rotation, f32 scale) {
     bool success = addComponentToEntity(ecs, entityId, COMPONENT_TYPE_SPATIAL_3D);
     if (!success) return false;
-    const ComponentInfo& componentInfo = ecs.componentTypes.at(COMPONENT_TYPE_SPATIAL_3D);
+    const ComponentInfo& componentInfo = ecs.componentTypesArray[COMPONENT_TYPE_SPATIAL_3D];
     Component& component = ECS::getComponent(ecs, entityId, COMPONENT_TYPE_SPATIAL_3D);
     setField_Vector3f(component, componentInfo, Spatial3d::FIELD_INDEX_POSITION, position);
     setField_Vector3f(component, componentInfo, Spatial3d::FIELD_INDEX_ROTATION, rotation);
@@ -258,7 +261,7 @@ bool ECS::addSpatial3dComponentToEntity(EntityComponentSystem& ecs, UUID entityI
 bool ECS::addRenderable3dComponentToEntity(EntityComponentSystem& ecs, UUID entityId, UUID meshAssetId, UUID materialAssetId, i32 textureAtlasIndex) {
     bool success = addComponentToEntity(ecs, entityId, COMPONENT_TYPE_RENDERABLE_3D);
     if (!success) return false;
-    const ComponentInfo& componentInfo = ecs.componentTypes.at(COMPONENT_TYPE_RENDERABLE_3D);
+    const ComponentInfo& componentInfo = ecs.componentTypesArray[COMPONENT_TYPE_RENDERABLE_3D];
     Component& component = ECS::getComponent(ecs, entityId, COMPONENT_TYPE_RENDERABLE_3D);
     setField_i32(component, componentInfo, Renderable3d::FIELD_INDEX_MESH_ASSET_ID, meshAssetId);
     setField_i32(component, componentInfo, Renderable3d::FIELD_INDEX_MATERIAL_ASSET_ID, materialAssetId);
@@ -269,7 +272,7 @@ bool ECS::addRenderable3dComponentToEntity(EntityComponentSystem& ecs, UUID enti
 bool ECS::addCameraComponentToEntity(EntityComponentSystem& ecs, UUID entityId, f32 distanceFromTarget, f32 verticalAngle) {
     bool success = addComponentToEntity(ecs, entityId, COMPONENT_TYPE_CAMERA);
     if (!success) return false;
-    const ComponentInfo& componentInfo = ecs.componentTypes.at(COMPONENT_TYPE_CAMERA);
+    const ComponentInfo& componentInfo = ecs.componentTypesArray[COMPONENT_TYPE_CAMERA];
     Component& component = ECS::getComponent(ecs, entityId, COMPONENT_TYPE_CAMERA);
     setField_f32(component, componentInfo, Camera::FIELD_INDEX_DISTANCE_FROM_TARGET, distanceFromTarget);
     setField_f32(component, componentInfo, Camera::FIELD_INDEX_VERTICAL_ANGLE, verticalAngle);
@@ -279,7 +282,7 @@ bool ECS::addCameraComponentToEntity(EntityComponentSystem& ecs, UUID entityId, 
 bool ECS::addLightComponentToEntity(EntityComponentSystem& ecs, UUID entityId, Vector3f color, Vector3f attenuation) {
     bool success = addComponentToEntity(ecs, entityId, COMPONENT_TYPE_LIGHT);
     if (!success) return false;
-    const ComponentInfo& componentInfo = ecs.componentTypes.at(COMPONENT_TYPE_LIGHT);
+    const ComponentInfo& componentInfo = ecs.componentTypesArray[COMPONENT_TYPE_LIGHT];
     Component& component = ECS::getComponent(ecs, entityId, COMPONENT_TYPE_LIGHT);
     setField_Vector3f(component, componentInfo, Light::FIELD_INDEX_COLOR, color);
     setField_Vector3f(component, componentInfo, Light::FIELD_INDEX_ATTENUATION, attenuation);
@@ -289,7 +292,7 @@ bool ECS::addLightComponentToEntity(EntityComponentSystem& ecs, UUID entityId, V
 bool ECS::addController1pToEntity(EntityComponentSystem& ecs, UUID entityId, f32 moveSpeed, f32 mouseSensitivity, Vector2f verticalViewRange) {
     bool success = addComponentToEntity(ecs, entityId, COMPONENT_TYPE_CONTROLLER_1P);
     if (!success) return false;
-    const ComponentInfo& componentInfo = ecs.componentTypes.at(COMPONENT_TYPE_CONTROLLER_1P);
+    const ComponentInfo& componentInfo = ecs.componentTypesArray[COMPONENT_TYPE_CONTROLLER_1P];
     Component& component = ECS::getComponent(ecs, entityId, COMPONENT_TYPE_CONTROLLER_1P);
     setField_f32(component, componentInfo, Controller1p::FIELD_INDEX_MOVE_SPEED, moveSpeed);
     setField_f32(component, componentInfo, Controller1p::FIELD_INDEX_MOUSE_SENSITIVITY, mouseSensitivity);

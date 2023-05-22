@@ -3,8 +3,8 @@
 using namespace Cafe;
 
 void Trait::handleController1p_Move(ECS::EntityComponentSystem& ecs, const Input::InputState& input, f32 lastFrameTimeMs) {
-    const ECS::ComponentInfo& controller1pInfo = ecs.componentTypes.at(ECS::COMPONENT_TYPE_CONTROLLER_1P);
-    const ECS::ComponentInfo& spatial3dInfo = ecs.componentTypes.at(ECS::COMPONENT_TYPE_SPATIAL_3D);
+    const ECS::ComponentInfo& controller1pInfo = ecs.componentTypesArray[ECS::COMPONENT_TYPE_CONTROLLER_1P];
+    const ECS::ComponentInfo& spatial3dInfo = ecs.componentTypesArray[ECS::COMPONENT_TYPE_SPATIAL_3D];
 
     for (UUID entityId = 0; entityId < ecs.maxEntities; entityId++) {
         if (!ECS::isComponentActive(ecs, entityId, ECS::COMPONENT_TYPE_CONTROLLER_1P)) return;

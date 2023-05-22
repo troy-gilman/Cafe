@@ -106,7 +106,7 @@ namespace ECS {
         bool* activeComponentTable;
         i32 numComponentTypes;
         i32 maxComponentTypes;
-        std::vector<ComponentInfo> componentTypes;
+        ComponentInfo* componentTypesArray;
     };
 
     void initEntityComponentSystem(EntityComponentSystem& ecs);
