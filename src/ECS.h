@@ -111,7 +111,7 @@ namespace ECS {
         i32 prevEntityId;
         i32 numEntities;
         i32 maxEntities;
-        std::vector<bool> entityExists;
+        bool* entityExistsArray;
         std::vector<Component> componentTable;
         bool* activeComponentTable;
         i32 numComponentTypes;

@@ -110,13 +110,21 @@ void ECS::setField_CharBuffer(Component& component, const ComponentInfo& compone
 }
 
 void ECS::initEntityComponentSystem(EntityComponentSystem& ecs) {
-    // Initialize Entities
+    // Delete old data
+    delete ecs.entityExistsArray;
+    delete ecs.activeComponentTable;
+
+    // Initialize data
+    ecs.numEntities = 0;
+    ecs.prevEntityId = 0;
     ecs.maxEntities = MAX_ENTITIES;
     ecs.maxComponentTypes = MAX_COMPONENT_TYPES;
-    ecs.entityExists.resize(ecs.maxEntities);
+    ecs.entityExistsArray = new bool[ecs.maxEntities];
     ecs.activeComponentTable = new bool[ecs.maxComponentTypes * ecs.maxEntities];
     ecs.componentTable.resize(ecs.maxComponentTypes * ecs.maxEntities);
     ecs.componentTypes.resize(ecs.maxComponentTypes);
+    memset(ecs.entityExistsArray, 0, ecs.maxEntities * sizeof(bool));
+    memset(ecs.activeComponentTable, 0, ecs.maxComponentTypes * ecs.maxEntities * sizeof(bool));
 
     // Initialize Component Info
     {   // Camera
@@ -177,24 +185,31 @@ UUID ECS::createEntity(EntityComponentSystem& ecs) {
         i32 newMaxEntities = ecs.maxEntities * 2;
         std::vector<Component> temp(ecs.maxComponentTypes * newMaxEntities);
         bool* tempActive = new bool[ecs.maxComponentTypes * newMaxEntities];
+        bool* tempEntityExists = new bool[newMaxEntities];
+        memset(tempActive, 0, ecs.maxComponentTypes * newMaxEntities * sizeof(bool));
+        memset(tempEntityExists, 0, newMaxEntities * sizeof(bool));
         const auto componentTableBegin = ecs.componentTable.begin();
         const auto tempComponentTableBegin = temp.begin();
+
         for (i32 componentType = 0; componentType < ecs.maxComponentTypes; componentType++) {
             i32 offset = componentType * ecs.maxEntities;
             i32 tempOffset = componentType * newMaxEntities;
             std::copy(componentTableBegin + offset, componentTableBegin + offset + ecs.maxEntities, tempComponentTableBegin + tempOffset);
             memcpy(tempActive + tempOffset, ecs.activeComponentTable + offset, ecs.maxEntities * sizeof(bool));
         }
+        memcpy(tempEntityExists, ecs.entityExistsArray, ecs.maxEntities * sizeof(bool));
+
         ecs.componentTable.swap(temp);
         delete ecs.activeComponentTable;
+        delete ecs.entityExistsArray;
         ecs.activeComponentTable = tempActive;
-        ecs.entityExists.resize(newMaxEntities);
+        ecs.entityExistsArray = tempEntityExists;
         ecs.maxEntities = newMaxEntities;
     }
 
     // Find next available entity id
     i32 entityId = ecs.prevEntityId;
-    while (ecs.entityExists.at(entityId)) {
+    while (ecs.entityExistsArray[entityId]) {
         entityId = (entityId + 1) % ecs.maxEntities;
         if (entityId == ecs.prevEntityId) {
             return -1;
@@ -202,7 +217,7 @@ UUID ECS::createEntity(EntityComponentSystem& ecs) {
     }
 
     // Initialize entity
-    ecs.entityExists.at(entityId) = true;
+    ecs.entityExistsArray[entityId] = true;
     for (i32 componentType = 0; componentType < ecs.maxComponentTypes; componentType++) {
         ECS::setComponentActive(ecs, entityId, componentType, false);
     }
@@ -214,7 +229,7 @@ UUID ECS::createEntity(EntityComponentSystem& ecs) {
 
 bool ECS::addComponentToEntity(EntityComponentSystem& ecs, UUID entityId, i32 componentType) {
     if (entityId < 0 || entityId >= ecs.maxEntities) return false;
-    if (!ecs.entityExists.at(entityId)) return false;
+    if (!ecs.entityExistsArray[entityId]) return false;
     if (ECS::isComponentActive(ecs, entityId, componentType)) return false;
     Component& component = ECS::getComponent(ecs, entityId, componentType);
     memset(&component, 0, sizeof(Component));

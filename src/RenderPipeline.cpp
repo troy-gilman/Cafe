@@ -29,7 +29,7 @@ void Render::prepareRenderState(RenderState& renderState, const ECS::EntityCompo
 
     // Iterate through all entities
     for (i32 entityId = 0; entityId < ecs.maxEntities; entityId++) {
-        if (!ecs.entityExists.at(entityId)) continue;
+        if (!ecs.entityExistsArray[entityId]) continue;
 
         bool hasRenderable3d  = ECS::isComponentActive(ecs, entityId, ECS::COMPONENT_TYPE_RENDERABLE_3D);
         bool hasSpatial3d     = ECS::isComponentActive(ecs, entityId, ECS::COMPONENT_TYPE_SPATIAL_3D);
