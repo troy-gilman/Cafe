@@ -11,8 +11,8 @@ void Event::resetEvent(Event* event) {
     event->isProcessed = false;
     event->success = false;
 
-    memcpy(&event->field1, nullptr, sizeof(FieldUnion));
-    memcpy(&event->field2, nullptr, sizeof(FieldUnion));
-    memcpy(&event->field3, nullptr, sizeof(FieldUnion));
-    memcpy(&event->field4, nullptr, sizeof(FieldUnion));
+    memset(&event->field1, 0, sizeof(FieldUnion));
+    memset(&event->field2, 0, sizeof(FieldUnion));
+    memset(&event->field3, 0, sizeof(FieldUnion));
+    memset(&event->field4, 0, sizeof(FieldUnion));
 }
