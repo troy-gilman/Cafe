@@ -22,6 +22,10 @@ struct Vector3f {
     f32 z;
 };
 
+struct Matrix4f {
+    f32 data[4][4];
+};
+
 static const ui64 CHAR_BUFFER_SIZE = 64;
 typedef char CharBuffer[CHAR_BUFFER_SIZE];
 

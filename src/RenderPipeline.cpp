@@ -2,6 +2,7 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "util/ArrayUtils.h"
 #include <cstring>
+#include "util/MathUtils.h"
 
 Vector2f calcTextureAtlasOffset(ui32 atlasSize, ui32 index) {
     if (index == 0) {
@@ -132,12 +133,13 @@ void Render::render(RenderState& renderState, const Asset::AssetPack& assetPack,
     glm::f32vec3 cameraRotation = {cameraRot.x, cameraRot.y, cameraRot.z};
 
     // VIEW MATRIX
-    glm::f32vec3 negativePos = { cameraPosition.x, cameraPosition.y, cameraPosition.z };
-    glm::f32mat4 viewMatrix(1.0f);
-    viewMatrix = glm::rotate(viewMatrix, glm::radians(cameraRotation.x), glm::f32vec3(1.0f, 0.0f, 0.0f));
-    viewMatrix = glm::rotate(viewMatrix, glm::radians(cameraRotation.y), glm::f32vec3(0.0f, 1.0f, 0.0f));
-    viewMatrix = glm::rotate(viewMatrix, glm::radians(cameraRotation.z), glm::f32vec3(0.0f, 0.0f, 1.0f));
-    viewMatrix = glm::translate(viewMatrix,  negativePos);
+    Matrix4f viewMatrix{};
+    MathUtils::setIdentity(viewMatrix);
+    MathUtils::rotateMatrix(viewMatrix, cameraRot.x, {1.0f, 0, 0}, viewMatrix);
+    MathUtils::rotateMatrix(viewMatrix, cameraRot.y, {0, 1.0f, 0}, viewMatrix);
+    MathUtils::rotateMatrix(viewMatrix, cameraRot.z, {0, 0, 1.0f}, viewMatrix);
+    Vector3f negativePos = {cameraPos.x, cameraPos.y, cameraPos.z};
+    MathUtils::translateMatrix(viewMatrix, negativePos, viewMatrix);
 
     prepareRenderState(renderState, ecs);
     LightData& lightData = renderState.lightData;
@@ -188,10 +190,15 @@ void Render::render(RenderState& renderState, const Asset::AssetPack& assetPack,
             const ECS::Component& spatial3d = ECS::getComponent(ecs, entityId, ECS::COMPONENT_TYPE_SPATIAL_3D);
             const ECS::ComponentInfo& spatial3dInfo = ecs.componentTypesArray[ECS::COMPONENT_TYPE_SPATIAL_3D];
             Vector3f position = ECS::getField_Vector3f(spatial3d, spatial3dInfo, ECS::Spatial3d::FIELD_INDEX_POSITION);
-            // Vector3f rotation = ECS::getField_Vector3f(spatial3d, spatial3dInfo, ECS::Spatial3d::FIELD_INDEX_ROTATION);
+            Vector3f rotation = ECS::getField_Vector3f(spatial3d, spatial3dInfo, ECS::Spatial3d::FIELD_INDEX_ROTATION);
             // f32 scale = ECS::getField_f32(spatial3d, spatial3dInfo, ECS::Spatial3d::FIELD_INDEX_SCALE);
 
-            glm::f32mat4 modelMatrix = glm::translate(glm::f32mat4(1.0f), {position.x, position.y, position.z});
+            Matrix4f modelMatrix{};
+            MathUtils::setIdentity(modelMatrix);
+            MathUtils::rotateMatrix(modelMatrix, rotation.x, {1.0f, 0, 0}, modelMatrix);
+            MathUtils::rotateMatrix(modelMatrix, rotation.y, {0, 1.0f, 0}, modelMatrix);
+            MathUtils::rotateMatrix(modelMatrix, rotation.z, {0, 0, 1.0f}, modelMatrix);
+            MathUtils::translateMatrix(modelMatrix, position, modelMatrix);
             setUniform(shaderAsset, Asset::ShaderUniform::MODEL_MATRIX, modelMatrix);
             setUniform(shaderAsset, Asset::ShaderUniform::TEXTURE_ATLAS_OFFSET, calcTextureAtlasOffset(texture->atlasSize, 0));
 

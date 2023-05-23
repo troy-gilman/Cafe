@@ -211,6 +211,11 @@ void Render::setUniform(Asset::ShaderAsset* shaderAsset, Asset::ShaderUniform un
     glUniform3fv((i32) uniformLocation, count, (f32*) values);
 }
 
+void Render::setUniform(Asset::ShaderAsset* shaderAsset, Asset::ShaderUniform uniform, Matrix4f value) {
+    ui32 uniformLocation = shaderAsset->uniformLocations[uniform];
+    glUniformMatrix4fv((i32) uniformLocation, 1, GL_FALSE, (f32*) &value);
+}
+
 void Render::setUniform(Asset::ShaderAsset* shaderAsset, Asset::ShaderUniform uniform, glm::f32mat4 value) {
     ui32 uniformLocation = shaderAsset->uniformLocations[uniform];
     glUniformMatrix4fv((i32) uniformLocation, 1, GL_FALSE, &value[0][0]);
