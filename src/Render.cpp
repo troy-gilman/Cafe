@@ -57,8 +57,10 @@ void GLAPIENTRY MessageCallback(GLenum source, GLenum type, GLuint id, GLenum se
 }
 
 void Render::windowResizedCallback(GLFWwindow* window, i32 w, i32 h) {
-    _windowWidth = w*2;
-    _windowHeight = h*2;
+//    _windowWidth = w*2; // macOS Retina
+//    _windowHeight = h*2; // macOS Retina
+    _windowWidth = w;
+    _windowHeight = h;
     _windowResized = true;
 }
 
