@@ -49,6 +49,10 @@ i32 ECS::addFieldToComponentInfo_CharBuffer(ComponentInfo& componentInfo, const 
     return addFieldToComponentInfo(componentInfo, fieldName, FIELD_TYPE_CHAR_BUFFER, numChars * (i32) sizeof(char));
 }
 
+i32 ECS::addFieldToComponentInfo_Matrix4f(ComponentInfo& componentInfo, const char* fieldName) {
+    return addFieldToComponentInfo(componentInfo, fieldName, FIELD_TYPE_MATRIX4F, sizeof(Matrix4f));
+}
+
 f32 ECS::getField_f32(const Component& component, const ComponentInfo& componentInfo, i32 fieldIndex) {
     i32 byteOffset = componentInfo.fieldOffsetBytes[fieldIndex];
     return *(f32*)(component.data + byteOffset);
@@ -110,6 +114,16 @@ void ECS::setField_CharBuffer(Component& component, const ComponentInfo& compone
     StringUtils::copyStringToBuffer((char*)(component.data + byteOffset), value, numChars);
 }
 
+Matrix4f ECS::getField_Matrix4f(const Component& component, const ComponentInfo& componentInfo, i32 fieldIndex) {
+    i32 byteOffset = componentInfo.fieldOffsetBytes[fieldIndex];
+    return *(Matrix4f*)(component.data + byteOffset);
+}
+
+void ECS::setField_Matrix4f(Component& component, const ComponentInfo& componentInfo, i32 fieldIndex, Matrix4f value) {
+    i32 byteOffset = componentInfo.fieldOffsetBytes[fieldIndex];
+    *(Matrix4f*)(component.data + byteOffset) = value;
+}
+
 void ECS::initEntityComponentSystem(EntityComponentSystem& ecs) {
     // Delete old data
     delete ecs.entityExistsArray;
@@ -157,6 +171,8 @@ void ECS::initEntityComponentSystem(EntityComponentSystem& ecs) {
         addFieldToComponentInfo_Vector3f(componentInfo, "Position");
         addFieldToComponentInfo_Vector3f(componentInfo, "Rotation");
         addFieldToComponentInfo_f32(componentInfo, "Scale");
+        addFieldToComponentInfo_Boolean(componentInfo, "UpdateModelMatrix");
+        addFieldToComponentInfo_Matrix4f(componentInfo, "ModelMatrix");
     }
     {   // Controller1p
         ComponentInfo& componentInfo = ecs.componentTypesArray[COMPONENT_TYPE_CONTROLLER_1P];
@@ -255,6 +271,7 @@ bool ECS::addSpatial3dComponentToEntity(EntityComponentSystem& ecs, UUID entityI
     setField_Vector3f(component, componentInfo, Spatial3d::FIELD_INDEX_POSITION, position);
     setField_Vector3f(component, componentInfo, Spatial3d::FIELD_INDEX_ROTATION, rotation);
     setField_f32(component, componentInfo, Spatial3d::FIELD_INDEX_SCALE, scale);
+    setField_Boolean(component, componentInfo, Spatial3d::FIELD_INDEX_UPDATE_MODEL_MATRIX, true);
     return true;
 }
 

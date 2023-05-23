@@ -23,7 +23,7 @@ void MathUtils::translateMatrix(const Matrix4f& matrix, const Vector3f& translat
     result.data[3][2] = matrix.data[0][2] * translation.x + matrix.data[1][2] * translation.y + matrix.data[2][2] * translation.z + matrix.data[3][2];
 }
 
-void MathUtils::rotateMatrix(const Matrix4f &matrix, const f32 angleDegrees, const Vector3f &axis, Matrix4f& result) {
+void MathUtils::rotateMatrix(const Matrix4f &matrix, f32 angleDegrees, const Vector3f &axis, Matrix4f& result) {
     Matrix4f rotationMatrix;
     setIdentity(rotationMatrix);
 
@@ -58,6 +58,14 @@ void MathUtils::multiplyMatrix(const Matrix4f &left, const Matrix4f &right, Matr
         }
     }
     result = temp;
+}
+
+void MathUtils::createModelMatrix(const Vector3f& position, const Vector3f& rotation, f32 scale, Matrix4f& result) {
+    MathUtils::setIdentity(result);
+    MathUtils::rotateMatrix(result, rotation.x, {1.0f, 0, 0}, result);
+    MathUtils::rotateMatrix(result, rotation.y, {0, 1.0f, 0}, result);
+    MathUtils::rotateMatrix(result, rotation.z, {0, 0, 1.0f}, result);
+    MathUtils::translateMatrix(result, position, result);
 }
 
 void MathUtils::printMatrix(const Matrix4f &matrix) {

@@ -41,6 +41,8 @@ namespace ECS {
         static const i32 FIELD_INDEX_POSITION = 0;
         static const i32 FIELD_INDEX_ROTATION = 1;
         static const i32 FIELD_INDEX_SCALE = 2;
+        static const i32 FIELD_INDEX_UPDATE_MODEL_MATRIX = 3;
+        static const i32 FIELD_INDEX_MODEL_MATRIX = 4;
     }
 
     namespace Controller1p {
@@ -64,6 +66,7 @@ namespace ECS {
         FIELD_TYPE_CHAR_BUFFER,
         FIELD_TYPE_VECTOR2F,
         FIELD_TYPE_VECTOR3F,
+        FIELD_TYPE_MATRIX4F
     };
 
     struct ComponentInfo {
@@ -83,6 +86,7 @@ namespace ECS {
     i32 addFieldToComponentInfo_Vector2f(ComponentInfo& componentInfo, const char* fieldName);
     i32 addFieldToComponentInfo_Vector3f(ComponentInfo& componentInfo, const char* fieldName);
     i32 addFieldToComponentInfo_CharBuffer(ComponentInfo& componentInfo, const char* fieldName, i32 numChars);
+    i32 addFieldToComponentInfo_Matrix4f(ComponentInfo& componentInfo, const char* fieldName);
 
     f32 getField_f32(const Component& component, const ComponentInfo& componentInfo, i32 fieldIndex);
     void setField_f32(Component& component, const ComponentInfo& componentInfo, i32 fieldIndex, f32 value);
@@ -96,6 +100,8 @@ namespace ECS {
     void setField_Vector3f(Component& component, const ComponentInfo& componentInfo, i32 fieldIndex, Vector3f value);
     const char* getField_CharBuffer(const Component& component, const ComponentInfo& componentInfo, i32 fieldIndex);
     void setField_CharBuffer(Component& component, const ComponentInfo& componentInfo, i32 fieldIndex, const char* value);
+    Matrix4f getField_Matrix4f(const Component& component, const ComponentInfo& componentInfo, i32 fieldIndex);
+    void setField_Matrix4f(Component& component, const ComponentInfo& componentInfo, i32 fieldIndex, Matrix4f value);
 
     struct EntityComponentSystem {
         i32 prevEntityId;

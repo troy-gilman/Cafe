@@ -187,18 +187,23 @@ void Render::render(RenderState& renderState, const Asset::AssetPack& assetPack,
         i32 numEntitiesInGroup = entityAssetGroupTable.numEntitiesArray[groupIndex];
         for (size_t entityIt = 0; entityIt < numEntitiesInGroup; entityIt++) {
             UUID entityId = entityAssetGroupTable.groupTable[groupIndex * entityAssetGroupTable.maxEntities + entityIt];
-            const ECS::Component& spatial3d = ECS::getComponent(ecs, entityId, ECS::COMPONENT_TYPE_SPATIAL_3D);
+            ECS::Component& spatial3d = ECS::getComponent(ecs, entityId, ECS::COMPONENT_TYPE_SPATIAL_3D);
             const ECS::ComponentInfo& spatial3dInfo = ecs.componentTypesArray[ECS::COMPONENT_TYPE_SPATIAL_3D];
-            Vector3f position = ECS::getField_Vector3f(spatial3d, spatial3dInfo, ECS::Spatial3d::FIELD_INDEX_POSITION);
-            Vector3f rotation = ECS::getField_Vector3f(spatial3d, spatial3dInfo, ECS::Spatial3d::FIELD_INDEX_ROTATION);
-            // f32 scale = ECS::getField_f32(spatial3d, spatial3dInfo, ECS::Spatial3d::FIELD_INDEX_SCALE);
 
+            // Only compute model matrix if we need to update it
             Matrix4f modelMatrix{};
-            MathUtils::setIdentity(modelMatrix);
-            MathUtils::rotateMatrix(modelMatrix, rotation.x, {1.0f, 0, 0}, modelMatrix);
-            MathUtils::rotateMatrix(modelMatrix, rotation.y, {0, 1.0f, 0}, modelMatrix);
-            MathUtils::rotateMatrix(modelMatrix, rotation.z, {0, 0, 1.0f}, modelMatrix);
-            MathUtils::translateMatrix(modelMatrix, position, modelMatrix);
+            bool updateModelMatrix = ECS::getField_Boolean(spatial3d, spatial3dInfo, ECS::Spatial3d::FIELD_INDEX_UPDATE_MODEL_MATRIX);
+            if (updateModelMatrix) {
+                Vector3f position = ECS::getField_Vector3f(spatial3d, spatial3dInfo,ECS::Spatial3d::FIELD_INDEX_POSITION);
+                Vector3f rotation = ECS::getField_Vector3f(spatial3d, spatial3dInfo,ECS::Spatial3d::FIELD_INDEX_ROTATION);
+                f32 scale = ECS::getField_f32(spatial3d, spatial3dInfo, ECS::Spatial3d::FIELD_INDEX_SCALE);
+                MathUtils::createModelMatrix(position, rotation, scale, modelMatrix);
+                ECS::setField_Matrix4f(spatial3d, spatial3dInfo, ECS::Spatial3d::FIELD_INDEX_MODEL_MATRIX, modelMatrix);
+                ECS::setField_Boolean(spatial3d, spatial3dInfo, ECS::Spatial3d::FIELD_INDEX_UPDATE_MODEL_MATRIX, false);
+            } else {
+                modelMatrix = ECS::getField_Matrix4f(spatial3d, spatial3dInfo, ECS::Spatial3d::FIELD_INDEX_MODEL_MATRIX);
+            }
+
             setUniform(shaderAsset, Asset::ShaderUniform::MODEL_MATRIX, modelMatrix);
             setUniform(shaderAsset, Asset::ShaderUniform::TEXTURE_ATLAS_OFFSET, calcTextureAtlasOffset(texture->atlasSize, 0));
 
