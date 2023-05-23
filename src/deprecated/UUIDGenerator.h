@@ -4,7 +4,7 @@
 #include <random>
 #include <chrono>
 #include <cstdint>
-#include "Types.h"
+#include "../util/Types.h"
 
 class UUIDGenerator {
 private:
@@ -12,9 +12,9 @@ private:
 
     std::random_device rd;
     std::mt19937_64 mt;
-    std::uniform_int_distribution<uint64_t> dist;
+    std::uniform_int_distribution<int32_t> dist;
 
-    UUIDGenerator() : rd(), mt(rd()), dist(1, UINT64_MAX) {
+    UUIDGenerator() : rd(), mt(rd()), dist(1, INT32_MAX) {
         // Constructor with member initialization syntax
     }
 

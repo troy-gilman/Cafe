@@ -1,9 +1,8 @@
 #include "Asset.h"
 #include "../util/StringUtils.h"
-#include "../util/UUIDGenerator.h"
 #include <iostream>
 
-bool Asset::loadShaderAsset(ShaderAsset* asset, const char* vertexFilePath, const char* fragmentFilePath) {
+UUID Asset::loadShaderAsset(AssetPack& assetPack, const char* vertexFilePath, const char* fragmentFilePath) {
     // Load the shader files as strings
     const char* vertexShaderAsString = StringUtils::loadFileAsString(vertexFilePath);
     const char* fragmentShaderAsString = StringUtils::loadFileAsString(fragmentFilePath);
@@ -59,15 +58,10 @@ bool Asset::loadShaderAsset(ShaderAsset* asset, const char* vertexFilePath, cons
         return false;
     }
 
-    // Validate the shader program and check if it is valid
-    glValidateProgram(programId);
-    i32 programValidateStatus;
-    glGetProgramiv(programId, GL_VALIDATE_STATUS, &programValidateStatus);
-    if (programValidateStatus == GL_FALSE) {
-        std::cout << "Failed to validate shader program\n";
-        return false;
-    }
+    //  Create the shader asset
+    ShaderAsset* asset = new ShaderAsset();
 
+    // Set the shader uniform locations
     for (ShaderUniform uniform = (ShaderUniform) 0; uniform < shaderUniformNames.size(); uniform = (ShaderUniform)(uniform + 1)) {
         const char* uniformName = shaderUniformNames[uniform];
         int uniformLocation = glGetUniformLocation(programId, uniformName);
@@ -75,12 +69,17 @@ bool Asset::loadShaderAsset(ShaderAsset* asset, const char* vertexFilePath, cons
     }
 
     // Set the shader asset properties
-    asset->assetId = UUIDGenerator::getInstance()->generateUUID();
-    StringUtils::copyStringToBuffer(vertexFilePath, asset->vertexFilePath, CHAR_BUFFER_SIZE);
-    StringUtils::copyStringToBuffer(fragmentFilePath, asset->fragmentFilePath, CHAR_BUFFER_SIZE);
+    StringUtils::copyStringToBuffer(asset->vertexFilePath, vertexFilePath, CHAR_BUFFER_SIZE);
+    StringUtils::copyStringToBuffer(asset->fragmentFilePath, fragmentFilePath, CHAR_BUFFER_SIZE);
     asset->programId = programId;
     asset->vertexShaderId = vertexShaderId;
     asset->fragmentShaderId = fragmentShaderId;
 
-    return true;
+    // Add the shader asset to the asset pack
+    UUID assetId = assetPack.nextShaderAssetId;
+    asset->assetId = assetId;
+    assetPack.shaderAssets[assetId] = asset;
+    assetPack.numShaderAssets++;
+    assetPack.nextShaderAssetId++;
+    return assetId;
 }

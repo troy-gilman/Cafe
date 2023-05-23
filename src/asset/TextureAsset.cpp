@@ -1,10 +1,9 @@
 #include "Asset.h"
 #include "../util/Image.h"
 #include "../util/StringUtils.h"
-#include "../util/UUIDGenerator.h"
 #include <iostream>
 
-bool Asset::loadTextureAsset(TextureAsset* asset, const char* filePath) {
+UUID Asset::loadTextureAsset(AssetPack& assetPack, const char* filePath) {
     // Load the image
     Image::Image* image = new Image::Image();
 
@@ -57,10 +56,17 @@ bool Asset::loadTextureAsset(TextureAsset* asset, const char* filePath) {
     glBindTexture(GL_TEXTURE_2D, 0);
     delete image;
 
-    // Set the texture asset properties
-    asset->assetId = UUIDGenerator::getInstance()->generateUUID();
-    StringUtils::copyStringToBuffer(filePath, asset->filePath, CHAR_BUFFER_SIZE);
+    // Create the texture asset
+    TextureAsset* asset = new TextureAsset();
+    StringUtils::copyStringToBuffer(asset->filePath, filePath, CHAR_BUFFER_SIZE);
     asset->textureId = textureId;
     asset->atlasSize = 1;
-    return true;
+
+    // Add the texture asset to the asset pack
+    UUID assetId = assetPack.nextTextureAssetId;
+    asset->assetId = assetId;
+    assetPack.textureAssets[assetId] = asset;
+    assetPack.numTextureAssets++;
+    assetPack.nextTextureAssetId++;
+    return assetId;
 }

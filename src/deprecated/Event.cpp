@@ -11,10 +11,8 @@ void Event::resetEvent(Event* event) {
     event->isProcessed = false;
     event->success = false;
 
-    event->dataId = 0;
-    event->dataFloat = 0.0f;
-    event->dataInt = 0;
-    event->dataBool = false;
-    memset(event->dataString, 0, sizeof(event->dataString));
-    event->dataVector3f = { 0.0f, 0.0f, 0.0f};
+    memcpy(&event->field1, nullptr, sizeof(FieldUnion));
+    memcpy(&event->field2, nullptr, sizeof(FieldUnion));
+    memcpy(&event->field3, nullptr, sizeof(FieldUnion));
+    memcpy(&event->field4, nullptr, sizeof(FieldUnion));
 }

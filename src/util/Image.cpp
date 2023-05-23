@@ -54,7 +54,7 @@ bool Image::loadImage(Image* image, const char* filePath) {
     image->width = width;
     image->height = height;
     image->channels = channels;
-    StringUtils::copyStringToBuffer(filePath, image->filePath, CHAR_BUFFER_SIZE);
+    StringUtils::copyStringToBuffer(image->filePath, filePath, CHAR_BUFFER_SIZE);
 
     png_bytep row_pointers[height];
     for (unsigned y = 0; y < height; y++) {

@@ -1,12 +1,68 @@
 #include "Render.h"
 #include <iostream>
-#include "glm/gtc/matrix_transform.hpp"
+#include "util/MathUtils.h"
+#include "util/TimeUtils.h"
+#include <cstring>
+
+void Render::initRenderState(RenderState& renderState) {
+    initWindow(renderState.window);
+    initEntityAssetGroupTable(renderState.entityAssetGroupTable);
+    initLightData(renderState.lightData);
+}
+
+void Render::initEntityAssetGroupTable(EntityAssetGroupTable& entityAssetGroupTable) {
+    // Delete old data
+    delete entityAssetGroupTable.renderOrderArray;
+    delete entityAssetGroupTable.meshIdArray;
+    delete entityAssetGroupTable.materialIdArray;
+    delete entityAssetGroupTable.numEntitiesArray;
+    delete entityAssetGroupTable.groupTable;
+
+    // Initialize new data
+    entityAssetGroupTable.needsUpdate = true;
+    entityAssetGroupTable.numGroups = 0;
+    entityAssetGroupTable.maxGroups = 64;
+    entityAssetGroupTable.maxEntities = 0;
+    entityAssetGroupTable.renderOrderArray = new i32[entityAssetGroupTable.maxGroups];
+    entityAssetGroupTable.meshIdArray = new UUID[entityAssetGroupTable.maxGroups];
+    entityAssetGroupTable.materialIdArray = new UUID[entityAssetGroupTable.maxGroups];
+    entityAssetGroupTable.numEntitiesArray = new i32[entityAssetGroupTable.maxGroups];
+    entityAssetGroupTable.groupTable = nullptr;
+    memset(entityAssetGroupTable.renderOrderArray, 0, sizeof(i32) * entityAssetGroupTable.maxGroups);
+    memset(entityAssetGroupTable.meshIdArray, 0, sizeof(UUID) * entityAssetGroupTable.maxGroups);
+    memset(entityAssetGroupTable.materialIdArray, 0, sizeof(UUID) * entityAssetGroupTable.maxGroups);
+    memset(entityAssetGroupTable.numEntitiesArray, 0, sizeof(i32) * entityAssetGroupTable.maxGroups);
+}
+
+void Render::initLightData(Render::LightData &lightData) {
+    // Delete old data
+    delete lightData.lightPositions;
+    delete lightData.lightColors;
+    delete lightData.lightAttenuations;
+
+    // Initialize new data
+    lightData.needsUpdate = true;
+    lightData.numLights = 0;
+    lightData.maxLights = MAX_NUM_LIGHTS;
+    lightData.lightPositions = new Vector3f[lightData.maxLights];
+    lightData.lightColors = new Vector3f[lightData.maxLights];
+    lightData.lightAttenuations = new Vector3f[lightData.maxLights];
+    memset(lightData.lightPositions, 0, sizeof(Vector3f) * lightData.maxLights);
+    memset(lightData.lightColors, 0, sizeof(Vector3f) * lightData.maxLights);
+    memset(lightData.lightAttenuations, 0, sizeof(Vector3f) * lightData.maxLights);
+}
 
 void GLAPIENTRY MessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
     std::cout << message << "\n";
 }
 
-void Render::initWindow(Window* window) {
+void Render::windowResizedCallback(GLFWwindow* window, i32 w, i32 h) {
+    _windowWidth = w*2;
+    _windowHeight = h*2;
+    _windowResized = true;
+}
+
+void Render::initWindow(Window& window) {
     if (!glfwInit()) {
         return;
     }
@@ -17,7 +73,7 @@ void Render::initWindow(Window* window) {
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 
-    GLFWwindow* glfwWindow = glfwCreateWindow(INIT_WIDTH, INIT_HEIGHT, "GLFW Render", NULL, NULL);
+    GLFWwindow* glfwWindow = glfwCreateWindow(INIT_WIDTH, INIT_HEIGHT, WINDOW_TITLE, NULL, NULL);
     if (!glfwWindow) {
         glfwTerminate();
         return;
@@ -25,7 +81,8 @@ void Render::initWindow(Window* window) {
 
     glfwMakeContextCurrent(glfwWindow);
     glEnable(GL_DEPTH_TEST);
-    glfwSwapInterval(1);
+    glfwSwapInterval(0); // Unlimited FPS
+    //glfwSwapInterval(1); // VSync
 
     if (glewInit() != GLEW_OK) {
         std::cout << "ERROR: Unable to initialize GLEW\n";
@@ -33,22 +90,52 @@ void Render::initWindow(Window* window) {
     }
 
     glEnable(GL_DEBUG_OUTPUT);
-    glDebugMessageCallback(MessageCallback, nullptr);
+    //glDebugMessageCallback(MessageCallback, nullptr); // macOS doesn't support this
+    glfwSetWindowSizeCallback(glfwWindow, windowResizedCallback);
 
-    window->width = INIT_WIDTH;
-    window->height = INIT_HEIGHT;
-    window->glfwWindow = glfwWindow;
-    window->backgroundColor = {0.2f, 0.3f, 0.3f};
-    window->projectionMatrix = glm::perspective(glm::radians(FOV), (f32)INIT_WIDTH / (f32)INIT_HEIGHT, NEAR_PLANE, FAR_PLANE);
+    window.width = INIT_WIDTH;
+    window.height = INIT_HEIGHT;
+    window.resized = false;
+    window.lastFpsUpdateMs = TimeUtils::getCurrentTimeMillis();
+    window.framesSinceLastFpsUpdate = 0;
+    window.glfwWindow = glfwWindow;
+    window.backgroundColor = {0.2f, 0.3f, 0.3f};
+    window.projectionMatrix = MathUtils::createProjectionMatrix(FOV,  NEAR_PLANE, FAR_PLANE, (f32)window.width / (f32)window.height);
 }
 
-void Render::closeWindow(Window* window) {
-    glfwDestroyWindow(window->glfwWindow);
+void Render::updateWindow(Window& window) {
+    window.width = _windowWidth;
+    window.height = _windowHeight;
+    window.resized = _windowResized;
+    if (window.resized) {
+        glViewport(0, 0, window.width, window.height);
+        window.projectionMatrix = MathUtils::createProjectionMatrix(FOV, NEAR_PLANE, FAR_PLANE, (f32)window.width / (f32)window.height);
+        _windowResized = false;
+    }
+
+    std::chrono::milliseconds currentTime = TimeUtils::getCurrentTimeMillis();
+
+    // Update FPS counter
+    window.framesSinceLastFpsUpdate++;
+    if (currentTime >= window.lastFpsUpdateMs + std::chrono::milliseconds(1000)) {
+        std::string title = std::string(WINDOW_TITLE) + " |FPS: " + std::to_string(window.framesSinceLastFpsUpdate) + "|";
+        glfwSetWindowTitle(window.glfwWindow, title.c_str());
+        window.lastFpsUpdateMs = currentTime;
+        window.framesSinceLastFpsUpdate = 0;
+    }
+
+    // Update last frame time
+    window.lastFrameTimeMs = (f32) (currentTime - window.lastWindowUpdateMs).count();
+    window.lastWindowUpdateMs = currentTime;
+}
+
+void Render::closeWindow(const Window& window) {
+    glfwDestroyWindow(window.glfwWindow);
     glfwTerminate();
 }
 
-bool Render::shouldCloseWindow(Window* window) {
-    return glfwWindowShouldClose(window->glfwWindow);
+bool Render::shouldCloseWindow(const Window& window) {
+    return glfwWindowShouldClose(window.glfwWindow);
 }
 
 void Render::enableCulling() {
@@ -122,6 +209,11 @@ void Render::setUniform(Asset::ShaderAsset* shaderAsset, Asset::ShaderUniform un
 void Render::setUniform(Asset::ShaderAsset* shaderAsset, Asset::ShaderUniform uniform, Vector3f* values, i32 count) {
     ui32 uniformLocation = shaderAsset->uniformLocations[uniform];
     glUniform3fv((i32) uniformLocation, count, (f32*) values);
+}
+
+void Render::setUniform(Asset::ShaderAsset* shaderAsset, Asset::ShaderUniform uniform, Matrix4f value) {
+    ui32 uniformLocation = shaderAsset->uniformLocations[uniform];
+    glUniformMatrix4fv((i32) uniformLocation, 1, GL_FALSE, (f32*) &value);
 }
 
 void Render::setUniform(Asset::ShaderAsset* shaderAsset, Asset::ShaderUniform uniform, glm::f32mat4 value) {
