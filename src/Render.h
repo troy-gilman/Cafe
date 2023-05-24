@@ -15,7 +15,7 @@ namespace Render {
     static const i32 INIT_HEIGHT = 540;
     static const f32 FOV = 70.0f;
     static const f32 NEAR_PLANE = 0.1f;
-    static const f32 FAR_PLANE = 1000.0f;
+    static const f32 FAR_PLANE = 300.0f;
     static const char* WINDOW_TITLE = "Cafe";
 
     // GLOBALS
@@ -40,10 +40,8 @@ namespace Render {
     };
 
     struct EntityAssetGroupTable {
-        bool needsUpdate;
         i32 numGroups;
         i32 maxGroups;
-        bool* entityIsVisible;
         i32 maxEntities;
         i32* renderOrderArray;
         UUID* meshIdArray;

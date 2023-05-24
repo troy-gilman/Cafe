@@ -24,19 +24,14 @@ void Render::prepareRenderState(RenderState& renderState, const ECS::EntityCompo
         lightData.numLights = 0;
     }
 
-    if (entityAssetGroupTable.needsUpdate) {
-        // Reset EntityAssetGroupTable
-        entityAssetGroupTable.numGroups = 0;
-        memset(entityAssetGroupTable.numEntitiesArray, 0, sizeof(i32) * entityAssetGroupTable.maxGroups);
-        if (entityAssetGroupTable.maxEntities != ecs.maxEntities) {
-            entityAssetGroupTable.maxEntities = ecs.maxEntities;
-            delete entityAssetGroupTable.groupTable;
-            delete entityAssetGroupTable.entityIsVisible;
-            entityAssetGroupTable.groupTable = new UUID[entityAssetGroupTable.maxGroups * ecs.maxEntities];
-            entityAssetGroupTable.entityIsVisible = new bool[ecs.maxEntities];
-        }
+    // Reset EntityAssetGroupTable
+    entityAssetGroupTable.numGroups = 0;
+    memset(entityAssetGroupTable.numEntitiesArray, 0, sizeof(i32) * entityAssetGroupTable.maxGroups);
+    if (entityAssetGroupTable.maxEntities != ecs.maxEntities) {
+        entityAssetGroupTable.maxEntities = ecs.maxEntities;
+        delete entityAssetGroupTable.groupTable;
+        entityAssetGroupTable.groupTable = new UUID[entityAssetGroupTable.maxGroups * ecs.maxEntities];
     }
-    memset(entityAssetGroupTable.entityIsVisible, 0, sizeof(bool) * entityAssetGroupTable.maxEntities);
 
     // Iterate through all entities
     for (i32 entityId = 0; entityId < ecs.maxEntities; entityId++) {
@@ -46,14 +41,6 @@ void Render::prepareRenderState(RenderState& renderState, const ECS::EntityCompo
         bool hasSpatial3d     = ECS::isComponentActive(ecs, entityId, ECS::COMPONENT_TYPE_SPATIAL_3D);
         bool hasCamera        = ECS::isComponentActive(ecs, entityId, ECS::COMPONENT_TYPE_CAMERA);
         bool hasLight         = ECS::isComponentActive(ecs, entityId, ECS::COMPONENT_TYPE_LIGHT);
-
-        if (hasSpatial3d) {
-            const ECS::Component &spatial3d = ECS::getComponent(ecs, entityId, ECS::COMPONENT_TYPE_SPATIAL_3D);
-            const ECS::ComponentInfo &spatial3dInfo = ecs.componentTypesArray[ECS::COMPONENT_TYPE_SPATIAL_3D];
-            Vector3f position = ECS::getField_Vector3f(spatial3d, spatial3dInfo,ECS::Spatial3d::FIELD_INDEX_POSITION);
-            bool inFrustum = MathUtils::isPointInFrustum(cameraFrustum, position);
-            entityAssetGroupTable.entityIsVisible[entityId] = inFrustum;
-        }
 
         if (lightData.needsUpdate) {
             // Add this entity to the light data
@@ -72,53 +59,56 @@ void Render::prepareRenderState(RenderState& renderState, const ECS::EntityCompo
             }
         }
 
-        if (entityAssetGroupTable.needsUpdate) {
-            // Add this entity to the entity asset group table
-            if (hasRenderable3d && hasSpatial3d) {
-                const ECS::Component &renderable3d = ECS::getComponent(ecs, entityId, ECS::COMPONENT_TYPE_RENDERABLE_3D);
-                const ECS::ComponentInfo &renderable3dInfo = ecs.componentTypesArray[ECS::COMPONENT_TYPE_RENDERABLE_3D];
-                UUID meshId = ECS::getField_i32(renderable3d, renderable3dInfo, ECS::Renderable3d::FIELD_INDEX_MESH_ASSET_ID);
-                UUID materialId = ECS::getField_i32(renderable3d, renderable3dInfo, ECS::Renderable3d::FIELD_INDEX_MATERIAL_ASSET_ID);
-                if (meshId != -1 && materialId != -1) {
-                    // Find the asset group for this mesh and material
-                    i32 tableIndex = 0;
-                    while (tableIndex < entityAssetGroupTable.numGroups) {
-                        UUID assetGroupMeshId = entityAssetGroupTable.meshIdArray[tableIndex];
-                        UUID assetGroupMaterialId = entityAssetGroupTable.meshIdArray[tableIndex];
-                        if (assetGroupMeshId == meshId && assetGroupMaterialId == materialId) break;
-                        tableIndex++;
-                    }
+        // Add this entity to the entity asset group table
+        if (hasRenderable3d && hasSpatial3d) {
+            const ECS::Component &spatial3d = ECS::getComponent(ecs, entityId, ECS::COMPONENT_TYPE_SPATIAL_3D);
+            const ECS::ComponentInfo &spatial3dInfo = ecs.componentTypesArray[ECS::COMPONENT_TYPE_SPATIAL_3D];
+            Vector3f position = ECS::getField_Vector3f(spatial3d, spatial3dInfo,ECS::Spatial3d::FIELD_INDEX_POSITION);
+            if (!MathUtils::isPointInFrustum(cameraFrustum, position)) continue;
 
-                    // If no asset group exists for this mesh and material, create one
-                    // We have to find the correct place to insert it in the render order
-                    i32 numEntries = entityAssetGroupTable.numEntitiesArray[tableIndex];
-                    if (numEntries == 0) {
-                        i32 numGroups = entityAssetGroupTable.numGroups;
-                        i32 orderIndex = 0;
-                        while (orderIndex < numGroups) {
-                            i32 groupIndex = entityAssetGroupTable.renderOrderArray[orderIndex];
-                            UUID assetGroupMeshId = entityAssetGroupTable.meshIdArray[groupIndex];
-                            if (assetGroupMeshId == meshId) {
-                                ArrayUtils::shiftArrayRight(entityAssetGroupTable.renderOrderArray, numGroups, orderIndex);
-                                break;
-                            }
-                            orderIndex++;
-                        }
-                        entityAssetGroupTable.renderOrderArray[orderIndex] = tableIndex;
-                        entityAssetGroupTable.meshIdArray[tableIndex] = meshId;
-                        entityAssetGroupTable.materialIdArray[tableIndex] = materialId;
-                        entityAssetGroupTable.numGroups++;
-                    }
-
-                    // Add this entity to the asset group
-                    entityAssetGroupTable.groupTable[tableIndex * entityAssetGroupTable.maxEntities + numEntries] = entityId;
-                    entityAssetGroupTable.numEntitiesArray[tableIndex]++;
+            const ECS::Component &renderable3d = ECS::getComponent(ecs, entityId, ECS::COMPONENT_TYPE_RENDERABLE_3D);
+            const ECS::ComponentInfo &renderable3dInfo = ecs.componentTypesArray[ECS::COMPONENT_TYPE_RENDERABLE_3D];
+            UUID meshId = ECS::getField_i32(renderable3d, renderable3dInfo, ECS::Renderable3d::FIELD_INDEX_MESH_ASSET_ID);
+            UUID materialId = ECS::getField_i32(renderable3d, renderable3dInfo, ECS::Renderable3d::FIELD_INDEX_MATERIAL_ASSET_ID);
+            if (meshId != -1 && materialId != -1) {
+                // Find the asset group for this mesh and material
+                i32 tableIndex = 0;
+                while (tableIndex < entityAssetGroupTable.numGroups) {
+                    UUID assetGroupMeshId = entityAssetGroupTable.meshIdArray[tableIndex];
+                    UUID assetGroupMaterialId = entityAssetGroupTable.meshIdArray[tableIndex];
+                    if (assetGroupMeshId == meshId && assetGroupMaterialId == materialId) break;
+                    tableIndex++;
                 }
+
+                // If no asset group exists for this mesh and material, create one
+                // We have to find the correct place to insert it in the render order
+                i32 numEntries = entityAssetGroupTable.numEntitiesArray[tableIndex];
+                if (numEntries == 0) {
+                    i32 numGroups = entityAssetGroupTable.numGroups;
+                    i32 orderIndex = 0;
+                    while (orderIndex < numGroups) {
+                        i32 groupIndex = entityAssetGroupTable.renderOrderArray[orderIndex];
+                        UUID assetGroupMeshId = entityAssetGroupTable.meshIdArray[groupIndex];
+                        if (assetGroupMeshId == meshId) {
+                            ArrayUtils::shiftArrayRight(entityAssetGroupTable.renderOrderArray, numGroups, orderIndex);
+                            break;
+                        }
+                        orderIndex++;
+                    }
+                    entityAssetGroupTable.renderOrderArray[orderIndex] = tableIndex;
+                    entityAssetGroupTable.meshIdArray[tableIndex] = meshId;
+                    entityAssetGroupTable.materialIdArray[tableIndex] = materialId;
+                    entityAssetGroupTable.numGroups++;
+                }
+
+                // Add this entity to the asset group
+                entityAssetGroupTable.groupTable[tableIndex * entityAssetGroupTable.maxEntities + numEntries] = entityId;
+                entityAssetGroupTable.numEntitiesArray[tableIndex]++;
             }
         }
     }
+
     lightData.needsUpdate = false;
-    //entityAssetGroupTable.needsUpdate = false;
 }
 
 void Render::render(RenderState& renderState, const Asset::AssetPack& assetPack, const ECS::EntityComponentSystem& ecs) {
@@ -198,7 +188,6 @@ void Render::render(RenderState& renderState, const Asset::AssetPack& assetPack,
         i32 numEntitiesInGroup = entityAssetGroupTable.numEntitiesArray[groupIndex];
         for (size_t entityIt = 0; entityIt < numEntitiesInGroup; entityIt++) {
             UUID entityId = entityAssetGroupTable.groupTable[groupIndex * entityAssetGroupTable.maxEntities + entityIt];
-            if (!entityAssetGroupTable.entityIsVisible[entityId]) continue;
 
             ECS::Component& spatial3d = ECS::getComponent(ecs, entityId, ECS::COMPONENT_TYPE_SPATIAL_3D);
             const ECS::ComponentInfo& spatial3dInfo = ecs.componentTypesArray[ECS::COMPONENT_TYPE_SPATIAL_3D];

@@ -19,7 +19,6 @@ void Render::initEntityAssetGroupTable(EntityAssetGroupTable& entityAssetGroupTa
     delete entityAssetGroupTable.groupTable;
 
     // Initialize new data
-    entityAssetGroupTable.needsUpdate = true;
     entityAssetGroupTable.numGroups = 0;
     entityAssetGroupTable.maxGroups = 64;
     entityAssetGroupTable.maxEntities = 0;
