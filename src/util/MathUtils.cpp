@@ -8,6 +8,77 @@ glm::f32mat4 MathUtils::createProjectionMatrix(f32 fov, f32 nearPlane, f32 farPl
     return glm::perspective(glm::radians(fov), aspectRatio, nearPlane, farPlane);
 }
 
+void MathUtils::normalize(Vector3f &vector) {
+    const f32 length = sqrtf(vector.x * vector.x + vector.y * vector.y + vector.z * vector.z);
+    vector.x /= length;
+    vector.y /= length;
+    vector.z /= length;
+}
+
+void MathUtils::createCameraFrustum(const Matrix4f& view, const Matrix4f& projection, Frustum& result) {
+    Matrix4f viewProjection{};
+    multiplyMatrix(view, projection, viewProjection);
+
+    result.leftPlane.normal.x = viewProjection.data[0][3] + viewProjection.data[0][0];
+    result.leftPlane.normal.y = viewProjection.data[1][3] + viewProjection.data[1][0];
+    result.leftPlane.normal.z = viewProjection.data[2][3] + viewProjection.data[2][0];
+    result.leftPlane.distance = viewProjection.data[3][3] + viewProjection.data[3][0];
+
+    result.rightPlane.normal.x = viewProjection.data[0][3] - viewProjection.data[0][0];
+    result.rightPlane.normal.y = viewProjection.data[1][3] - viewProjection.data[1][0];
+    result.rightPlane.normal.z = viewProjection.data[2][3] - viewProjection.data[2][0];
+    result.rightPlane.distance = viewProjection.data[3][3] - viewProjection.data[3][0];
+
+    result.bottomPlane.normal.x = viewProjection.data[0][3] + viewProjection.data[0][1];
+    result.bottomPlane.normal.y = viewProjection.data[1][3] + viewProjection.data[1][1];
+    result.bottomPlane.normal.z = viewProjection.data[2][3] + viewProjection.data[2][1];
+    result.bottomPlane.distance = viewProjection.data[3][3] + viewProjection.data[3][1];
+
+    result.topPlane.normal.x = viewProjection.data[0][3] - viewProjection.data[0][1];
+    result.topPlane.normal.y = viewProjection.data[1][3] - viewProjection.data[1][1];
+    result.topPlane.normal.z = viewProjection.data[2][3] - viewProjection.data[2][1];
+    result.topPlane.distance = viewProjection.data[3][3] - viewProjection.data[3][1];
+
+    result.nearPlane.normal.x = viewProjection.data[0][2];
+    result.nearPlane.normal.y = viewProjection.data[1][2];
+    result.nearPlane.normal.z = viewProjection.data[2][2];
+    result.nearPlane.distance = viewProjection.data[3][2];
+
+    result.farPlane.normal.x = viewProjection.data[0][3] - viewProjection.data[0][2];
+    result.farPlane.normal.y = viewProjection.data[1][3] - viewProjection.data[1][2];
+    result.farPlane.normal.z = viewProjection.data[2][3] - viewProjection.data[2][2];
+    result.farPlane.distance = viewProjection.data[3][3] - viewProjection.data[3][2];
+
+    // Normalize the plane coefficients
+    normalizePlane(result.leftPlane);
+    normalizePlane(result.rightPlane);
+    normalizePlane(result.bottomPlane);
+    normalizePlane(result.topPlane);
+    normalizePlane(result.nearPlane);
+    normalizePlane(result.farPlane);
+}
+
+void MathUtils::normalizePlane(Plane& plane) {
+    const f32 length = sqrtf(plane.normal.x * plane.normal.x + plane.normal.y * plane.normal.y + plane.normal.z * plane.normal.z);
+    plane.normal.x /= length;
+    plane.normal.y /= length;
+    plane.normal.z /= length;
+    plane.distance /= length;
+}
+
+f32 MathUtils::distanceToPlane(const Plane& plane, const Vector3f& point) {
+    return plane.normal.x * point.x + plane.normal.y * point.y + plane.normal.z * point.z + plane.distance;
+}
+
+bool MathUtils::isPointInFrustum(const Frustum& frustum, const Vector3f& point) {
+    return distanceToPlane(frustum.leftPlane, point) > 0.0f &&
+           distanceToPlane(frustum.rightPlane, point) > 0.0f &&
+           distanceToPlane(frustum.bottomPlane, point) > 0.0f &&
+           distanceToPlane(frustum.topPlane, point) > 0.0f &&
+           distanceToPlane(frustum.nearPlane, point) > 0.0f &&
+           distanceToPlane(frustum.farPlane, point) > 0.0f;
+}
+
 void MathUtils::setIdentity(Matrix4f& matrix) {
     memset(matrix.data, 0, sizeof(matrix.data));
     matrix.data[0][0] = 1.0f;
@@ -87,5 +158,13 @@ void MathUtils::printMatrix(const glm::f32mat4& matrix) {
             std::cout << matrix[i][j] << " ";
         }
         std::cout << "]" << std::endl;
+    }
+}
+
+void MathUtils::glmToMatrix4f(const glm::f32mat4 &glmMatrix, Matrix4f &result) {
+    for (ui32 i = 0; i < 4; i++) {
+        for (ui32 j = 0; j < 4; j++) {
+            result.data[i][j] = glmMatrix[i][j];
+        }
     }
 }

@@ -43,6 +43,7 @@ namespace Render {
         bool needsUpdate;
         i32 numGroups;
         i32 maxGroups;
+        bool* entityIsVisible;
         i32 maxEntities;
         i32* renderOrderArray;
         UUID* meshIdArray;
@@ -71,7 +72,7 @@ namespace Render {
     void initRenderState(RenderState& renderState);
     void initEntityAssetGroupTable(EntityAssetGroupTable& entityAssetGroupTable);
     void initLightData(LightData& lightData);
-    void prepareRenderState(RenderState& renderState, const ECS::EntityComponentSystem& ecs);
+    void prepareRenderState(RenderState& renderState, const ECS::EntityComponentSystem& ecs, const Frustum& cameraFrustum);
     void render(RenderState& renderState, const Asset::AssetPack& assetPack, const ECS::EntityComponentSystem& ecs);
 
     void initWindow(Window& window);
