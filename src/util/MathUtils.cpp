@@ -79,6 +79,15 @@ bool MathUtils::isPointInFrustum(const Frustum& frustum, const Vector3f& point) 
            distanceToPlane(frustum.farPlane, point) > 0.0f;
 }
 
+bool MathUtils::isSphereInFrustum(const Frustum& frustum, const Vector3f& center, f32 radius) {
+    return MathUtils::distanceToPlane(frustum.leftPlane, center) >= -radius &&
+            MathUtils::distanceToPlane(frustum.rightPlane, center) >= -radius &&
+            MathUtils::distanceToPlane(frustum.bottomPlane, center) >= -radius &&
+            MathUtils::distanceToPlane(frustum.topPlane, center) >= -radius &&
+            MathUtils::distanceToPlane(frustum.nearPlane, center) >= -radius &&
+            MathUtils::distanceToPlane(frustum.farPlane, center) >= -radius;
+}
+
 void MathUtils::setIdentity(Matrix4f& matrix) {
     memset(matrix.data, 0, sizeof(matrix.data));
     matrix.data[0][0] = 1.0f;

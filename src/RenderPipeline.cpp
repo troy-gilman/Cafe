@@ -64,7 +64,7 @@ void Render::prepareRenderState(RenderState& renderState, const ECS::EntityCompo
             const ECS::Component &spatial3d = ECS::getComponent(ecs, entityId, ECS::COMPONENT_TYPE_SPATIAL_3D);
             const ECS::ComponentInfo &spatial3dInfo = ecs.componentTypesArray[ECS::COMPONENT_TYPE_SPATIAL_3D];
             Vector3f position = ECS::getField_Vector3f(spatial3d, spatial3dInfo,ECS::Spatial3d::FIELD_INDEX_POSITION);
-            if (!MathUtils::isPointInFrustum(cameraFrustum, position)) continue;
+            if (!MathUtils::isSphereInFrustum(cameraFrustum, position, 5.0f)) continue;
 
             const ECS::Component &renderable3d = ECS::getComponent(ecs, entityId, ECS::COMPONENT_TYPE_RENDERABLE_3D);
             const ECS::ComponentInfo &renderable3dInfo = ecs.componentTypesArray[ECS::COMPONENT_TYPE_RENDERABLE_3D];

@@ -8,6 +8,7 @@ namespace MathUtils {
     void normalizePlane(Plane& plane);
     f32 distanceToPlane(const Plane& plane, const Vector3f& point);
     bool isPointInFrustum(const Frustum& frustum, const Vector3f& point);
+    bool isSphereInFrustum(const Frustum& frustum, const Vector3f& center, f32 radius);
     void setIdentity(Matrix4f& matrix);
     void translateMatrix(const Matrix4f& matrix, const Vector3f& translation, Matrix4f& result);
     void rotateMatrix(const Matrix4f &matrix, f32 angleDegrees, const Vector3f &axis, Matrix4f& result);
