@@ -7,7 +7,20 @@
 void Render::initRenderState(RenderState& renderState) {
     initWindow(renderState.window);
     initEntityAssetGroupTable(renderState.entityAssetGroupTable);
+    initModelTransformCache(renderState.modelTransformCache, ECS::MAX_ENTITIES);
     initLightData(renderState.lightData);
+}
+
+void Render::initModelTransformCache(ModelTransformCache& modelTransformCache, i32 maxEntities) {
+    delete modelTransformCache.needsUpdate;
+    delete modelTransformCache.modelTransforms;
+
+    modelTransformCache.maxEntities = maxEntities;
+    modelTransformCache.needsUpdate = new bool[maxEntities];
+    modelTransformCache.modelTransforms = new Matrix4f[maxEntities];
+
+    memset(modelTransformCache.needsUpdate, 1, sizeof(bool) * maxEntities);
+    memset(modelTransformCache.modelTransforms, 0, sizeof(Matrix4f) * maxEntities);
 }
 
 void Render::initEntityAssetGroupTable(EntityAssetGroupTable& entityAssetGroupTable) {
@@ -91,7 +104,7 @@ void Render::initWindow(Window& window) {
     }
 
     glEnable(GL_DEBUG_OUTPUT);
-    //glDebugMessageCallback(MessageCallback, nullptr); // macOS doesn't support this
+    glDebugMessageCallback(MessageCallback, nullptr); // macOS doesn't support this
     glfwSetWindowSizeCallback(glfwWindow, windowResizedCallback);
 
     window.width = INIT_WIDTH;

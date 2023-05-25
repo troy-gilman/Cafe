@@ -4,6 +4,7 @@
 namespace MathUtils {
     glm::f32mat4 createProjectionMatrix(f32 fov, f32 nearPlane, f32 farPlane, f32 aspectRatio);
     void normalize(Vector3f& vector);
+    void transformPoint(const Vector3f& point, const Matrix4f& matrix, Vector3f& result);
     void createCameraFrustum(const Matrix4f& view, const Matrix4f& projection, Frustum& result);
     void normalizePlane(Plane& plane);
     f32 distanceToPlane(const Plane& plane, const Vector3f& point);

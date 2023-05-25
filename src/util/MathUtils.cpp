@@ -15,6 +15,12 @@ void MathUtils::normalize(Vector3f &vector) {
     vector.z /= length;
 }
 
+void MathUtils::transformPoint(const Vector3f& point, const Matrix4f& matrix, Vector3f& result) {
+    result.x = point.x * matrix.data[0][0] + point.y * matrix.data[1][0] + point.z * matrix.data[2][0] + matrix.data[3][0];
+    result.y = point.x * matrix.data[0][1] + point.y * matrix.data[1][1] + point.z * matrix.data[2][1] + matrix.data[3][1];
+    result.z = point.x * matrix.data[0][2] + point.y * matrix.data[1][2] + point.z * matrix.data[2][2] + matrix.data[3][2];
+}
+
 void MathUtils::createCameraFrustum(const Matrix4f& view, const Matrix4f& projection, Frustum& result) {
     Matrix4f viewProjection{};
     multiplyMatrix(view, projection, viewProjection);

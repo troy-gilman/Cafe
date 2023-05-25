@@ -41,8 +41,6 @@ namespace ECS {
         static const i32 FIELD_INDEX_POSITION = 0;
         static const i32 FIELD_INDEX_ROTATION = 1;
         static const i32 FIELD_INDEX_SCALE = 2;
-        static const i32 FIELD_INDEX_UPDATE_MODEL_MATRIX = 3;
-        static const i32 FIELD_INDEX_MODEL_MATRIX = 4;
     }
 
     namespace Controller1p {

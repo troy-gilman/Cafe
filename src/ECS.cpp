@@ -171,8 +171,6 @@ void ECS::initEntityComponentSystem(EntityComponentSystem& ecs) {
         addFieldToComponentInfo_Vector3f(componentInfo, "Position");
         addFieldToComponentInfo_Vector3f(componentInfo, "Rotation");
         addFieldToComponentInfo_f32(componentInfo, "Scale");
-        addFieldToComponentInfo_Boolean(componentInfo, "UpdateModelMatrix");
-        addFieldToComponentInfo_Matrix4f(componentInfo, "ModelMatrix");
     }
     {   // Controller1p
         ComponentInfo& componentInfo = ecs.componentTypesArray[COMPONENT_TYPE_CONTROLLER_1P];
@@ -271,7 +269,6 @@ bool ECS::addSpatial3dComponentToEntity(EntityComponentSystem& ecs, UUID entityI
     setField_Vector3f(component, componentInfo, Spatial3d::FIELD_INDEX_POSITION, position);
     setField_Vector3f(component, componentInfo, Spatial3d::FIELD_INDEX_ROTATION, rotation);
     setField_f32(component, componentInfo, Spatial3d::FIELD_INDEX_SCALE, scale);
-    setField_Boolean(component, componentInfo, Spatial3d::FIELD_INDEX_UPDATE_MODEL_MATRIX, true);
     return true;
 }
 

@@ -50,6 +50,12 @@ namespace Render {
         UUID* groupTable;
     };
 
+    struct ModelTransformCache {
+        i32 maxEntities;
+        bool* needsUpdate;
+        Matrix4f* modelTransforms;
+    };
+
     static const i32 MAX_NUM_LIGHTS = 4;
 
     struct LightData {
@@ -64,13 +70,15 @@ namespace Render {
     struct RenderState {
         Window window;
         EntityAssetGroupTable entityAssetGroupTable;
+        ModelTransformCache modelTransformCache;
         LightData lightData;
     };
 
     void initRenderState(RenderState& renderState);
     void initEntityAssetGroupTable(EntityAssetGroupTable& entityAssetGroupTable);
+    void initModelTransformCache(ModelTransformCache& modelTransformCache, i32 maxEntities);
     void initLightData(LightData& lightData);
-    void prepareRenderState(RenderState& renderState, const ECS::EntityComponentSystem& ecs, const Frustum& cameraFrustum);
+    void prepareRenderState(RenderState& renderState, const ECS::EntityComponentSystem& ecs, const Asset::AssetPack& assetPack, const Frustum& cameraFrustum);
     void render(RenderState& renderState, const Asset::AssetPack& assetPack, const ECS::EntityComponentSystem& ecs);
 
     void initWindow(Window& window);

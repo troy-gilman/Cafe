@@ -14,10 +14,15 @@ Vector2f calcTextureAtlasOffset(ui32 atlasSize, ui32 index) {
     return {(f32) x / (f32) atlasSize, (f32) y / (f32) atlasSize};
 }
 
-void Render::prepareRenderState(RenderState& renderState, const ECS::EntityComponentSystem& ecs, const Frustum& cameraFrustum) {
+void Render::prepareRenderState(
+        RenderState& renderState,
+        const ECS::EntityComponentSystem& ecs,
+        const Asset::AssetPack& assetPack,
+        const Frustum& cameraFrustum) {
+
     LightData& lightData = renderState.lightData;
     EntityAssetGroupTable& entityAssetGroupTable = renderState.entityAssetGroupTable;
-
+    ModelTransformCache& modelTransformCache = renderState.modelTransformCache;
 
     if (lightData.needsUpdate) {
         // Reset LightData
@@ -31,6 +36,11 @@ void Render::prepareRenderState(RenderState& renderState, const ECS::EntityCompo
         entityAssetGroupTable.maxEntities = ecs.maxEntities;
         delete entityAssetGroupTable.groupTable;
         entityAssetGroupTable.groupTable = new UUID[entityAssetGroupTable.maxGroups * ecs.maxEntities];
+    }
+
+    // Initialize ModelTransformCache if necessary
+    if (modelTransformCache.maxEntities != ecs.maxEntities) {
+        initModelTransformCache(modelTransformCache, ecs.maxEntities);
     }
 
     // Iterate through all entities
@@ -65,6 +75,19 @@ void Render::prepareRenderState(RenderState& renderState, const ECS::EntityCompo
             const ECS::ComponentInfo &spatial3dInfo = ecs.componentTypesArray[ECS::COMPONENT_TYPE_SPATIAL_3D];
             Vector3f position = ECS::getField_Vector3f(spatial3d, spatial3dInfo,ECS::Spatial3d::FIELD_INDEX_POSITION);
             if (!MathUtils::isSphereInFrustum(cameraFrustum, position, 5.0f)) continue;
+
+            // Only compute model transform matrix if we need to update it
+            Matrix4f modelTransform{};
+            if (modelTransformCache.needsUpdate[entityId]) {
+                Vector3f position = ECS::getField_Vector3f(spatial3d, spatial3dInfo,ECS::Spatial3d::FIELD_INDEX_POSITION);
+                Vector3f rotation = ECS::getField_Vector3f(spatial3d, spatial3dInfo,ECS::Spatial3d::FIELD_INDEX_ROTATION);
+                f32 scale = ECS::getField_f32(spatial3d, spatial3dInfo, ECS::Spatial3d::FIELD_INDEX_SCALE);
+                MathUtils::createModelMatrix(position, rotation, scale, modelTransform);
+                modelTransformCache.modelTransforms[entityId] = modelTransform;
+                modelTransformCache.needsUpdate[entityId] = false;
+            } else {
+                modelTransform = modelTransformCache.modelTransforms[entityId];
+            }
 
             const ECS::Component &renderable3d = ECS::getComponent(ecs, entityId, ECS::COMPONENT_TYPE_RENDERABLE_3D);
             const ECS::ComponentInfo &renderable3dInfo = ecs.componentTypesArray[ECS::COMPONENT_TYPE_RENDERABLE_3D];
@@ -142,7 +165,7 @@ void Render::render(RenderState& renderState, const Asset::AssetPack& assetPack,
     MathUtils::glmToMatrix4f(renderState.window.projectionMatrix, projectionMatrix);
     MathUtils::createCameraFrustum(viewMatrix, projectionMatrix, cameraFrustum);
 
-    prepareRenderState(renderState, ecs, cameraFrustum);
+    prepareRenderState(renderState, ecs, assetPack, cameraFrustum);
     LightData& lightData = renderState.lightData;
     EntityAssetGroupTable& entityAssetGroupTable = renderState.entityAssetGroupTable;
 
@@ -189,24 +212,20 @@ void Render::render(RenderState& renderState, const Asset::AssetPack& assetPack,
         for (size_t entityIt = 0; entityIt < numEntitiesInGroup; entityIt++) {
             UUID entityId = entityAssetGroupTable.groupTable[groupIndex * entityAssetGroupTable.maxEntities + entityIt];
 
+            Matrix4f modelTransform = renderState.modelTransformCache.modelTransforms[entityId];
+            {
+                // Transform the mesh AABB into world space
+                const Asset::MeshAsset *meshAsset = assetPack.meshAssets[meshId];
+                Vector3f AABB[2] = { meshAsset->minAABB, meshAsset->maxAABB };
+                MathUtils::transformPoint(AABB[0], modelTransform, AABB[0]);
+                MathUtils::transformPoint(AABB[1], modelTransform, AABB[1]);
+
+            }
+
             ECS::Component& spatial3d = ECS::getComponent(ecs, entityId, ECS::COMPONENT_TYPE_SPATIAL_3D);
             const ECS::ComponentInfo& spatial3dInfo = ecs.componentTypesArray[ECS::COMPONENT_TYPE_SPATIAL_3D];
 
-            // Only compute model matrix if we need to update it
-            Matrix4f modelMatrix{};
-            bool updateModelMatrix = ECS::getField_Boolean(spatial3d, spatial3dInfo, ECS::Spatial3d::FIELD_INDEX_UPDATE_MODEL_MATRIX);
-            if (updateModelMatrix) {
-                Vector3f position = ECS::getField_Vector3f(spatial3d, spatial3dInfo,ECS::Spatial3d::FIELD_INDEX_POSITION);
-                Vector3f rotation = ECS::getField_Vector3f(spatial3d, spatial3dInfo,ECS::Spatial3d::FIELD_INDEX_ROTATION);
-                f32 scale = ECS::getField_f32(spatial3d, spatial3dInfo, ECS::Spatial3d::FIELD_INDEX_SCALE);
-                MathUtils::createModelMatrix(position, rotation, scale, modelMatrix);
-                ECS::setField_Matrix4f(spatial3d, spatial3dInfo, ECS::Spatial3d::FIELD_INDEX_MODEL_MATRIX, modelMatrix);
-                ECS::setField_Boolean(spatial3d, spatial3dInfo, ECS::Spatial3d::FIELD_INDEX_UPDATE_MODEL_MATRIX, false);
-            } else {
-                modelMatrix = ECS::getField_Matrix4f(spatial3d, spatial3dInfo, ECS::Spatial3d::FIELD_INDEX_MODEL_MATRIX);
-            }
-
-            setUniform(shaderAsset, Asset::ShaderUniform::MODEL_MATRIX, modelMatrix);
+            setUniform(shaderAsset, Asset::ShaderUniform::MODEL_MATRIX, modelTransform);
             setUniform(shaderAsset, Asset::ShaderUniform::TEXTURE_ATLAS_OFFSET, calcTextureAtlasOffset(texture->atlasSize, 0));
 
             glDrawElements(GL_TRIANGLES, (i32) mesh->numIndices, GL_UNSIGNED_INT, nullptr);

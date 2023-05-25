@@ -5,6 +5,7 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include <iostream>
+#include <cfloat>
 
 void processMesh(aiMesh* mesh, const aiScene* scene, Asset::MeshAsset* asset) {
     for (ui32 i = 0; i < mesh->mNumVertices; i++) {
@@ -47,14 +48,42 @@ UUID Asset::loadMeshAsset(AssetPack& assetPack, const char* filePath) {
     f32* normals = new f32[normalsBufferSize];
     ui32* indices = new ui32[indicesBufferSize];
 
+    Vector3f minAABB{ FLT_MAX, FLT_MAX, FLT_MAX };
+    Vector3f maxAABB{ FLT_MIN, FLT_MIN, FLT_MIN };
+
     for (ui32 i = 0; i < mesh->mNumVertices; i++) {
+        // Update minAABB
+        if (mesh->mVertices[i].x < minAABB.x) {
+            minAABB.x = mesh->mVertices[i].x;
+        }
+        if (mesh->mVertices[i].y < minAABB.y) {
+            minAABB.y = mesh->mVertices[i].y;
+        }
+        if (mesh->mVertices[i].z < minAABB.z) {
+            minAABB.z = mesh->mVertices[i].z;
+        }
+
+        // Update maxAABB
+        if (mesh->mVertices[i].x > maxAABB.x) {
+            maxAABB.x = mesh->mVertices[i].x;
+        }
+        if (mesh->mVertices[i].y > maxAABB.y) {
+            maxAABB.y = mesh->mVertices[i].y;
+        }
+        if (mesh->mVertices[i].z > maxAABB.z) {
+            maxAABB.z = mesh->mVertices[i].z;
+        }
+
+        // Copy the vertex data
         vertices[i * 3] = mesh->mVertices[i].x;
         vertices[i * 3 + 1] = mesh->mVertices[i].y;
         vertices[i * 3 + 2] = mesh->mVertices[i].z;
 
+        // Copy the texture coordinate data
         texCoords[i * 2] = mesh->mTextureCoords[0][i].x;
         texCoords[i * 2 + 1] = mesh->mTextureCoords[0][i].y;
 
+        // Copy the normal data
         normals[i * 3] = mesh->mNormals[i].x;
         normals[i * 3 + 1] = mesh->mNormals[i].y;
         normals[i * 3 + 2] = mesh->mNormals[i].z;
@@ -107,6 +136,8 @@ UUID Asset::loadMeshAsset(AssetPack& assetPack, const char* filePath) {
     asset->nbo = nbo;
     asset->ibo = ibo;
     asset->numIndices = indicesBufferSize;
+    asset->minAABB = minAABB;
+    asset->maxAABB = maxAABB;
 
     // Add the mesh asset to the asset pack
     UUID assetId = assetPack.nextMeshAssetId;

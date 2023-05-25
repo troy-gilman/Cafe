@@ -17,6 +17,8 @@ namespace Asset {
         ui32 nbo;
         ui32 ibo;
         ui32 numIndices;
+        Vector3f minAABB;
+        Vector3f maxAABB;
     };
 
     struct MaterialAsset {
