@@ -24,26 +24,33 @@ void Trait::handleController1p_Move(ECS::EntityComponentSystem& ecs, const Input
         f32 x = (f32) sin((180 - rotation.y) * M_PI / 180.0f) * adjustedMoveSpeed;
         f32 z = (f32) cos((180 - rotation.y) * M_PI / 180.0f) * adjustedMoveSpeed;
 
-        if (input.keys[GLFW_KEY_W]) {
+        Input::KeyState wKeyState = input.keys[GLFW_KEY_W];
+        Input::KeyState sKeyState = input.keys[GLFW_KEY_S];
+        Input::KeyState aKeyState = input.keys[GLFW_KEY_A];
+        Input::KeyState dKeyState = input.keys[GLFW_KEY_D];
+        Input::KeyState spaceKeyState = input.keys[GLFW_KEY_SPACE];
+        Input::KeyState leftShiftKeyState = input.keys[GLFW_KEY_LEFT_SHIFT];
+
+        if (wKeyState == Input::KeyState::DOWN || wKeyState == Input::KeyState::PRESSED) {
             position.x += -x;
             position.z += -z;
         }
-        if (input.keys[GLFW_KEY_S]) {
+        if (sKeyState == Input::KeyState::DOWN || sKeyState == Input::KeyState::PRESSED) {
             position.x += x;
             position.z += z;
         }
-        if (input.keys[GLFW_KEY_A]) {
+        if (aKeyState == Input::KeyState::DOWN || aKeyState == Input::KeyState::PRESSED) {
             position.x += -z;
             position.z += x;
         }
-        if (input.keys[GLFW_KEY_D]) {
+        if (dKeyState == Input::KeyState::DOWN || dKeyState == Input::KeyState::PRESSED) {
             position.x += z;
             position.z += -x;
         }
-        if (input.keys[GLFW_KEY_SPACE]) {
+        if (spaceKeyState == Input::KeyState::DOWN || spaceKeyState == Input::KeyState::PRESSED) {
             position.y -= adjustedMoveSpeed;
         }
-        if (input.keys[GLFW_KEY_LEFT_SHIFT]) {
+        if (leftShiftKeyState == Input::KeyState::DOWN || leftShiftKeyState == Input::KeyState::PRESSED) {
             position.y += adjustedMoveSpeed;
         }
 

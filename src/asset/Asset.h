@@ -5,6 +5,7 @@
 #include <GLFW/glfw3.h>
 #include "../util/Types.h"
 #include <unordered_map>
+#include "../util/AABBUtils.h"
 
 namespace Asset {
 
@@ -17,8 +18,7 @@ namespace Asset {
         ui32 nbo;
         ui32 ibo;
         ui32 numIndices;
-        Vector3f minAABB;
-        Vector3f maxAABB;
+        AABBUtils::AABB aabb;
     };
 
     struct MaterialAsset {

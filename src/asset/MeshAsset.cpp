@@ -48,30 +48,32 @@ UUID Asset::loadMeshAsset(AssetPack& assetPack, const char* filePath) {
     f32* normals = new f32[normalsBufferSize];
     ui32* indices = new ui32[indicesBufferSize];
 
-    Vector3f minAABB{ FLT_MAX, FLT_MAX, FLT_MAX };
-    Vector3f maxAABB{ FLT_MIN, FLT_MIN, FLT_MIN };
+    AABBUtils::AABB aabb = {
+            Vector3f{FLT_MAX, FLT_MAX, FLT_MAX},
+            Vector3f{FLT_MIN, FLT_MIN, FLT_MIN}
+    };
 
     for (ui32 i = 0; i < mesh->mNumVertices; i++) {
         // Update minAABB
-        if (mesh->mVertices[i].x < minAABB.x) {
-            minAABB.x = mesh->mVertices[i].x;
+        if (mesh->mVertices[i].x < aabb.min.x) {
+            aabb.min.x = mesh->mVertices[i].x;
         }
-        if (mesh->mVertices[i].y < minAABB.y) {
-            minAABB.y = mesh->mVertices[i].y;
+        if (mesh->mVertices[i].y < aabb.min.y) {
+            aabb.min.y = mesh->mVertices[i].y;
         }
-        if (mesh->mVertices[i].z < minAABB.z) {
-            minAABB.z = mesh->mVertices[i].z;
+        if (mesh->mVertices[i].z < aabb.min.z) {
+            aabb.min.z = mesh->mVertices[i].z;
         }
 
         // Update maxAABB
-        if (mesh->mVertices[i].x > maxAABB.x) {
-            maxAABB.x = mesh->mVertices[i].x;
+        if (mesh->mVertices[i].x > aabb.max.x) {
+            aabb.max.x = mesh->mVertices[i].x;
         }
-        if (mesh->mVertices[i].y > maxAABB.y) {
-            maxAABB.y = mesh->mVertices[i].y;
+        if (mesh->mVertices[i].y > aabb.max.y) {
+            aabb.max.y = mesh->mVertices[i].y;
         }
-        if (mesh->mVertices[i].z > maxAABB.z) {
-            maxAABB.z = mesh->mVertices[i].z;
+        if (mesh->mVertices[i].z > aabb.max.z) {
+            aabb.max.z = mesh->mVertices[i].z;
         }
 
         // Copy the vertex data
@@ -127,6 +129,8 @@ UUID Asset::loadMeshAsset(AssetPack& assetPack, const char* filePath) {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, (i64) (indicesBufferSize * sizeof(ui32)), indices, GL_STATIC_DRAW);
 
+    AABBUtils::loadAABBMesh(aabb.min, aabb.max, aabb.mesh);
+
     // Create the mesh asset
     MeshAsset* asset = new MeshAsset();
     StringUtils::copyStringToBuffer(asset->filePath, filePath, CHAR_BUFFER_SIZE);
@@ -136,8 +140,7 @@ UUID Asset::loadMeshAsset(AssetPack& assetPack, const char* filePath) {
     asset->nbo = nbo;
     asset->ibo = ibo;
     asset->numIndices = indicesBufferSize;
-    asset->minAABB = minAABB;
-    asset->maxAABB = maxAABB;
+    asset->aabb = aabb;
 
     // Add the mesh asset to the asset pack
     UUID assetId = assetPack.nextMeshAssetId;

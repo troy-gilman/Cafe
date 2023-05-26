@@ -4,9 +4,11 @@ void initCafe(Cafe::EngineState* engine) {
     Cafe::init(engine);
 
     UUID textureId = Asset::loadTextureAsset(engine->assetPack, "resources/models/tree/tree.png");
-    UUID shaderId = Asset::loadShaderAsset(engine->assetPack, "resources/shaders/mainVertex.glsl", "resources/shaders/mainFragment.glsl");
-    UUID materialId = Asset::loadMaterialAsset(engine->assetPack, shaderId, textureId, 0);
+    UUID objectShaderId = Asset::loadShaderAsset(engine->assetPack, "resources/shaders/object/objectVertex.glsl", "resources/shaders/object/objectFragment.glsl");
+    UUID materialId = Asset::loadMaterialAsset(engine->assetPack, objectShaderId, textureId, 0);
     UUID meshId = Asset::loadMeshAsset(engine->assetPack, "resources/models/tree/tree.obj");
+
+    UUID aabbShaderId = Asset::loadShaderAsset(engine->assetPack, "resources/shaders/aabb/aabbVertex.glsl", "resources/shaders/aabb/aabbFragment.glsl");
 
     {   // Camera
         UUID entityId = ECS::createEntity(engine->ecs);
@@ -35,9 +37,12 @@ void gameLoop(Cafe::EngineState* engine) {
     Input::InputState& input = engine->input;
     while (!Render::shouldCloseWindow(window)) {
         Cafe::update(engine);
-        if (input.keys[GLFW_KEY_ESCAPE]) {
+        if (input.keys[GLFW_KEY_ESCAPE] == Input::KeyState::PRESSED || input.keys[GLFW_KEY_ESCAPE] == Input::KeyState::DOWN) {
             Render::closeWindow(window);
             return;
+        }
+        if (input.keys[GLFW_KEY_RIGHT_SHIFT] == Input::KeyState::DOWN) {
+            engine->renderState.renderAABBs = !engine->renderState.renderAABBs;
         }
         if (input.mouseButtons[GLFW_MOUSE_BUTTON_LEFT]) {
             glfwSetInputMode(window.glfwWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);

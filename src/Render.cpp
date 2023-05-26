@@ -9,6 +9,7 @@ void Render::initRenderState(RenderState& renderState) {
     initEntityAssetGroupTable(renderState.entityAssetGroupTable);
     initModelTransformCache(renderState.modelTransformCache, ECS::MAX_ENTITIES);
     initLightData(renderState.lightData);
+    renderState.renderAABBs = false;
 }
 
 void Render::initModelTransformCache(ModelTransformCache& modelTransformCache, i32 maxEntities) {

@@ -72,6 +72,7 @@ namespace Render {
         EntityAssetGroupTable entityAssetGroupTable;
         ModelTransformCache modelTransformCache;
         LightData lightData;
+        bool renderAABBs;
     };
 
     void initRenderState(RenderState& renderState);

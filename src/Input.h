@@ -21,8 +21,15 @@ namespace Input {
     static void mouseButtonCallback(GLFWwindow* window, i32 button, i32 action, i32 mods);
     static void scrollCallback(GLFWwindow* window, f64 xOffset, f64 yOffset);
 
+    enum KeyState {
+        RELEASED,
+        PRESSED,
+        DOWN,
+        UP
+    };
+
     struct InputState {
-        bool keys[GLFW_KEY_LAST];
+        KeyState keys[GLFW_KEY_LAST];
         bool mouseButtons[GLFW_MOUSE_BUTTON_LAST];
         f64 mouseX;
         f64 mouseY;

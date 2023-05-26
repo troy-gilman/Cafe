@@ -4,6 +4,7 @@
 #include <cstring>
 #include <iostream>
 #include "util/MathUtils.h"
+#include "util/AABBUtils.h"
 
 Vector2f calcTextureAtlasOffset(ui32 atlasSize, ui32 index) {
     if (index == 0) {
@@ -94,6 +95,14 @@ void Render::prepareRenderState(
             UUID meshId = ECS::getField_i32(renderable3d, renderable3dInfo, ECS::Renderable3d::FIELD_INDEX_MESH_ASSET_ID);
             UUID materialId = ECS::getField_i32(renderable3d, renderable3dInfo, ECS::Renderable3d::FIELD_INDEX_MATERIAL_ASSET_ID);
             if (meshId != -1 && materialId != -1) {
+                {
+                    Asset::MeshAsset* meshAsset = assetPack.meshAssets[meshId];
+                    AABBUtils::AABB aabb = meshAsset->aabb;
+                    MathUtils::transformPoint(aabb.min, modelTransform, aabb.min);
+                    MathUtils::transformPoint(aabb.max, modelTransform, aabb.max);
+                    // TODO: Check if AABB is in frustum
+                }
+
                 // Find the asset group for this mesh and material
                 i32 tableIndex = 0;
                 while (tableIndex < entityAssetGroupTable.numGroups) {
@@ -169,15 +178,16 @@ void Render::render(RenderState& renderState, const Asset::AssetPack& assetPack,
     LightData& lightData = renderState.lightData;
     EntityAssetGroupTable& entityAssetGroupTable = renderState.entityAssetGroupTable;
 
-    Asset::ShaderAsset* shaderAsset = assetPack.shaderAssets[0];
-    bindShader(shaderAsset);
-    setUniform(shaderAsset, Asset::ShaderUniform::VIEW_MATRIX, viewMatrix);
-    setUniform(shaderAsset, Asset::ShaderUniform::PROJECTION_MATRIX, renderState.window.projectionMatrix);
-    setUniform(shaderAsset, Asset::ShaderUniform::SKY_COLOR, renderState.window.backgroundColor);
-    setUniform(shaderAsset, Asset::ShaderUniform::LIGHT_POSITIONS, lightData.lightPositions, lightData.numLights);
-    setUniform(shaderAsset, Asset::ShaderUniform::LIGHT_COLORS, lightData.lightColors, lightData.numLights);
-    setUniform(shaderAsset, Asset::ShaderUniform::LIGHT_ATTENUATIONS, lightData.lightAttenuations, lightData.numLights);
-    setUniform(shaderAsset, Asset::ShaderUniform::LIGHT_COUNT, lightData.numLights);
+    // RENDER OBJECTS
+    Asset::ShaderAsset* objectShader = assetPack.shaderAssets[0];
+    bindShader(objectShader);
+    setUniform(objectShader, Asset::ShaderUniform::VIEW_MATRIX, viewMatrix);
+    setUniform(objectShader, Asset::ShaderUniform::PROJECTION_MATRIX, renderState.window.projectionMatrix);
+    setUniform(objectShader, Asset::ShaderUniform::SKY_COLOR, renderState.window.backgroundColor);
+    setUniform(objectShader, Asset::ShaderUniform::LIGHT_POSITIONS, lightData.lightPositions, lightData.numLights);
+    setUniform(objectShader, Asset::ShaderUniform::LIGHT_COLORS, lightData.lightColors, lightData.numLights);
+    setUniform(objectShader, Asset::ShaderUniform::LIGHT_ATTENUATIONS, lightData.lightAttenuations, lightData.numLights);
+    setUniform(objectShader, Asset::ShaderUniform::LIGHT_COUNT, lightData.numLights);
 
     UUID prevMeshId = -1;
     UUID prevMaterialId = -1;
@@ -200,11 +210,11 @@ void Render::render(RenderState& renderState, const Asset::AssetPack& assetPack,
             if (material->hasTransparency) {
                 disableCulling();
             }
-            bindTexture(shaderAsset, texture, Asset::ShaderUniform::TEXTURE_SAMPLER, 0);
-            setUniform(shaderAsset, Asset::ShaderUniform::SHINE_DAMPER, material->shineDamper);
-            setUniform(shaderAsset, Asset::ShaderUniform::REFLECTIVITY, material->reflectivity);
-            setUniform(shaderAsset, Asset::ShaderUniform::USE_FAKE_LIGHTING, material->useFakeLighting);
-            setUniform(shaderAsset, Asset::ShaderUniform::TEXTURE_ATLAS_SIZE, (i32) texture->atlasSize);
+            bindTexture(objectShader, texture, Asset::ShaderUniform::TEXTURE_SAMPLER, 0);
+            setUniform(objectShader, Asset::ShaderUniform::SHINE_DAMPER, material->shineDamper);
+            setUniform(objectShader, Asset::ShaderUniform::REFLECTIVITY, material->reflectivity);
+            setUniform(objectShader, Asset::ShaderUniform::USE_FAKE_LIGHTING, material->useFakeLighting);
+            setUniform(objectShader, Asset::ShaderUniform::TEXTURE_ATLAS_SIZE, (i32) texture->atlasSize);
             prevMaterialId = materialId;
         }
 
@@ -213,20 +223,12 @@ void Render::render(RenderState& renderState, const Asset::AssetPack& assetPack,
             UUID entityId = entityAssetGroupTable.groupTable[groupIndex * entityAssetGroupTable.maxEntities + entityIt];
 
             Matrix4f modelTransform = renderState.modelTransformCache.modelTransforms[entityId];
-            {
-                // Transform the mesh AABB into world space
-                const Asset::MeshAsset *meshAsset = assetPack.meshAssets[meshId];
-                Vector3f AABB[2] = { meshAsset->minAABB, meshAsset->maxAABB };
-                MathUtils::transformPoint(AABB[0], modelTransform, AABB[0]);
-                MathUtils::transformPoint(AABB[1], modelTransform, AABB[1]);
-
-            }
 
             ECS::Component& spatial3d = ECS::getComponent(ecs, entityId, ECS::COMPONENT_TYPE_SPATIAL_3D);
             const ECS::ComponentInfo& spatial3dInfo = ecs.componentTypesArray[ECS::COMPONENT_TYPE_SPATIAL_3D];
 
-            setUniform(shaderAsset, Asset::ShaderUniform::MODEL_MATRIX, modelTransform);
-            setUniform(shaderAsset, Asset::ShaderUniform::TEXTURE_ATLAS_OFFSET, calcTextureAtlasOffset(texture->atlasSize, 0));
+            setUniform(objectShader, Asset::ShaderUniform::MODEL_MATRIX, modelTransform);
+            setUniform(objectShader, Asset::ShaderUniform::TEXTURE_ATLAS_OFFSET, calcTextureAtlasOffset(texture->atlasSize, 0));
 
             glDrawElements(GL_TRIANGLES, (i32) mesh->numIndices, GL_UNSIGNED_INT, nullptr);
         }
@@ -234,6 +236,31 @@ void Render::render(RenderState& renderState, const Asset::AssetPack& assetPack,
     unbindTexture();
     unbindMesh();
     unbindShader();
+
+    if (renderState.renderAABBs) { // RENDER AABBs
+        Asset::ShaderAsset *aabbShader = assetPack.shaderAssets[1];
+        bindShader(aabbShader);
+        setUniform(aabbShader, Asset::ShaderUniform::VIEW_MATRIX, viewMatrix);
+        setUniform(aabbShader, Asset::ShaderUniform::PROJECTION_MATRIX, renderState.window.projectionMatrix);
+        for (i32 i = 0; i < numAssetGroups; i++) {
+            i32 groupIndex = entityAssetGroupTable.renderOrderArray[i];
+            UUID meshId = entityAssetGroupTable.meshIdArray[groupIndex];
+            Asset::MeshAsset *meshAsset = assetPack.meshAssets[meshId];
+            AABBUtils::AABB aabb = meshAsset->aabb;
+            AABBUtils::bindAABBMesh(aabb.mesh);
+            i32 numEntitiesInGroup = entityAssetGroupTable.numEntitiesArray[groupIndex];
+            for (size_t entityIt = 0; entityIt < numEntitiesInGroup; entityIt++) {
+                UUID entityId = entityAssetGroupTable.groupTable[groupIndex * entityAssetGroupTable.maxEntities +
+                                                                 entityIt];
+                Matrix4f modelTransform = renderState.modelTransformCache.modelTransforms[entityId];
+                setUniform(aabbShader, Asset::ShaderUniform::MODEL_MATRIX, modelTransform);
+                glDrawElements(GL_TRIANGLES, (i32) aabb.mesh.numIndices, GL_UNSIGNED_INT, nullptr);
+
+            }
+            AABBUtils::unbindAABBMesh();
+        }
+        unbindShader();
+    }
 
     glfwSwapBuffers(renderState.window.glfwWindow);
     glfwPollEvents();
