@@ -43,6 +43,8 @@ namespace Input {
 
     void initInputState(InputState& state, GLFWwindow* glfwWindow);
     void updateInputState(InputState& state);
+
+    bool isKeyDownOrPressed(KeyState keyState);
 }
 
 #endif // INPUT_H

@@ -1,4 +1,4 @@
-#include "ECS.h"
+#include "EntityComponentSystem.h"
 #include <cstdlib>
 #include <stdexcept>
 #include "util/StringUtils.h"

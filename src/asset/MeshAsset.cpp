@@ -48,7 +48,7 @@ UUID Asset::loadMeshAsset(AssetPack& assetPack, const char* filePath) {
     f32* normals = new f32[normalsBufferSize];
     ui32* indices = new ui32[indicesBufferSize];
 
-    AABBUtils::AABB aabb = {
+    AABB::AABB aabb = {
             Vector3f{FLT_MAX, FLT_MAX, FLT_MAX},
             Vector3f{FLT_MIN, FLT_MIN, FLT_MIN}
     };
@@ -129,7 +129,7 @@ UUID Asset::loadMeshAsset(AssetPack& assetPack, const char* filePath) {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, (i64) (indicesBufferSize * sizeof(ui32)), indices, GL_STATIC_DRAW);
 
-    AABBUtils::loadAABBMesh(aabb.min, aabb.max, aabb.mesh);
+    AABB::loadAABBMesh(aabb.min, aabb.max, aabb.mesh);
 
     // Create the mesh asset
     MeshAsset* asset = new MeshAsset();

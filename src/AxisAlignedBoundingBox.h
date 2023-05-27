@@ -3,9 +3,9 @@
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include "Types.h"
+#include "util/Types.h"
 
-namespace AABBUtils {
+namespace AABB {
 
     struct AABBMesh {
         ui32 vao;

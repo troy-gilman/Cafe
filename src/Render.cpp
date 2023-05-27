@@ -87,6 +87,7 @@ void Render::initWindow(Window& window) {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
+    glfwWindowHint(GLFW_SAMPLES, MSAA_SAMPLES); // Multi-sample anti-aliasing
 
     GLFWwindow* glfwWindow = glfwCreateWindow(INIT_WIDTH, INIT_HEIGHT, WINDOW_TITLE, NULL, NULL);
     if (!glfwWindow) {
@@ -96,6 +97,7 @@ void Render::initWindow(Window& window) {
 
     glfwMakeContextCurrent(glfwWindow);
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_MULTISAMPLE); // MSAA
     glfwSwapInterval(0); // Unlimited FPS
     //glfwSwapInterval(1); // VSync
 

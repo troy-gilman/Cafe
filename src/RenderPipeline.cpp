@@ -4,7 +4,7 @@
 #include <cstring>
 #include <iostream>
 #include "util/MathUtils.h"
-#include "util/AABBUtils.h"
+#include "AxisAlignedBoundingBox.h"
 
 Vector2f calcTextureAtlasOffset(ui32 atlasSize, ui32 index) {
     if (index == 0) {
@@ -97,7 +97,7 @@ void Render::prepareRenderState(
             if (meshId != -1 && materialId != -1) {
                 {
                     Asset::MeshAsset* meshAsset = assetPack.meshAssets[meshId];
-                    AABBUtils::AABB aabb = meshAsset->aabb;
+                    AABB::AABB aabb = meshAsset->aabb;
                     MathUtils::transformPoint(aabb.min, modelTransform, aabb.min);
                     MathUtils::transformPoint(aabb.max, modelTransform, aabb.max);
                     // TODO: Check if AABB is in frustum
@@ -246,8 +246,8 @@ void Render::render(RenderState& renderState, const Asset::AssetPack& assetPack,
             i32 groupIndex = entityAssetGroupTable.renderOrderArray[i];
             UUID meshId = entityAssetGroupTable.meshIdArray[groupIndex];
             Asset::MeshAsset *meshAsset = assetPack.meshAssets[meshId];
-            AABBUtils::AABB aabb = meshAsset->aabb;
-            AABBUtils::bindAABBMesh(aabb.mesh);
+            AABB::AABB aabb = meshAsset->aabb;
+            AABB::bindAABBMesh(aabb.mesh);
             i32 numEntitiesInGroup = entityAssetGroupTable.numEntitiesArray[groupIndex];
             for (size_t entityIt = 0; entityIt < numEntitiesInGroup; entityIt++) {
                 UUID entityId = entityAssetGroupTable.groupTable[groupIndex * entityAssetGroupTable.maxEntities +
@@ -257,7 +257,7 @@ void Render::render(RenderState& renderState, const Asset::AssetPack& assetPack,
                 glDrawElements(GL_TRIANGLES, (i32) aabb.mesh.numIndices, GL_UNSIGNED_INT, nullptr);
 
             }
-            AABBUtils::unbindAABBMesh();
+            AABB::unbindAABBMesh();
         }
         unbindShader();
     }

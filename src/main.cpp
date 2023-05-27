@@ -37,7 +37,7 @@ void gameLoop(Cafe::EngineState* engine) {
     Input::InputState& input = engine->input;
     while (!Render::shouldCloseWindow(window)) {
         Cafe::update(engine);
-        if (input.keys[GLFW_KEY_ESCAPE] == Input::KeyState::PRESSED || input.keys[GLFW_KEY_ESCAPE] == Input::KeyState::DOWN) {
+        if (Input::isKeyDownOrPressed(input.keys[GLFW_KEY_ESCAPE])) {
             Render::closeWindow(window);
             return;
         }

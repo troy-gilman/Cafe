@@ -84,3 +84,7 @@ void Input::updateInputState(InputState& state) {
 
     memcpy(state.mouseButtons, _mouseButtons, sizeof(bool) * GLFW_MOUSE_BUTTON_LAST);
 }
+
+bool Input::isKeyDownOrPressed(KeyState keyState) {
+    return keyState == KeyState::DOWN || keyState == KeyState::PRESSED;
+}

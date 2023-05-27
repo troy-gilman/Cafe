@@ -1,6 +1,6 @@
-#include "AABBUtils.h"
+#include "AxisAlignedBoundingBox.h"
 
-void AABBUtils::loadAABBMesh(const Vector3f& min, const Vector3f& max, AABBMesh& result) {
+void AABB::loadAABBMesh(const Vector3f& min, const Vector3f& max, AABBMesh& result) {
     AABBMeshData meshData{};
     generateAABBMeshData(min, max, 0.02f, meshData);
 
@@ -28,13 +28,13 @@ void AABBUtils::loadAABBMesh(const Vector3f& min, const Vector3f& max, AABBMesh&
     result.numIndices = meshData.indicesCount;
 }
 
-void AABBUtils::bindAABBMesh(const AABBMesh& aabbMesh) {
+void AABB::bindAABBMesh(const AABBMesh& aabbMesh) {
     glBindVertexArray(aabbMesh.vao);
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, aabbMesh.ibo);
 }
 
-void AABBUtils::unbindAABBMesh() {
+void AABB::unbindAABBMesh() {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glDisableVertexAttribArray(0);
     glBindVertexArray(0);
@@ -110,7 +110,7 @@ void generateCuboid(
     indices[indicesStartIndex + 35] = verticesStartIndex + 0;
 }
 
-void AABBUtils::generateAABBMeshData(const Vector3f& min, const Vector3f& max, f32 lineThickness, AABBMeshData& result) {
+void AABB::generateAABBMeshData(const Vector3f& min, const Vector3f& max, f32 lineThickness, AABBMeshData& result) {
     i32 verticesPerCuboid = 8;
     i32 indicesPerCuboid = 36;
     i32 cuboidCount = 12;

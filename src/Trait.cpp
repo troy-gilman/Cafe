@@ -31,26 +31,26 @@ void Trait::handleController1p_Move(ECS::EntityComponentSystem& ecs, const Input
         Input::KeyState spaceKeyState = input.keys[GLFW_KEY_SPACE];
         Input::KeyState leftShiftKeyState = input.keys[GLFW_KEY_LEFT_SHIFT];
 
-        if (wKeyState == Input::KeyState::DOWN || wKeyState == Input::KeyState::PRESSED) {
+        if (Input::isKeyDownOrPressed(wKeyState)) {
             position.x += -x;
             position.z += -z;
         }
-        if (sKeyState == Input::KeyState::DOWN || sKeyState == Input::KeyState::PRESSED) {
+        if (Input::isKeyDownOrPressed(sKeyState)) {
             position.x += x;
             position.z += z;
         }
-        if (aKeyState == Input::KeyState::DOWN || aKeyState == Input::KeyState::PRESSED) {
+        if (Input::isKeyDownOrPressed(aKeyState)) {
             position.x += -z;
             position.z += x;
         }
-        if (dKeyState == Input::KeyState::DOWN || dKeyState == Input::KeyState::PRESSED) {
+        if (Input::isKeyDownOrPressed(dKeyState)) {
             position.x += z;
             position.z += -x;
         }
-        if (spaceKeyState == Input::KeyState::DOWN || spaceKeyState == Input::KeyState::PRESSED) {
+        if (Input::isKeyDownOrPressed(spaceKeyState)) {
             position.y -= adjustedMoveSpeed;
         }
-        if (leftShiftKeyState == Input::KeyState::DOWN || leftShiftKeyState == Input::KeyState::PRESSED) {
+        if (Input::isKeyDownOrPressed(leftShiftKeyState)) {
             position.y += adjustedMoveSpeed;
         }
 

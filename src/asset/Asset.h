@@ -5,7 +5,7 @@
 #include <GLFW/glfw3.h>
 #include "../util/Types.h"
 #include <unordered_map>
-#include "../util/AABBUtils.h"
+#include "../AxisAlignedBoundingBox.h"
 
 namespace Asset {
 
@@ -18,7 +18,7 @@ namespace Asset {
         ui32 nbo;
         ui32 ibo;
         ui32 numIndices;
-        AABBUtils::AABB aabb;
+        AABB::AABB aabb;
     };
 
     struct MaterialAsset {

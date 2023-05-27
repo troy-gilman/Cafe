@@ -3,7 +3,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include "asset/Asset.h"
-#include "ECS.h"
+#include "EntityComponentSystem.h"
 #include <vector>
 #include "glm/glm.hpp"
 #include <chrono>
@@ -17,6 +17,7 @@ namespace Render {
     static const f32 NEAR_PLANE = 0.1f;
     static const f32 FAR_PLANE = 300.0f;
     static const char* WINDOW_TITLE = "Cafe";
+    static const i32 MSAA_SAMPLES = 4;
 
     // GLOBALS
     static i32 _windowWidth;
