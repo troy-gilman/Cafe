@@ -21,49 +21,6 @@ void MathUtils::transformPoint(const Vector3f& point, const Matrix4f& matrix, Ve
     result.z = point.x * matrix.data[0][2] + point.y * matrix.data[1][2] + point.z * matrix.data[2][2] + matrix.data[3][2];
 }
 
-void MathUtils::createCameraFrustum(const Matrix4f& view, const Matrix4f& projection, Frustum& result) {
-    Matrix4f viewProjection{};
-    multiplyMatrix(view, projection, viewProjection);
-
-    result.leftPlane.normal.x = viewProjection.data[0][3] + viewProjection.data[0][0];
-    result.leftPlane.normal.y = viewProjection.data[1][3] + viewProjection.data[1][0];
-    result.leftPlane.normal.z = viewProjection.data[2][3] + viewProjection.data[2][0];
-    result.leftPlane.distance = viewProjection.data[3][3] + viewProjection.data[3][0];
-
-    result.rightPlane.normal.x = viewProjection.data[0][3] - viewProjection.data[0][0];
-    result.rightPlane.normal.y = viewProjection.data[1][3] - viewProjection.data[1][0];
-    result.rightPlane.normal.z = viewProjection.data[2][3] - viewProjection.data[2][0];
-    result.rightPlane.distance = viewProjection.data[3][3] - viewProjection.data[3][0];
-
-    result.bottomPlane.normal.x = viewProjection.data[0][3] + viewProjection.data[0][1];
-    result.bottomPlane.normal.y = viewProjection.data[1][3] + viewProjection.data[1][1];
-    result.bottomPlane.normal.z = viewProjection.data[2][3] + viewProjection.data[2][1];
-    result.bottomPlane.distance = viewProjection.data[3][3] + viewProjection.data[3][1];
-
-    result.topPlane.normal.x = viewProjection.data[0][3] - viewProjection.data[0][1];
-    result.topPlane.normal.y = viewProjection.data[1][3] - viewProjection.data[1][1];
-    result.topPlane.normal.z = viewProjection.data[2][3] - viewProjection.data[2][1];
-    result.topPlane.distance = viewProjection.data[3][3] - viewProjection.data[3][1];
-
-    result.nearPlane.normal.x = viewProjection.data[0][2];
-    result.nearPlane.normal.y = viewProjection.data[1][2];
-    result.nearPlane.normal.z = viewProjection.data[2][2];
-    result.nearPlane.distance = viewProjection.data[3][2];
-
-    result.farPlane.normal.x = viewProjection.data[0][3] - viewProjection.data[0][2];
-    result.farPlane.normal.y = viewProjection.data[1][3] - viewProjection.data[1][2];
-    result.farPlane.normal.z = viewProjection.data[2][3] - viewProjection.data[2][2];
-    result.farPlane.distance = viewProjection.data[3][3] - viewProjection.data[3][2];
-
-    // Normalize the plane coefficients
-    normalizePlane(result.leftPlane);
-    normalizePlane(result.rightPlane);
-    normalizePlane(result.bottomPlane);
-    normalizePlane(result.topPlane);
-    normalizePlane(result.nearPlane);
-    normalizePlane(result.farPlane);
-}
-
 void MathUtils::normalizePlane(Plane& plane) {
     const f32 length = sqrtf(plane.normal.x * plane.normal.x + plane.normal.y * plane.normal.y + plane.normal.z * plane.normal.z);
     plane.normal.x /= length;
@@ -74,24 +31,6 @@ void MathUtils::normalizePlane(Plane& plane) {
 
 f32 MathUtils::distanceToPlane(const Plane& plane, const Vector3f& point) {
     return plane.normal.x * point.x + plane.normal.y * point.y + plane.normal.z * point.z + plane.distance;
-}
-
-bool MathUtils::isPointInFrustum(const Frustum& frustum, const Vector3f& point) {
-    return distanceToPlane(frustum.leftPlane, point) > 0.0f &&
-           distanceToPlane(frustum.rightPlane, point) > 0.0f &&
-           distanceToPlane(frustum.bottomPlane, point) > 0.0f &&
-           distanceToPlane(frustum.topPlane, point) > 0.0f &&
-           distanceToPlane(frustum.nearPlane, point) > 0.0f &&
-           distanceToPlane(frustum.farPlane, point) > 0.0f;
-}
-
-bool MathUtils::isSphereInFrustum(const Frustum& frustum, const Vector3f& center, f32 radius) {
-    return MathUtils::distanceToPlane(frustum.leftPlane, center) >= -radius &&
-            MathUtils::distanceToPlane(frustum.rightPlane, center) >= -radius &&
-            MathUtils::distanceToPlane(frustum.bottomPlane, center) >= -radius &&
-            MathUtils::distanceToPlane(frustum.topPlane, center) >= -radius &&
-            MathUtils::distanceToPlane(frustum.nearPlane, center) >= -radius &&
-            MathUtils::distanceToPlane(frustum.farPlane, center) >= -radius;
 }
 
 void MathUtils::setIdentity(Matrix4f& matrix) {

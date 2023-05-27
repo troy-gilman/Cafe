@@ -1,5 +1,4 @@
 #include "Render.h"
-#include "glm/gtc/matrix_transform.hpp"
 #include "util/ArrayUtils.h"
 #include <cstring>
 #include <iostream>
@@ -19,7 +18,7 @@ void Render::prepareRenderData(
         RenderData& renderData,
         const ECS::EntityComponentSystem& ecs,
         const Asset::AssetPack& assetPack,
-        const Frustum& cameraFrustum) {
+        const Frustum::Frustum& cameraFrustum) {
 
     LightData& lightData = renderData.lightData;
     EntityAssetGroupTable& entityAssetGroupTable = renderData.entityAssetGroupTable;
@@ -50,7 +49,7 @@ void Render::prepareRenderData(
 
         bool hasRenderable3d  = ECS::isComponentActive(ecs, entityId, ECS::COMPONENT_TYPE_RENDERABLE_3D);
         bool hasSpatial3d     = ECS::isComponentActive(ecs, entityId, ECS::COMPONENT_TYPE_SPATIAL_3D);
-        bool hasCamera        = ECS::isComponentActive(ecs, entityId, ECS::COMPONENT_TYPE_CAMERA);
+        //bool hasCamera        = ECS::isComponentActive(ecs, entityId, ECS::COMPONENT_TYPE_CAMERA);
         bool hasLight         = ECS::isComponentActive(ecs, entityId, ECS::COMPONENT_TYPE_LIGHT);
 
         if (lightData.needsUpdate) {
@@ -75,7 +74,7 @@ void Render::prepareRenderData(
             const ECS::Component &spatial3d = ECS::getComponent(ecs, entityId, ECS::COMPONENT_TYPE_SPATIAL_3D);
             const ECS::ComponentInfo &spatial3dInfo = ecs.componentTypesArray[ECS::COMPONENT_TYPE_SPATIAL_3D];
             Vector3f position = ECS::getField_Vector3f(spatial3d, spatial3dInfo,ECS::Spatial3d::FIELD_INDEX_POSITION);
-            if (!MathUtils::isSphereInFrustum(cameraFrustum, position, 5.0f)) continue;
+            if (!Frustum::isSphereInFrustum(cameraFrustum, position, 5.0f)) continue;
 
             // Only compute model transform matrix if we need to update it
             Matrix4f modelTransform{};
@@ -169,10 +168,10 @@ void Render::render(RenderData& renderData, const Asset::AssetPack& assetPack, c
     MathUtils::translateMatrix(viewMatrix, negativePos, viewMatrix);
 
     // CAMERA FRUSTUM
-    Frustum cameraFrustum{};
+    Frustum::Frustum cameraFrustum{};
     Matrix4f projectionMatrix{};
     MathUtils::glmToMatrix4f(renderData.window.projectionMatrix, projectionMatrix);
-    MathUtils::createCameraFrustum(viewMatrix, projectionMatrix, cameraFrustum);
+    Frustum::createCameraFrustum(viewMatrix, projectionMatrix, cameraFrustum);
 
     prepareRenderData(renderData, ecs, assetPack, cameraFrustum);
     LightData& lightData = renderData.lightData;
@@ -209,6 +208,8 @@ void Render::render(RenderData& renderData, const Asset::AssetPack& assetPack, c
         if (materialId != prevMaterialId) {
             if (material->hasTransparency) {
                 disableCulling();
+            } else {
+                enableCulling();
             }
             bindTexture(objectShader, texture, Asset::ShaderUniform::TEXTURE_SAMPLER, 0);
             setUniform(objectShader, Asset::ShaderUniform::SHINE_DAMPER, material->shineDamper);
@@ -238,6 +239,7 @@ void Render::render(RenderData& renderData, const Asset::AssetPack& assetPack, c
     unbindShader();
 
     if (renderData.renderAABBs) { // RENDER AABBs
+        enableCulling();
         Asset::ShaderAsset *aabbShader = assetPack.shaderAssets[1];
         bindShader(aabbShader);
         setUniform(aabbShader, Asset::ShaderUniform::VIEW_MATRIX, viewMatrix);

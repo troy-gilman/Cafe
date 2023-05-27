@@ -31,15 +31,6 @@ struct Plane {
     f32 distance;
 };
 
-struct Frustum {
-    Plane topPlane;
-    Plane bottomPlane;
-    Plane rightPlane;
-    Plane leftPlane;
-    Plane farPlane;
-    Plane nearPlane;
-};
-
 static const ui64 CHAR_BUFFER_SIZE = 64;
 typedef char CharBuffer[CHAR_BUFFER_SIZE];
 
