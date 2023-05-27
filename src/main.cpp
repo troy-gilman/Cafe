@@ -33,8 +33,8 @@ void initCafe(Cafe::EngineState* engine) {
 }
 
 void gameLoop(Cafe::EngineState* engine) {
-    Render::Window& window = engine->renderState.window;
-    Input::InputState& input = engine->input;
+    Render::Window& window = engine->renderData.window;
+    Input::InputData& input = engine->input;
     while (!Render::shouldCloseWindow(window)) {
         Cafe::update(engine);
         if (Input::isKeyDownOrPressed(input.keys[GLFW_KEY_ESCAPE])) {
@@ -42,7 +42,7 @@ void gameLoop(Cafe::EngineState* engine) {
             return;
         }
         if (input.keys[GLFW_KEY_RIGHT_SHIFT] == Input::KeyState::DOWN) {
-            engine->renderState.renderAABBs = !engine->renderState.renderAABBs;
+            engine->renderData.renderAABBs = !engine->renderData.renderAABBs;
         }
         if (input.mouseButtons[GLFW_MOUSE_BUTTON_LEFT]) {
             glfwSetInputMode(window.glfwWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);

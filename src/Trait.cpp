@@ -2,7 +2,7 @@
 
 using namespace Cafe;
 
-void Trait::handleController1p_Move(ECS::EntityComponentSystem& ecs, const Input::InputState& input, f32 lastFrameTimeMs) {
+void Trait::handleController1p_Move(ECS::EntityComponentSystem& ecs, const Input::InputData& input, f32 lastFrameTimeMs) {
     const ECS::ComponentInfo& controller1pInfo = ecs.componentTypesArray[ECS::COMPONENT_TYPE_CONTROLLER_1P];
     const ECS::ComponentInfo& spatial3dInfo = ecs.componentTypesArray[ECS::COMPONENT_TYPE_SPATIAL_3D];
 

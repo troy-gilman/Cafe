@@ -28,7 +28,7 @@ namespace Input {
         UP
     };
 
-    struct InputState {
+    struct InputData {
         KeyState keys[GLFW_KEY_LAST];
         bool mouseButtons[GLFW_MOUSE_BUTTON_LAST];
         f64 mouseX;
@@ -41,8 +41,8 @@ namespace Input {
         f64 oldScrollY;
     };
 
-    void initInputState(InputState& state, GLFWwindow* glfwWindow);
-    void updateInputState(InputState& state);
+    void initInputData(InputData &input, GLFWwindow* glfwWindow);
+    void updateInputData(InputData& input);
 
     bool isKeyDownOrPressed(KeyState keyState);
 }

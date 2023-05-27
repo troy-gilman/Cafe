@@ -68,7 +68,7 @@ namespace Render {
         Vector3f* lightAttenuations;
     };
 
-    struct RenderState {
+    struct RenderData {
         Window window;
         EntityAssetGroupTable entityAssetGroupTable;
         ModelTransformCache modelTransformCache;
@@ -76,12 +76,12 @@ namespace Render {
         bool renderAABBs;
     };
 
-    void initRenderState(RenderState& renderState);
+    void initRenderData(RenderData& renderData);
     void initEntityAssetGroupTable(EntityAssetGroupTable& entityAssetGroupTable);
     void initModelTransformCache(ModelTransformCache& modelTransformCache, i32 maxEntities);
     void initLightData(LightData& lightData);
-    void prepareRenderState(RenderState& renderState, const ECS::EntityComponentSystem& ecs, const Asset::AssetPack& assetPack, const Frustum& cameraFrustum);
-    void render(RenderState& renderState, const Asset::AssetPack& assetPack, const ECS::EntityComponentSystem& ecs);
+    void prepareRenderData(RenderData& renderData, const ECS::EntityComponentSystem& ecs, const Asset::AssetPack& assetPack, const Frustum& cameraFrustum);
+    void render(RenderData& renderData, const Asset::AssetPack& assetPack, const ECS::EntityComponentSystem& ecs);
 
     void initWindow(Window& window);
     void updateWindow(Window& window);

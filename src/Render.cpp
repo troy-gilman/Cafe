@@ -4,12 +4,12 @@
 #include "util/TimeUtils.h"
 #include <cstring>
 
-void Render::initRenderState(RenderState& renderState) {
-    initWindow(renderState.window);
-    initEntityAssetGroupTable(renderState.entityAssetGroupTable);
-    initModelTransformCache(renderState.modelTransformCache, ECS::MAX_ENTITIES);
-    initLightData(renderState.lightData);
-    renderState.renderAABBs = false;
+void Render::initRenderData(RenderData& renderData) {
+    initWindow(renderData.window);
+    initEntityAssetGroupTable(renderData.entityAssetGroupTable);
+    initModelTransformCache(renderData.modelTransformCache, ECS::MAX_ENTITIES);
+    initLightData(renderData.lightData);
+    renderData.renderAABBs = false;
 }
 
 void Render::initModelTransformCache(ModelTransformCache& modelTransformCache, i32 maxEntities) {

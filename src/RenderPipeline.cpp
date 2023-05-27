@@ -15,15 +15,15 @@ Vector2f calcTextureAtlasOffset(ui32 atlasSize, ui32 index) {
     return {(f32) x / (f32) atlasSize, (f32) y / (f32) atlasSize};
 }
 
-void Render::prepareRenderState(
-        RenderState& renderState,
+void Render::prepareRenderData(
+        RenderData& renderData,
         const ECS::EntityComponentSystem& ecs,
         const Asset::AssetPack& assetPack,
         const Frustum& cameraFrustum) {
 
-    LightData& lightData = renderState.lightData;
-    EntityAssetGroupTable& entityAssetGroupTable = renderState.entityAssetGroupTable;
-    ModelTransformCache& modelTransformCache = renderState.modelTransformCache;
+    LightData& lightData = renderData.lightData;
+    EntityAssetGroupTable& entityAssetGroupTable = renderData.entityAssetGroupTable;
+    ModelTransformCache& modelTransformCache = renderData.modelTransformCache;
 
     if (lightData.needsUpdate) {
         // Reset LightData
@@ -143,8 +143,8 @@ void Render::prepareRenderState(
     lightData.needsUpdate = false;
 }
 
-void Render::render(RenderState& renderState, const Asset::AssetPack& assetPack, const ECS::EntityComponentSystem& ecs) {
-    Vector3f backgroundColor = renderState.window.backgroundColor;
+void Render::render(RenderData& renderData, const Asset::AssetPack& assetPack, const ECS::EntityComponentSystem& ecs) {
+    Vector3f backgroundColor = renderData.window.backgroundColor;
     glClearColor(backgroundColor.x, backgroundColor.y, backgroundColor.z, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -171,19 +171,19 @@ void Render::render(RenderState& renderState, const Asset::AssetPack& assetPack,
     // CAMERA FRUSTUM
     Frustum cameraFrustum{};
     Matrix4f projectionMatrix{};
-    MathUtils::glmToMatrix4f(renderState.window.projectionMatrix, projectionMatrix);
+    MathUtils::glmToMatrix4f(renderData.window.projectionMatrix, projectionMatrix);
     MathUtils::createCameraFrustum(viewMatrix, projectionMatrix, cameraFrustum);
 
-    prepareRenderState(renderState, ecs, assetPack, cameraFrustum);
-    LightData& lightData = renderState.lightData;
-    EntityAssetGroupTable& entityAssetGroupTable = renderState.entityAssetGroupTable;
+    prepareRenderData(renderData, ecs, assetPack, cameraFrustum);
+    LightData& lightData = renderData.lightData;
+    EntityAssetGroupTable& entityAssetGroupTable = renderData.entityAssetGroupTable;
 
     // RENDER OBJECTS
     Asset::ShaderAsset* objectShader = assetPack.shaderAssets[0];
     bindShader(objectShader);
     setUniform(objectShader, Asset::ShaderUniform::VIEW_MATRIX, viewMatrix);
-    setUniform(objectShader, Asset::ShaderUniform::PROJECTION_MATRIX, renderState.window.projectionMatrix);
-    setUniform(objectShader, Asset::ShaderUniform::SKY_COLOR, renderState.window.backgroundColor);
+    setUniform(objectShader, Asset::ShaderUniform::PROJECTION_MATRIX, renderData.window.projectionMatrix);
+    setUniform(objectShader, Asset::ShaderUniform::SKY_COLOR, renderData.window.backgroundColor);
     setUniform(objectShader, Asset::ShaderUniform::LIGHT_POSITIONS, lightData.lightPositions, lightData.numLights);
     setUniform(objectShader, Asset::ShaderUniform::LIGHT_COLORS, lightData.lightColors, lightData.numLights);
     setUniform(objectShader, Asset::ShaderUniform::LIGHT_ATTENUATIONS, lightData.lightAttenuations, lightData.numLights);
@@ -222,7 +222,7 @@ void Render::render(RenderState& renderState, const Asset::AssetPack& assetPack,
         for (size_t entityIt = 0; entityIt < numEntitiesInGroup; entityIt++) {
             UUID entityId = entityAssetGroupTable.groupTable[groupIndex * entityAssetGroupTable.maxEntities + entityIt];
 
-            Matrix4f modelTransform = renderState.modelTransformCache.modelTransforms[entityId];
+            Matrix4f modelTransform = renderData.modelTransformCache.modelTransforms[entityId];
 
             ECS::Component& spatial3d = ECS::getComponent(ecs, entityId, ECS::COMPONENT_TYPE_SPATIAL_3D);
             const ECS::ComponentInfo& spatial3dInfo = ecs.componentTypesArray[ECS::COMPONENT_TYPE_SPATIAL_3D];
@@ -237,11 +237,11 @@ void Render::render(RenderState& renderState, const Asset::AssetPack& assetPack,
     unbindMesh();
     unbindShader();
 
-    if (renderState.renderAABBs) { // RENDER AABBs
+    if (renderData.renderAABBs) { // RENDER AABBs
         Asset::ShaderAsset *aabbShader = assetPack.shaderAssets[1];
         bindShader(aabbShader);
         setUniform(aabbShader, Asset::ShaderUniform::VIEW_MATRIX, viewMatrix);
-        setUniform(aabbShader, Asset::ShaderUniform::PROJECTION_MATRIX, renderState.window.projectionMatrix);
+        setUniform(aabbShader, Asset::ShaderUniform::PROJECTION_MATRIX, renderData.window.projectionMatrix);
         for (i32 i = 0; i < numAssetGroups; i++) {
             i32 groupIndex = entityAssetGroupTable.renderOrderArray[i];
             UUID meshId = entityAssetGroupTable.meshIdArray[groupIndex];
@@ -252,7 +252,7 @@ void Render::render(RenderState& renderState, const Asset::AssetPack& assetPack,
             for (size_t entityIt = 0; entityIt < numEntitiesInGroup; entityIt++) {
                 UUID entityId = entityAssetGroupTable.groupTable[groupIndex * entityAssetGroupTable.maxEntities +
                                                                  entityIt];
-                Matrix4f modelTransform = renderState.modelTransformCache.modelTransforms[entityId];
+                Matrix4f modelTransform = renderData.modelTransformCache.modelTransforms[entityId];
                 setUniform(aabbShader, Asset::ShaderUniform::MODEL_MATRIX, modelTransform);
                 glDrawElements(GL_TRIANGLES, (i32) aabb.mesh.numIndices, GL_UNSIGNED_INT, nullptr);
 
@@ -262,6 +262,6 @@ void Render::render(RenderState& renderState, const Asset::AssetPack& assetPack,
         unbindShader();
     }
 
-    glfwSwapBuffers(renderState.window.glfwWindow);
+    glfwSwapBuffers(renderData.window.glfwWindow);
     glfwPollEvents();
 }

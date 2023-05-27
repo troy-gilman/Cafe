@@ -9,8 +9,8 @@ namespace Cafe {
     struct EngineState {
         ECS::EntityComponentSystem ecs;
         Asset::AssetPack assetPack;
-        Render::RenderState renderState;
-        Input::InputState input;
+        Render::RenderData renderData;
+        Input::InputData input;
     };
 
     void init(EngineState* engine);
@@ -19,6 +19,6 @@ namespace Cafe {
     void render(EngineState* engine);
 
     namespace Trait {
-        void handleController1p_Move(ECS::EntityComponentSystem& ecs, const Input::InputState& input, f32 lastFrameTimeMs);
+        void handleController1p_Move(ECS::EntityComponentSystem& ecs, const Input::InputData& input, f32 lastFrameTimeMs);
     }
 };
