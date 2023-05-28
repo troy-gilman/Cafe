@@ -21,18 +21,6 @@ void MathUtils::transformPoint(const Vector3f& point, const Matrix4f& matrix, Ve
     result.z = point.x * matrix.data[0][2] + point.y * matrix.data[1][2] + point.z * matrix.data[2][2] + matrix.data[3][2];
 }
 
-void MathUtils::normalizePlane(Plane& plane) {
-    const f32 length = sqrtf(plane.normal.x * plane.normal.x + plane.normal.y * plane.normal.y + plane.normal.z * plane.normal.z);
-    plane.normal.x /= length;
-    plane.normal.y /= length;
-    plane.normal.z /= length;
-    plane.distance /= length;
-}
-
-f32 MathUtils::distanceToPlane(const Plane& plane, const Vector3f& point) {
-    return plane.normal.x * point.x + plane.normal.y * point.y + plane.normal.z * point.z + plane.distance;
-}
-
 void MathUtils::setIdentity(Matrix4f& matrix) {
     memset(matrix.data, 0, sizeof(matrix.data));
     matrix.data[0][0] = 1.0f;

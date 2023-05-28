@@ -7,7 +7,7 @@
 #include <vector>
 #include "glm/glm.hpp"
 #include <chrono>
-#include "Frustum.h"
+#include "Geometry.h"
 
 namespace Render {
 
@@ -81,7 +81,7 @@ namespace Render {
     void initEntityAssetGroupTable(EntityAssetGroupTable& entityAssetGroupTable);
     void initModelTransformCache(ModelTransformCache& modelTransformCache, i32 maxEntities);
     void initLightData(LightData& lightData);
-    void prepareRenderData(RenderData& renderData, const ECS::EntityComponentSystem& ecs, const Asset::AssetPack& assetPack, const Frustum::Frustum& cameraFrustum);
+    void prepareRenderData(RenderData& renderData, const ECS::EntityComponentSystem& ecs, const Asset::AssetPack& assetPack, const Geometry::Frustum& cameraFrustum);
     void render(RenderData& renderData, const Asset::AssetPack& assetPack, const ECS::EntityComponentSystem& ecs);
 
     void initWindow(Window& window);

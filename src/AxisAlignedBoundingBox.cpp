@@ -1,4 +1,5 @@
 #include "AxisAlignedBoundingBox.h"
+#include "Geometry.h"
 
 void AABB::loadAABBMesh(const Vector3f& min, const Vector3f& max, AABBMesh& result) {
     AABBMeshData meshData{};
@@ -51,68 +52,28 @@ void generateCuboid(
         i32 verticesStartIndex,
         ui32* indices,
         i32 indicesStartIndex) {
-
-    vertices[verticesStartIndex + 0] = {min.x, min.y, min.z};
-    vertices[verticesStartIndex + 1] = {max.x, min.y, min.z};
-    vertices[verticesStartIndex + 2] = {max.x, max.y, min.z};
-    vertices[verticesStartIndex + 3] = {min.x, max.y, min.z};
-    vertices[verticesStartIndex + 4] = {min.x, min.y, max.z};
-    vertices[verticesStartIndex + 5] = {max.x, min.y, max.z};
-    vertices[verticesStartIndex + 6] = {max.x, max.y, max.z};
-    vertices[verticesStartIndex + 7] = {min.x, max.y, max.z};
-
-    // Front face
-    indices[indicesStartIndex + 0] = verticesStartIndex + 2;
-    indices[indicesStartIndex + 1] = verticesStartIndex + 1;
-    indices[indicesStartIndex + 2] = verticesStartIndex + 0;
-    indices[indicesStartIndex + 3] = verticesStartIndex + 2;
-    indices[indicesStartIndex + 4] = verticesStartIndex + 0;
-    indices[indicesStartIndex + 5] = verticesStartIndex + 3;
-
-    // Back face
-    indices[indicesStartIndex + 6] = verticesStartIndex + 4;
-    indices[indicesStartIndex + 7] = verticesStartIndex + 5;
-    indices[indicesStartIndex + 8] = verticesStartIndex + 6;
-    indices[indicesStartIndex + 9] = verticesStartIndex + 7;
-    indices[indicesStartIndex + 10] = verticesStartIndex + 4;
-    indices[indicesStartIndex + 11] = verticesStartIndex + 6;
-
-    // Left face
-    indices[indicesStartIndex + 12] = verticesStartIndex + 4;
-    indices[indicesStartIndex + 13] = verticesStartIndex + 3;
-    indices[indicesStartIndex + 14] = verticesStartIndex + 0;
-    indices[indicesStartIndex + 15] = verticesStartIndex + 3;
-    indices[indicesStartIndex + 16] = verticesStartIndex + 4;
-    indices[indicesStartIndex + 17] = verticesStartIndex + 7;
-
-    // Right face
-    indices[indicesStartIndex + 18] = verticesStartIndex + 1;
-    indices[indicesStartIndex + 19] = verticesStartIndex + 2;
-    indices[indicesStartIndex + 20] = verticesStartIndex + 5;
-    indices[indicesStartIndex + 21] = verticesStartIndex + 6;
-    indices[indicesStartIndex + 22] = verticesStartIndex + 5;
-    indices[indicesStartIndex + 23] = verticesStartIndex + 2;
-
-    // Top face
-    indices[indicesStartIndex + 24] = verticesStartIndex + 3;
-    indices[indicesStartIndex + 25] = verticesStartIndex + 6;
-    indices[indicesStartIndex + 26] = verticesStartIndex + 2;
-    indices[indicesStartIndex + 27] = verticesStartIndex + 3;
-    indices[indicesStartIndex + 28] = verticesStartIndex + 7;
-    indices[indicesStartIndex + 29] = verticesStartIndex + 6;
-
-    // Bottom face
-    indices[indicesStartIndex + 30] = verticesStartIndex + 1;
-    indices[indicesStartIndex + 31] = verticesStartIndex + 5;
-    indices[indicesStartIndex + 32] = verticesStartIndex + 0;
-    indices[indicesStartIndex + 33] = verticesStartIndex + 5;
-    indices[indicesStartIndex + 34] = verticesStartIndex + 4;
-    indices[indicesStartIndex + 35] = verticesStartIndex + 0;
+    Geometry::GeometryMeshData cuboidMeshData{};
+    cuboidMeshData.vertices[0] = {min.x, min.y, min.z};
+    cuboidMeshData.vertices[1] = {max.x, min.y, min.z};
+    cuboidMeshData.vertices[2] = {max.x, max.y, min.z};
+    cuboidMeshData.vertices[3] = {min.x, max.y, min.z};
+    cuboidMeshData.vertices[4] = {min.x, min.y, max.z};
+    cuboidMeshData.vertices[5] = {max.x, min.y, max.z};
+    cuboidMeshData.vertices[6] = {max.x, max.y, max.z};
+    cuboidMeshData.vertices[7] = {min.x, max.y, max.z};
+    Geometry::setupQuadPrismMeshData(cuboidMeshData);
+    Geometry::copyMeshDataWithOffsets(
+            cuboidMeshData.vertices,
+            vertices,
+            verticesStartIndex,
+            cuboidMeshData.indices,
+            indices,
+            indicesStartIndex);
 }
 
 void AABB::generateAABBMeshData(const Vector3f& min, const Vector3f& max, f32 lineThickness, AABBMeshData& result) {
-    i32 verticesPerCuboid = 8;
-    i32 indicesPerCuboid = 36;
+    i32 verticesPerCuboid = Geometry::QUAD_PRISM_MESH_NUM_VERTICES;
+    i32 indicesPerCuboid = Geometry::QUAD_PRISM_MESH_NUM_INDICES;
     i32 cuboidCount = 12;
 
     result.verticesCount = verticesPerCuboid * cuboidCount;

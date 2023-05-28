@@ -18,7 +18,7 @@ void Render::prepareRenderData(
         RenderData& renderData,
         const ECS::EntityComponentSystem& ecs,
         const Asset::AssetPack& assetPack,
-        const Frustum::Frustum& cameraFrustum) {
+        const Geometry::Frustum& cameraFrustum) {
 
     LightData& lightData = renderData.lightData;
     EntityAssetGroupTable& entityAssetGroupTable = renderData.entityAssetGroupTable;
@@ -74,7 +74,7 @@ void Render::prepareRenderData(
             const ECS::Component &spatial3d = ECS::getComponent(ecs, entityId, ECS::COMPONENT_TYPE_SPATIAL_3D);
             const ECS::ComponentInfo &spatial3dInfo = ecs.componentTypesArray[ECS::COMPONENT_TYPE_SPATIAL_3D];
             Vector3f position = ECS::getField_Vector3f(spatial3d, spatial3dInfo,ECS::Spatial3d::FIELD_INDEX_POSITION);
-            if (!Frustum::isSphereInFrustum(cameraFrustum, position, 5.0f)) continue;
+            if (!Geometry::isSphereInFrustum(cameraFrustum, position, 5.0f)) continue;
 
             // Only compute model transform matrix if we need to update it
             Matrix4f modelTransform{};
@@ -168,10 +168,10 @@ void Render::render(RenderData& renderData, const Asset::AssetPack& assetPack, c
     MathUtils::translateMatrix(viewMatrix, negativePos, viewMatrix);
 
     // CAMERA FRUSTUM
-    Frustum::Frustum cameraFrustum{};
+    Geometry::Frustum cameraFrustum{};
     Matrix4f projectionMatrix{};
     MathUtils::glmToMatrix4f(renderData.window.projectionMatrix, projectionMatrix);
-    Frustum::createCameraFrustum(viewMatrix, projectionMatrix, cameraFrustum);
+    Geometry::createFrustum(viewMatrix, projectionMatrix, cameraFrustum);
 
     prepareRenderData(renderData, ecs, assetPack, cameraFrustum);
     LightData& lightData = renderData.lightData;
