@@ -129,7 +129,9 @@ UUID Asset::loadMeshAsset(AssetPack& assetPack, const char* filePath) {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, (i64) (indicesBufferSize * sizeof(ui32)), indices, GL_STATIC_DRAW);
 
-    Geometry::loadAABBMesh(aabb, 0.02f);
+    Geometry::GeometryMeshData aabbMeshData {};
+    Geometry::loadAABBMeshData(aabb, aabbMeshData);
+    Geometry::loadMesh(aabbMeshData, aabb.mesh);
 
     // Create the mesh asset
     MeshAsset* asset = new MeshAsset();

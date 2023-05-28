@@ -167,11 +167,13 @@ void Render::render(RenderData& renderData, const Asset::AssetPack& assetPack, c
     MathUtils::translateMatrix(viewMatrix, negativePos, viewMatrix);
 
     // CAMERA FRUSTUM
-    Geometry::Frustum cameraFrustum{};
+    Geometry::Frustum cameraFrustum {};
+    Geometry::GeometryMeshData frustumMeshData {};
     Matrix4f projectionMatrix{};
     MathUtils::glmToMatrix4f(renderData.window.projectionMatrix, projectionMatrix);
     Geometry::createFrustum(viewMatrix, projectionMatrix, cameraFrustum);
-    Geometry::loadFrustumMesh(cameraFrustum);
+    Geometry::loadFrustumMeshData(cameraFrustum, frustumMeshData);
+    // TODO: set frustum mesh data and render
 
     prepareRenderData(renderData, ecs, assetPack, cameraFrustum);
     LightData& lightData = renderData.lightData;

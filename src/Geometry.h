@@ -34,7 +34,18 @@ namespace Geometry {
     static const ui32 QUAD_PRISM_MESH_NUM_FACES = 6;
     static const ui32 QUAD_PRISM_MESH_NUM_EDGES = 12;
 
+    struct QuadPrism {
+        Vector3f p0;
+        Vector3f p1;
+        Vector3f p2;
+        Vector3f p3;
+        Vector3f p4;
+        Vector3f p5;
+        Vector3f p6;
+        Vector3f p7;
+    };
 
+    void initWireframeMeshData(QuadPrism& quadPrism, f32 lineThickness, GeometryMeshData& result);
     void initQuadPrismMeshData(const Vector3f& min, const Vector3f& max, GeometryMeshData& result);
     void initQuadPrismMeshDataIndices(GeometryMeshData& result);
     void copyMeshDataWithOffsets(const Vector3f* srcVertices, Vector3f* destVertices, ui32 vertexOffset, const ui32* srcIndices, ui32* destIndices, ui32 indexOffset);
@@ -61,7 +72,7 @@ namespace Geometry {
     };
 
     void createFrustum(const Matrix4f& view, const Matrix4f& projection, Frustum& result);
-    void loadFrustumMesh(const Frustum& frustum);
+    void loadFrustumMeshData(const Frustum& frustum, GeometryMeshData& result);
     bool isPointInFrustum(const Frustum& frustum, const Vector3f& point);
     bool isSphereInFrustum(const Frustum& frustum, const Vector3f& center, f32 radius);
 
@@ -73,7 +84,7 @@ namespace Geometry {
         GeometryMesh mesh;
     };
 
-    void loadAABBMesh(AABB& aabb, f32 lineThickness);
+    void loadAABBMeshData(const AABB& aabb, GeometryMeshData& result);
 
 }
 
