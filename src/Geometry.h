@@ -1,12 +1,14 @@
 #ifndef GEOMETRY_H
 #define GEOMETRY_H
 
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
 #include "util/Types.h"
 
 namespace Geometry {
 
     static const ui32 MAX_MESH_NUM_VERTICES = 100;
-    static const ui32 MAX_MESH_NUM_INDICES = 100;
+    static const ui32 MAX_MESH_NUM_INDICES = 500;
 
     struct GeometryMeshData {
         Vector3f vertices[MAX_MESH_NUM_VERTICES];
@@ -22,13 +24,19 @@ namespace Geometry {
         ui32 numIndices;
     };
 
+    void loadMesh(const GeometryMeshData& meshData, GeometryMesh& result);
+    void bindMesh(const GeometryMesh& mesh);
+    void unbindMesh();
+
     // QUAD PRISM
     static const ui32 QUAD_PRISM_MESH_NUM_VERTICES = 8;
     static const ui32 QUAD_PRISM_MESH_NUM_INDICES = 36;
     static const ui32 QUAD_PRISM_MESH_NUM_FACES = 6;
     static const ui32 QUAD_PRISM_MESH_NUM_EDGES = 12;
 
-    void setupQuadPrismMeshData(GeometryMeshData& result);
+
+    void initQuadPrismMeshData(const Vector3f& min, const Vector3f& max, GeometryMeshData& result);
+    void initQuadPrismMeshDataIndices(GeometryMeshData& result);
     void copyMeshDataWithOffsets(const Vector3f* srcVertices, Vector3f* destVertices, ui32 vertexOffset, const ui32* srcIndices, ui32* destIndices, ui32 indexOffset);
 
     // PLANE
@@ -53,10 +61,19 @@ namespace Geometry {
     };
 
     void createFrustum(const Matrix4f& view, const Matrix4f& projection, Frustum& result);
-    void getFrustumPoints(const Frustum& frustum, Vector3f* result);
     void loadFrustumMesh(const Frustum& frustum);
     bool isPointInFrustum(const Frustum& frustum, const Vector3f& point);
     bool isSphereInFrustum(const Frustum& frustum, const Vector3f& center, f32 radius);
+
+
+    // AABB
+    struct AABB {
+        Vector3f min;
+        Vector3f max;
+        GeometryMesh mesh;
+    };
+
+    void loadAABBMesh(AABB& aabb, f32 lineThickness);
 
 }
 

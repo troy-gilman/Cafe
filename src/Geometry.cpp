@@ -1,7 +1,55 @@
 #include "Geometry.h"
 #include "util/MathUtils.h"
 
-void Geometry::setupQuadPrismMeshData(GeometryMeshData& result) {
+void Geometry::loadMesh(const GeometryMeshData& meshData, GeometryMesh& result) {
+    ui32 vao;
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+
+    ui32 vbo;
+    glGenBuffers(1, &vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, (i64) (meshData.numVertices * sizeof(Vector3f)), meshData.vertices, GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+
+    ui32 ibo;
+    glGenBuffers(1, &ibo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, (i64) (meshData.numIndices * sizeof(ui32)), meshData.indices, GL_STATIC_DRAW);
+
+    result.vao = vao;
+    result.vbo = vbo;
+    result.ibo = ibo;
+    result.numIndices = meshData.numIndices;
+}
+
+void Geometry::bindMesh(const GeometryMesh& mesh) {
+    glBindVertexArray(mesh.vao);
+    glEnableVertexAttribArray(0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.ibo);
+}
+
+void Geometry::unbindMesh() {
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    glDisableVertexAttribArray(0);
+    glBindVertexArray(0);
+}
+
+void Geometry::initQuadPrismMeshData(const Vector3f& min, const Vector3f& max, GeometryMeshData& result)  {
+    result.numVertices = QUAD_PRISM_MESH_NUM_VERTICES;
+    result.vertices[0] = {min.x, min.y, min.z};
+    result.vertices[1] = {max.x, min.y, min.z};
+    result.vertices[2] = {max.x, max.y, min.z};
+    result.vertices[3] = {min.x, max.y, min.z};
+    result.vertices[4] = {min.x, min.y, max.z};
+    result.vertices[5] = {max.x, min.y, max.z};
+    result.vertices[6] = {max.x, max.y, max.z};
+    result.vertices[7] = {min.x, max.y, max.z};
+    Geometry::initQuadPrismMeshDataIndices(result);
+}
+
+void Geometry::initQuadPrismMeshDataIndices(GeometryMeshData& result) {
+    result.numIndices = QUAD_PRISM_MESH_NUM_INDICES;
     // Front face
     result.indices[0] = 2;
     result.indices[1] = 1;
@@ -135,11 +183,10 @@ void Geometry::createFrustum(const Matrix4f& view, const Matrix4f& projection, F
     normalizePlane(result.topPlane);
     normalizePlane(result.nearPlane);
     normalizePlane(result.farPlane);
-
-    loadFrustumMesh(result);
 }
 
-void Geometry::getFrustumPoints(const Frustum& frustum, Vector3f* result) {
+void Geometry::loadFrustumMesh(const Frustum &frustum) {
+    Geometry::GeometryMeshData frustumMeshData{};
     Vector3f ntl, ntr, nbl, nbr, ftl, ftr, fbl, fbr;
 
     // Near plane
@@ -154,21 +201,17 @@ void Geometry::getFrustumPoints(const Frustum& frustum, Vector3f* result) {
     getPlaneIntersection(frustum.leftPlane, frustum.bottomPlane, frustum.farPlane, fbl);
     getPlaneIntersection(frustum.rightPlane, frustum.bottomPlane, frustum.farPlane, fbr);
 
-    // Store the points in the result array
-    result[0] = ntl;
-    result[1] = ntr;
-    result[2] = nbl;
-    result[3] = nbr;
-    result[4] = ftl;
-    result[5] = ftr;
-    result[6] = fbl;
-    result[7] = fbr;
-}
+    // Store the points in the vertices array
+    frustumMeshData.vertices[0] = ntl;
+    frustumMeshData.vertices[1] = ntr;
+    frustumMeshData.vertices[2] = nbl;
+    frustumMeshData.vertices[3] = nbr;
+    frustumMeshData.vertices[4] = ftl;
+    frustumMeshData.vertices[5] = ftr;
+    frustumMeshData.vertices[6] = fbl;
+    frustumMeshData.vertices[7] = fbr;
 
-void Geometry::loadFrustumMesh(const Frustum &frustum) {
-    Geometry::GeometryMeshData frustumMeshData{};
-    getFrustumPoints(frustum, frustumMeshData.vertices);
-    Geometry::setupQuadPrismMeshData(frustumMeshData);
+    Geometry::initQuadPrismMeshDataIndices(frustumMeshData);
     // TODO: Create a mesh from the prismMeshData
 }
 
@@ -188,4 +231,81 @@ bool Geometry::isSphereInFrustum(const Frustum& frustum, const Vector3f& center,
            distanceToPlane(frustum.topPlane, center) >= -radius &&
            distanceToPlane(frustum.nearPlane, center) >= -radius &&
            distanceToPlane(frustum.farPlane, center) >= -radius;
+}
+
+void Geometry::loadAABBMesh(AABB& aabb, f32 lineThickness) {
+    Geometry::GeometryMeshData aabbMeshData{};
+    const Vector3f& min = aabb.min;
+    const Vector3f& max = aabb.max;
+
+    i32 verticesPerCuboid = Geometry::QUAD_PRISM_MESH_NUM_VERTICES;
+    i32 indicesPerCuboid = Geometry::QUAD_PRISM_MESH_NUM_INDICES;
+    i32 cuboidCount = 12;
+
+    aabbMeshData.numVertices = verticesPerCuboid * cuboidCount;
+    aabbMeshData.numIndices = indicesPerCuboid * cuboidCount;
+
+    GeometryMeshData lineMeshData{};
+
+    // VERTICAL LINES BEGIN
+    initQuadPrismMeshData({min.x, min.y, min.z}, {min.x + lineThickness, max.y, min.z + lineThickness}, lineMeshData);
+    copyMeshDataWithOffsets(lineMeshData.vertices, aabbMeshData.vertices, 0, lineMeshData.indices, aabbMeshData.indices, 0);
+
+    initQuadPrismMeshData({max.x - lineThickness, min.y, max.z - lineThickness}, {max.x, max.y, max.z}, lineMeshData);
+    copyMeshDataWithOffsets(lineMeshData.vertices, aabbMeshData.vertices, verticesPerCuboid, lineMeshData.indices, aabbMeshData.indices, indicesPerCuboid);
+
+    initQuadPrismMeshData({max.x - lineThickness, min.y, min.z + lineThickness}, {max.x, max.y, min.z}, lineMeshData);
+    copyMeshDataWithOffsets(lineMeshData.vertices, aabbMeshData.vertices, 2*verticesPerCuboid, lineMeshData.indices, aabbMeshData.indices, 2*indicesPerCuboid);
+
+    initQuadPrismMeshData({min.x + lineThickness, min.y, max.z - lineThickness}, {min.x, max.y, max.z}, lineMeshData);
+    copyMeshDataWithOffsets(lineMeshData.vertices, aabbMeshData.vertices, 3*verticesPerCuboid, lineMeshData.indices, aabbMeshData.indices, 3*indicesPerCuboid);
+    // VERTICAL LINES END
+
+    // BOTTOM HORIZONTAL LINES BEGIN
+    initQuadPrismMeshData({min.x, min.y, min.z}, {min.x + lineThickness, min.y + lineThickness, max.z}, lineMeshData);
+    copyMeshDataWithOffsets(lineMeshData.vertices, aabbMeshData.vertices, 4*verticesPerCuboid, lineMeshData.indices, aabbMeshData.indices, 4*indicesPerCuboid);
+
+    initQuadPrismMeshData({min.x + lineThickness, min.y, min.z}, {max.x - lineThickness, min.y + lineThickness, min.z + lineThickness}, lineMeshData);
+    copyMeshDataWithOffsets(lineMeshData.vertices, aabbMeshData.vertices, 5*verticesPerCuboid, lineMeshData.indices, aabbMeshData.indices, 5*indicesPerCuboid);
+
+    initQuadPrismMeshData({min.x + lineThickness, min.y, min.z}, {max.x - lineThickness, min.y + lineThickness, min.z + lineThickness}, lineMeshData);
+    copyMeshDataWithOffsets(lineMeshData.vertices, aabbMeshData.vertices, 6*verticesPerCuboid, lineMeshData.indices, aabbMeshData.indices, 6*indicesPerCuboid);
+
+    initQuadPrismMeshData({min.x + lineThickness, min.y, max.z - lineThickness}, {max.x - lineThickness, min.y + lineThickness, max.z}, lineMeshData);
+    copyMeshDataWithOffsets(lineMeshData.vertices, aabbMeshData.vertices, 7*verticesPerCuboid, lineMeshData.indices, aabbMeshData.indices, 7*indicesPerCuboid);
+    // BOTTOM HORIZONTAL LINES END
+
+    // TOP HORIZONTAL LINES BEGIN
+    initQuadPrismMeshData({min.x, max.y - lineThickness, min.z}, {min.x + lineThickness, max.y, max.z}, lineMeshData);
+    copyMeshDataWithOffsets(lineMeshData.vertices, aabbMeshData.vertices, 8*verticesPerCuboid, lineMeshData.indices, aabbMeshData.indices, 8*indicesPerCuboid);
+
+    initQuadPrismMeshData({max.x - lineThickness, max.y - lineThickness, min.z}, {max.x, max.y, max.z}, lineMeshData);
+    copyMeshDataWithOffsets(lineMeshData.vertices, aabbMeshData.vertices, 9*verticesPerCuboid, lineMeshData.indices, aabbMeshData.indices, 9*indicesPerCuboid);
+
+    initQuadPrismMeshData({min.x + lineThickness, max.y - lineThickness, min.z}, {max.x - lineThickness, max.y, min.z + lineThickness}, lineMeshData);
+    copyMeshDataWithOffsets(lineMeshData.vertices, aabbMeshData.vertices, 10*verticesPerCuboid, lineMeshData.indices, aabbMeshData.indices, 10*indicesPerCuboid);
+
+    initQuadPrismMeshData({min.x + lineThickness, max.y - lineThickness, max.z - lineThickness}, {max.x - lineThickness, max.y, max.z}, lineMeshData);
+    copyMeshDataWithOffsets(lineMeshData.vertices, aabbMeshData.vertices, 11*verticesPerCuboid, lineMeshData.indices, aabbMeshData.indices, 11*indicesPerCuboid);
+    // TOP HORIZONTAL LINES END
+
+    loadMesh(aabbMeshData, aabb.mesh);
+
+//    // Vertical lines
+//    generateCuboid({min.x, min.y, min.z}, {min.x + lineThickness, max.y, min.z + lineThickness}, vertices, 0, indices, 0);
+//    generateCuboid({max.x - lineThickness, min.y, max.z - lineThickness}, {max.x, max.y, max.z}, vertices, verticesPerCuboid, indices, indicesPerCuboid);
+//    generateCuboid({max.x - lineThickness, min.y, min.z + lineThickness}, {max.x, max.y, min.z}, vertices, 2*verticesPerCuboid, indices, 2*indicesPerCuboid);
+//    generateCuboid({min.x + lineThickness, min.y, max.z - lineThickness}, {min.x, max.y, max.z}, vertices, 3*verticesPerCuboid, indices, 3*indicesPerCuboid);
+//
+//    // Horizontal lines on the bottom
+//    generateCuboid({min.x, min.y, min.z}, {min.x + lineThickness, min.y + lineThickness, max.z}, vertices, 4*verticesPerCuboid, indices, 4*indicesPerCuboid);
+//    generateCuboid({max.x - lineThickness, min.y, min.z}, {max.x, min.y + lineThickness, max.z}, vertices, 5*verticesPerCuboid, indices, 5*indicesPerCuboid);
+//    generateCuboid({min.x + lineThickness, min.y, min.z}, {max.x - lineThickness, min.y + lineThickness, min.z + lineThickness}, vertices, 6*verticesPerCuboid, indices, 6*indicesPerCuboid);
+//    generateCuboid({min.x + lineThickness, min.y, max.z - lineThickness}, {max.x - lineThickness, min.y + lineThickness, max.z}, vertices, 7*verticesPerCuboid, indices, 7*indicesPerCuboid);
+//
+//    // Horizontal lines on the top
+//    generateCuboid({min.x, max.y - lineThickness, min.z}, {min.x + lineThickness, max.y, max.z}, result.vertices, 8*verticesPerCuboid, result.indices, 8*indicesPerCuboid);
+//    generateCuboid({max.x - lineThickness, max.y - lineThickness, min.z}, {max.x, max.y, max.z}, result.vertices, 9*verticesPerCuboid, result.indices, 9*indicesPerCuboid);
+//    generateCuboid({min.x + lineThickness, max.y - lineThickness, min.z}, {max.x - lineThickness, max.y, min.z + lineThickness}, result.vertices, 10*verticesPerCuboid, result.indices, 10*indicesPerCuboid);
+//    generateCuboid({min.x + lineThickness, max.y - lineThickness, max.z - lineThickness}, {max.x - lineThickness, max.y, max.z}, result.vertices, 11*verticesPerCuboid, result.indices, 11*indicesPerCuboid);
 }
